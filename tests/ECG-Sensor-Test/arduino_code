@@ -1,0 +1,58 @@
+/*
+ * AD8232 ECG Real-time Monitor
+ * Reads ECG data and streams via Serial at 250Hz
+ * 
+ * Connections:
+ * AD8232 OUTPUT -> Arduino A0
+ * AD8232 LO+ -> Arduino D10
+ * AD8232 LO- -> Arduino D11
+ * AD8232 3.3V -> Arduino 3.3V
+ * AD8232 GND -> Arduino GND
+ */
+
+const int ECG_PIN = A0;      // ECG output pin
+const int LO_PLUS = 10;      // Leads-off detection +
+const int LO_MINUS = 11;     // Leads-off detection -
+
+const int SAMPLE_RATE = 250; // Hz (matches your FS_SENSOR)
+const unsigned long SAMPLE_INTERVAL = 1000000 / SAMPLE_RATE; // microseconds
+
+unsigned long lastSampleTime = 0;
+
+void setup() {
+  Serial.begin(115200);  // High baud rate for fast data transfer
+  
+  pinMode(LO_PLUS, INPUT);
+  pinMode(LO_MINUS, INPUT);
+  
+  // Wait for serial connection
+  while (!Serial) {
+    ; 
+  }
+  
+  Serial.println("ECG_MONITOR_READY");
+  delay(100);
+}
+
+void loop() {
+  unsigned long currentTime = micros();
+  
+  // Sample at exactly SAMPLE_RATE Hz
+  if (currentTime - lastSampleTime >= SAMPLE_INTERVAL) {
+    lastSampleTime = currentTime;
+    
+    // Check if leads are properly connected
+    if ((digitalRead(LO_PLUS) == 1) || (digitalRead(LO_MINUS) == 1)) {
+      // Leads off - send error code
+      Serial.println("LEADS_OFF");
+    } else {
+      // Read ECG value (0-1023 for 10-bit ADC)
+      int ecgValue = analogRead(ECG_PIN);
+      
+      // Send raw value with timestamp
+      Serial.print(currentTime);
+      Serial.print(",");
+      Serial.println(ecgValue);
+    }
+  }
+}
