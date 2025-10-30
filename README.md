@@ -129,8 +129,8 @@ To revolutionize patient care through **intelligent automation**, **predictive a
 
 
 **Institution:**  
-Department of Computer Science  
-*[Your University Name]*
+Computing School (Computer Science)
+*IIT (Informatics Institute Of Technology)*
 
 ---
 
