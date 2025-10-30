@@ -599,7 +599,7 @@ def main():
 
     # Load best model
     model = tf.keras.models.load_model(ckpt_path)
-
+    
     # Evaluate
     print("\n" + "="*80)
     print("VALIDATION RESULTS:")
