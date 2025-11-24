@@ -120,10 +120,10 @@ To revolutionize patient care through **intelligent automation**, **predictive a
 
 ## 👥 Team
 
-**Development Team:**  
-- **Wooshan Gamage**
-- **Rivindu Ashinsa**
+**Development Team:** 
 - **Wathsala Dewmina**
+- **Rivindu Ashinsa** 
+- **Wooshan Gamage**
 - **Dulina Samarathunga**
 - **Lakidu Minosha**
 
