@@ -1,11 +1,38 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, User } from 'lucide-react'
 import { authService } from '../services/api'
+import TopBar from '../components/TopBar'
+import Sidebar from '../components/Sidebar'
+import StatsSection from '../components/dashboard/StatsSection'
+import AlertsPanel from '../components/dashboard/AlertsPanel'
+import ActivityFeed from '../components/dashboard/ActivityFeed'
+import TasksPanel from '../components/dashboard/TasksPanel'
+import VitalsTrends from '../components/dashboard/VitalsTrends'
 
 const DoctorDashboard = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [patients] = useState([
+    { name: 'Wathsala Dewmina', room: 'Room No. 302A', condition: 'Low O2', severity: 'low', time: '2 sec ago' },
+    { name: 'Wooshan Gamage', room: 'Room No. 108C', condition: 'High HR', severity: 'high', time: '1 mins ago' },
+    { name: 'Rivindu Ashinsa', room: 'Ward 3 2A', condition: 'Low O2', severity: 'high', time: '2 mins ago' },
+    { name: 'Robert Key', room: 'Room No. 152B', condition: 'Low BP', severity: 'medium', time: '5 mins ago' },
+    { name: 'Lakindu Minosha', room: 'Ward 1 10C', condition: 'High HR', severity: 'medium', time: '5 mins ago' },
+    { name: 'Ben Southern', room: 'Room No. 311B', condition: 'High HR', severity: 'medium', time: '9 mins ago' },
+  ])
+  const [alerts] = useState(
+    patients.map((p) => ({ patient: p.name, room: p.room, condition: p.condition, severity: p.severity, time: p.time }))
+  )
+  const [activity] = useState([
+    { title: 'Prescription approved for Emma Davis', author: 'Dr. Sarah Smith', time: '15 mins ago' },
+    { title: 'Vitals updated for Wooshan - BP: 120/80', author: 'Nurse Teneesha', time: 'Today at 2:30 PM' },
+    { title: 'New patient admitted - Room 405B', author: 'Staff Garcia', time: 'Oct 29, 2025 - 10:45 AM' },
+  ])
+  const [tasks] = useState([
+    { title: 'Review lab results - Michael Chen', when: 'HIGH Due in 30 mins', priority: 'HIGH' },
+    { title: 'Schedule follow-up - Emma Davis', when: 'MEDIUM Due in 2 hours', priority: 'MEDIUM' },
+    { title: 'Update treatment plan - James W.', when: 'LOW Due in 4 hours', priority: 'LOW' },
+  ])
 
   useEffect(() => {
     const userData = authService.getCurrentUser()
@@ -18,52 +45,31 @@ const DoctorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img src="/favicon.png" alt="CognivusLabs" className="w-10 h-10" />
-              <div>
-                <h1 className="text-base font-display font-semibold text-gray-900">
-                  COGNIVUSLABS
-                </h1>
-                <p className="text-xs text-gray-500">Doctor Dashboard</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
 
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 rounded-lg">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-700 font-medium">
-                  Dr. {user?.full_name || 'Loading...'}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <div className="flex">
+        <Sidebar onLogout={handleLogout} />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-          <h2 className="text-2xl font-display font-semibold text-gray-900 mb-3">
-            Welcome to Your Dashboard
-          </h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Your professional doctor dashboard is under construction. Patient monitoring,
-            AI predictions, and real-time alerts will be available here.
-          </p>
-        </div>
-      </main>
+        <main className="flex-1 p-6">
+          {/* KPI Cards */}
+          <StatsSection />
+
+          {/* Alerts */}
+          <section className="mt-6">
+            <AlertsPanel alerts={alerts} />
+          </section>
+
+          {/* Bottom grid */}
+          <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-6 lg:col-span-2">
+              <ActivityFeed items={activity} />
+              <TasksPanel tasks={tasks} />
+            </div>
+            <VitalsTrends />
+          </section>
+        </main>
+      </div>
     </div>
   )
 }

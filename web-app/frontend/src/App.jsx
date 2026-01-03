@@ -3,6 +3,13 @@ import DoctorLogin from './pages/DoctorLogin'
 import StaffLogin from './pages/StaffLogin'
 import DoctorDashboard from './pages/DoctorDashboard'
 import StaffDashboard from './pages/StaffDashboard'
+import PatientsPage from './pages/PatientsPage'
+import PatientDetail from './pages/PatientDetail'
+import PrescriptionsPage from './pages/PrescriptionsPage'
+import AIInsightsPage from './pages/AIInsightsPage'
+import TelemedicinePage from './pages/TelemedicinePage'
+import NotesReportsPage from './pages/NotesReportsPage'
+import DeviceManagementPage from './pages/DeviceManagementPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -18,6 +25,62 @@ function App() {
           element={
             <ProtectedRoute role="doctor">
               <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patients"
+          element={
+            <ProtectedRoute role="doctor">
+              <PatientsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patients/:patientId"
+          element={
+            <ProtectedRoute role="doctor">
+              <PatientDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/prescriptions"
+          element={
+            <ProtectedRoute role="doctor">
+              <PrescriptionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/ai-insights"
+          element={
+            <ProtectedRoute role="doctor">
+              <AIInsightsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/telemedicine"
+          element={
+            <ProtectedRoute role="doctor">
+              <TelemedicinePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/notes-reports"
+          element={
+            <ProtectedRoute role="doctor">
+              <NotesReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/devices"
+          element={
+            <ProtectedRoute role="doctor">
+              <DeviceManagementPage />
             </ProtectedRoute>
           }
         />
