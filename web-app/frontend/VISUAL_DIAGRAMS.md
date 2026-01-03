@@ -580,6 +580,7 @@ AddPatientModal ↔ PatientsPage Communication
 ## Responsive Design Diagram
 
 ### Desktop (1920x1080)
+
 ```
 ┌────────────────────────────────┐
 │ ┌──┬─────────────────────────┐ │
@@ -592,6 +593,7 @@ AddPatientModal ↔ PatientsPage Communication
 ```
 
 ### Tablet (768x1024)
+
 ```
 ┌──────────────────────────────┐
 │ [Form - Single Column]        │
@@ -602,6 +604,7 @@ AddPatientModal ↔ PatientsPage Communication
 ```
 
 ### Mobile (375x667)
+
 ```
 ┌──────────────────┐
 │ [Form - Stack]   │
