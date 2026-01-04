@@ -11,6 +11,14 @@ import PrescriptionsPage from './pages/PrescriptionsPage';
 import StaffDashboard from './pages/StaffDashboard';
 import StaffLogin from './pages/StaffLogin';
 import TelemedicinePage from './pages/TelemedicinePage';
+import StaffDashboardMain from './pages/Staff/StaffDashboardMain';
+import StaffTasks from './pages/Staff/StaffTasks';
+import StaffPatients from './pages/Staff/StaffPatients';
+import StaffInventory from './pages/Staff/StaffInventory';
+import StaffIncidents from './pages/Staff/StaffIncidents';
+import StaffCommunication from './pages/Staff/StaffCommunication';
+import StaffNotes from './pages/Staff/StaffNotes';
+import StaffSettings from './pages/Staff/StaffSettings';
 
 function App() {
     return (
@@ -91,7 +99,63 @@ function App() {
                     path="/staff/dashboard"
                     element={
                         <ProtectedRoute role="staff">
-                            <StaffDashboard />
+                            <StaffDashboardMain />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/tasks"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffTasks />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/patients"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffPatients />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/inventory"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffInventory />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/incidents"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffIncidents />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/communication"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffCommunication />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/notes"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffNotes />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/settings"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffSettings />
                         </ProtectedRoute>
                     }
                 />
