@@ -36,13 +36,37 @@ api.interceptors.response.use(
 
 export const authService = {
   loginDoctor: async (credentials) => {
-    const response = await api.post('/api/auth/doctor/login', credentials)
-    return response.data
+    // TEMPORARY: Mock authentication with hardcoded credentials
+    // Username: admin, Password: admin123
+    if (credentials.email === 'admin' && credentials.password === 'admin123') {
+      const mockResponse = {
+        access_token: 'mock-doctor-token-' + Date.now(),
+        user: {
+          full_name: 'Dr. Admin',
+          email: 'admin@cognivuslabs.com',
+          role: 'doctor'
+        }
+      }
+      return mockResponse
+    }
+    throw new Error('Invalid credentials. Use admin/admin123')
   },
 
   loginStaff: async (credentials) => {
-    const response = await api.post('/api/auth/staff/login', credentials)
-    return response.data
+    // TEMPORARY: Mock authentication with hardcoded credentials
+    // Username: admin, Password: admin123
+    if (credentials.email === 'admin' && credentials.password === 'admin123') {
+      const mockResponse = {
+        access_token: 'mock-staff-token-' + Date.now(),
+        user: {
+          full_name: 'Admin Staff',
+          email: 'admin@cognivuslabs.com',
+          role: 'staff'
+        }
+      }
+      return mockResponse
+    }
+    throw new Error('Invalid credentials. Use admin/admin123')
   },
 
   logout: () => {
