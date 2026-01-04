@@ -97,10 +97,7 @@ api.interceptors.response.use(
 export const authService = {
   loginDoctor: async (credentials) => {
     try {
-      console.log('Attempting doctor login with:', { email: credentials.email })
       const response = await api.post('/api/auth/doctor/login', credentials)
-      console.log('Doctor login response:', response.data)
-
       const { access_token, refresh_token, user } = response.data
 
       localStorage.setItem('access_token', access_token)
@@ -108,16 +105,8 @@ export const authService = {
       localStorage.setItem('user_data', JSON.stringify(user))
       localStorage.setItem('user_role', user.role)
 
-      console.log('Tokens stored successfully. Role:', user.role)
-
       return response.data
     } catch (error) {
-      console.error('Doctor login error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      })
-
       const errorMessage = error.response?.data?.detail || error.message || 'Login failed. Please try again.'
       throw new Error(errorMessage)
     }
@@ -125,10 +114,7 @@ export const authService = {
 
   loginStaff: async (credentials) => {
     try {
-      console.log('Attempting staff login with:', { email: credentials.email })
       const response = await api.post('/api/auth/staff/login', credentials)
-      console.log('Staff login response:', response.data)
-
       const { access_token, refresh_token, user } = response.data
 
       localStorage.setItem('access_token', access_token)
@@ -136,16 +122,8 @@ export const authService = {
       localStorage.setItem('user_data', JSON.stringify(user))
       localStorage.setItem('user_role', user.role)
 
-      console.log('Tokens stored successfully. Role:', user.role)
-
       return response.data
     } catch (error) {
-      console.error('Staff login error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      })
-
       const errorMessage = error.response?.data?.detail || error.message || 'Login failed. Please try again.'
       throw new Error(errorMessage)
     }

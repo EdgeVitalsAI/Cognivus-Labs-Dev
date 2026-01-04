@@ -17,7 +17,7 @@ const Item = ({ icon: Icon, label, to, active }) => (
 const Sidebar = ({ onLogout }) => {
     const { pathname } = useLocation();
     return (
-        <aside className="w-[260px] bg-slate-900 border-r border-slate-800 min-h-screen p-4 flex flex-col gap-2">
+        <aside className="w-[260px] bg-slate-900 border-r border-slate-800 h-screen sticky top-0 p-4 flex flex-col gap-2">
             <Item
                 icon={LayoutDashboard}
                 label="Dashboard"

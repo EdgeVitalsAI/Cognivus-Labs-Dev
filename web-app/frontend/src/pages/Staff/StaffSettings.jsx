@@ -4,7 +4,6 @@ import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 
 export default function StaffSettings() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState('account')
   const [settings, setSettings] = useState({
     name: 'Jane Johnson',
@@ -25,7 +24,7 @@ export default function StaffSettings() {
 
   return (
     <div className="flex h-screen bg-slate-950">
-      <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <StaffSidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />

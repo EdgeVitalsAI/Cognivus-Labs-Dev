@@ -4,7 +4,6 @@ import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 
 export default function StaffNotes() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [notes, setNotes] = useState([
     {
@@ -75,7 +74,7 @@ export default function StaffNotes() {
 
   return (
     <div className="flex h-screen bg-slate-950">
-      <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <StaffSidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />

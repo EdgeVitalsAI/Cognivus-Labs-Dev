@@ -9,7 +9,6 @@ import MyPatients from '../../components/staff/MyPatients'
 import LowStock from '../../components/staff/LowStock'
 
 export default function StaffDashboardMain() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [dashboardData, setDashboardData] = useState({
     assignedPatients: 12,
     pendingTasks: 8,
@@ -71,7 +70,7 @@ export default function StaffDashboardMain() {
   return (
     <div className="flex h-screen bg-slate-950">
       {/* Sidebar */}
-      <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <StaffSidebar />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">

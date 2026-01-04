@@ -4,7 +4,6 @@ import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 
 export default function StaffCommunication() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [selectedChat, setSelectedChat] = useState(null)
   const [messageText, setMessageText] = useState('')
 
@@ -61,7 +60,7 @@ export default function StaffCommunication() {
 
   return (
     <div className="flex h-screen bg-slate-950">
-      <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <StaffSidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />

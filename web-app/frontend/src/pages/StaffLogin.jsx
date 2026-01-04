@@ -27,14 +27,10 @@ const StaffLogin = () => {
     setLoading(true)
 
     try {
-      const response = await authService.loginStaff(formData)
-      console.log('Staff login successful:', response)
-      console.log('Stored user_role:', localStorage.getItem('user_role'))
-      console.log('Stored access_token:', localStorage.getItem('access_token'))
+      await authService.loginStaff(formData)
       // Tokens are already stored by authService.loginStaff
       navigate('/staff/dashboard')
     } catch (err) {
-      console.error('Staff login error:', err)
       // Handle different error types
       let errorMessage = 'Invalid credentials. Please try again.'
 
@@ -47,7 +43,6 @@ const StaffLogin = () => {
       }
 
       setError(errorMessage)
-    } finally {
       setLoading(false)
     }
   }
