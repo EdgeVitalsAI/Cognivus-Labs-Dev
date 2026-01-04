@@ -40,19 +40,28 @@ export default function StaffSettings() {
             {/* Profile Card */}
             <div className="bg-gradient-to-br from-[#2b3a66] to-[#18233f] border border-slate-700 rounded-xl p-6 mb-6 max-w-4xl">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
-                  <User className="w-8 h-8 text-slate-400" />
+                <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center border-2 border-slate-700">
+                  <User className="w-10 h-10 text-slate-300" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-lg font-semibold text-white">{settings.name}</h2>
-                  <p className="text-sm text-slate-400">{settings.role}</p>
+                  <h2 className="text-xl font-bold text-white mb-1">{settings.name}</h2>
+                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Briefcase className="w-3.5 h-3.5" />
+                    <span>{settings.role}</span>
+                    <span className="text-slate-600">•</span>
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{settings.zone}</span>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    Active
+                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Active Now
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{settings.shift}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Clock className="w-3 h-3" />
+                    <span>{settings.shift}</span>
+                  </div>
                 </div>
               </div>
             </div>

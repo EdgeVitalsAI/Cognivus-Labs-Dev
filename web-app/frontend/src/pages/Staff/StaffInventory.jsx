@@ -335,6 +335,7 @@ export default function StaffInventory() {
                   </div>
                 )}
               </div>
+            </div>
           </div>
         </div>
       </div>

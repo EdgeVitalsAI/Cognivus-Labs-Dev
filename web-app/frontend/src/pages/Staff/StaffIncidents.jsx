@@ -252,6 +252,7 @@ export default function StaffIncidents() {
                   </div>
                 )}
               </div>
+            </div>
           </div>
         </div>
       </div>
