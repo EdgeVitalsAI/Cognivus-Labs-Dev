@@ -1,6 +1,11 @@
 import { Search, ChevronDown } from 'lucide-react'
+import { authService } from '../services/api'
 
-const TopBar = ({ userName = 'Dr. Sam', avatarUrl = null }) => {
+const TopBar = ({ userName, avatarUrl = null }) => {
+  // Get user data from localStorage if not provided
+  const currentUser = authService.getCurrentUser()
+  const displayName = userName || currentUser?.full_name || 'User'
+
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
       {/* Logo + Tagline */}
@@ -25,7 +30,7 @@ const TopBar = ({ userName = 'Dr. Sam', avatarUrl = null }) => {
             <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
           ) : null}
         </div>
-        <div className="text-sm text-slate-200">{userName}</div>
+        <div className="text-sm text-slate-200">{displayName}</div>
         <ChevronDown className="w-4 h-4 text-slate-400" />
       </div>
     </div>

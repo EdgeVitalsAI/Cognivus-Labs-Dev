@@ -28,9 +28,7 @@ const StaffLogin = () => {
 
     try {
       const response = await authService.loginStaff(formData)
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('user_role', 'staff')
-      localStorage.setItem('user_data', JSON.stringify(response.user))
+      // Tokens are already stored by authService.loginStaff
       navigate('/staff/dashboard')
     } catch (err) {
       setError(err.message || 'Invalid credentials. Please try again.')
@@ -49,29 +47,22 @@ const StaffLogin = () => {
           </div>
         )}
 
-        {/* Demo Credentials Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
-          <p className="text-sm text-blue-700">Username: <strong>admin</strong></p>
-          <p className="text-sm text-blue-700">Password: <strong>admin123</strong></p>
-        </div>
-
         <div className="space-y-5">
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Username
+              Email Address
             </label>
             <input
               id="email"
               name="email"
-              type="text"
+              type="email"
               autoComplete="email"
               required
               value={formData.email}
               onChange={handleChange}
               className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all text-sm"
-              placeholder="Enter username (admin)"
+              placeholder="staff@cognivuslabs.com"
             />
           </div>
 
