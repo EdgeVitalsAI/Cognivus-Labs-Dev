@@ -28,10 +28,25 @@ const StaffLogin = () => {
 
     try {
       const response = await authService.loginStaff(formData)
+      console.log('Staff login successful:', response)
+      console.log('Stored user_role:', localStorage.getItem('user_role'))
+      console.log('Stored access_token:', localStorage.getItem('access_token'))
       // Tokens are already stored by authService.loginStaff
       navigate('/staff/dashboard')
     } catch (err) {
-      setError(err.message || 'Invalid credentials. Please try again.')
+      console.error('Staff login error:', err)
+      // Handle different error types
+      let errorMessage = 'Invalid credentials. Please try again.'
+
+      if (err.message) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail
+      }
+
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

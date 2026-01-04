@@ -28,10 +28,23 @@ const DoctorLogin = () => {
 
     try {
       const response = await authService.loginDoctor(formData)
+      console.log('Login successful:', response)
       // Tokens are already stored by authService.loginDoctor
       navigate('/doctor/dashboard')
     } catch (err) {
-      setError(err.message || 'Invalid credentials. Please try again.')
+      console.error('Login error:', err)
+      // Handle different error types
+      let errorMessage = 'Invalid credentials. Please try again.'
+
+      if (err.message) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail
+      }
+
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
