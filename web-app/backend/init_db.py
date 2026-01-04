@@ -1,11 +1,16 @@
 """
 Initialize the database with demo users
 """
+import os
 from app.core.database import SessionLocal, engine, Base
 from app.models.user import User, UserRole
 from app.core.security import get_password_hash
 
 def init_db():
+    # Ensure database directory exists
+    db_dir = os.path.join(os.path.dirname(__file__), "database")
+    os.makedirs(db_dir, exist_ok=True)
+    
     print("Creating database tables...")
     Base.metadata.create_all(bind=engine)
 
