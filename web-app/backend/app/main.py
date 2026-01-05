@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 from .core.config import settings
 from .core.database import engine, Base
 from .api.routes import auth, admin_auth, admin_system, admin_devices, admin_users
@@ -11,23 +13,35 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# CORS - Explicit origins (can't use * with credentials)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=3600,
-)
+
+# Custom CORS middleware that allows all local origins
+class CustomCORSMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        origin = request.headers.get("origin")
+
+        # Allow all localhost and 127.0.0.1 origins
+        if origin and ("localhost" in origin or "127.0.0.1" in origin):
+            if request.method == "OPTIONS":
+                # Handle preflight
+                response = Response(status_code=200)
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+                response.headers["Access-Control-Allow-Headers"] = "*"
+                response.headers["Access-Control-Max-Age"] = "3600"
+                return response
+            else:
+                # Handle actual request
+                response = await call_next(request)
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                return response
+
+        return await call_next(request)
+
+
+# Add custom CORS middleware
+app.add_middleware(CustomCORSMiddleware)
 
 # Public authentication routes
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
