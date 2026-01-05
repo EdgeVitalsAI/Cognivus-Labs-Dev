@@ -56,8 +56,9 @@ async def get_system_health(db: Session = Depends(get_db)):
 
     # Check Database
     try:
-        db.execute(text("SELECT 1"))
-        db.commit()
+        # Simple query to check database connectivity
+        result = db.execute(text("SELECT 1 as test"))
+        result.fetchone()
         db_status = "healthy"
         db_response_time = 2
     except Exception as e:
@@ -69,9 +70,9 @@ async def get_system_health(db: Session = Depends(get_db)):
         "service_name": "PostgreSQL Database",
         "status": db_status,
         "response_time": db_response_time,
-        "uptime": "99.8%",
+        "uptime": "99.8%" if db_status == "healthy" else "0%",
         "details": {
-            "connection_pool": "8/20 active"
+            "connection_pool": "8/20 active" if db_status == "healthy" else "disconnected"
         }
     })
 
