@@ -205,31 +205,6 @@ Main Application Services (Separate):
 
 
 ================================================================================
-SECURITY FEATURES
-================================================================================
-
-1. Account Lockout Protection
-- After 5 failed login attempts, account is locked for 30 minutes
-- Protects against brute force attacks
-
-2. Hidden Routes
-- Admin routes use /sys/* prefix instead of obvious /admin/*
-- Makes it harder for unauthorized users to discover
-
-3. Separate Database
-- Admin authentication is completely separate from main user database
-- Reduces attack surface
-
-4. JWT Token Authentication
-- Secure token-based authentication
-- Tokens expire after set period
-
-5. Password Requirements
-- Minimum 8 characters
-- Hashed using bcrypt
-
-
-================================================================================
 TROUBLESHOOTING
 ================================================================================
 
@@ -310,19 +285,3 @@ Backend Routes: web-app/backend/app/api/routes/admin_*.py
 Database Models: web-app/backend/app/models/
 Docker Config: web-app/backend/docker-compose.admin.yml
 Vite Config: web-app/frontend/vite.config.admin.js
-
-
-================================================================================
-SUPPORT
-================================================================================
-
-For issues or questions:
-1. Check system logs for errors
-2. Review this guide for common solutions
-3. Check Docker service status
-4. Verify environment variables in .env.admin
-
-
-================================================================================
-                              END OF GUIDE
-================================================================================

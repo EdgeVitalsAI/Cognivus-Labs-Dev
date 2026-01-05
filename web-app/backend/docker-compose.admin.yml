@@ -61,18 +61,23 @@ services:
       - ./app:/app/app
       - ./alembic:/app/alembic
       - ./alembic.ini:/app/alembic.ini
+      - ./create_admin.py:/app/create_admin.py
+      - ./seed_devices.py:/app/seed_devices.py
+      - ./seed_system_logs.py:/app/seed_system_logs.py
     networks:
       - admin-network
     depends_on:
       postgres-admin:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        sleep 5 &&
+        echo 'Initializing admin database...' &&
+        python -c 'from app.core.database import Base, engine; Base.metadata.create_all(bind=engine)' &&
+        echo 'Starting FastAPI server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
 
   # Redis Cache (for admin sessions)
   redis-admin:
