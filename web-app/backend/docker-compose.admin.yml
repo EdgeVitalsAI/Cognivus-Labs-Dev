@@ -48,7 +48,7 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
-      POSTGRES_HOST: host.docker.internal
+      POSTGRES_HOST: cognivus_postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-cognivus_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -66,8 +66,7 @@ services:
       - ./seed_system_logs.py:/app/seed_system_logs.py
     networks:
       - admin-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - backend_cognivus_network
     command: >
       sh -c "
         echo 'Waiting for PostgreSQL to be ready...' &&
@@ -107,3 +106,5 @@ networks:
   admin-network:
     driver: bridge
     name: cognivus-admin-network
+  backend_cognivus_network:
+    external: true
