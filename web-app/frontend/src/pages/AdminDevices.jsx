@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import {
   Package, Search, Filter, Wifi, WifiOff, Battery, BatteryCharging,
   Activity, Heart, Thermometer, Wind, Terminal, Send, RefreshCw,
-  AlertTriangle, CheckCircle, Settings, Power, PlayCircle, X, ArrowLeft
+  AlertTriangle, CheckCircle, Settings, Power, PlayCircle, X, ArrowLeft,
+  Sun, Moon
 } from 'lucide-react'
 import axios from 'axios'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AdminDevices() {
   const navigate = useNavigate()
+  const { theme, currentTheme, toggleTheme } = useTheme()
   const [devices, setDevices] = useState([])
   const [selectedDevice, setSelectedDevice] = useState(null)
   const [deviceDetails, setDeviceDetails] = useState(null)

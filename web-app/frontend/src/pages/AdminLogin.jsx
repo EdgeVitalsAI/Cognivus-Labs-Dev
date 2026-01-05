@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, Shield } from 'lucide-react'
+import { AlertCircle, Shield, Sun, Moon } from 'lucide-react'
 import axios from 'axios'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AdminLogin() {
   const navigate = useNavigate()

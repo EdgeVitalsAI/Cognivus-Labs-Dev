@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings as SettingsIcon, Key, User, Mail, Shield, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Settings as SettingsIcon, Key, User, Mail, Shield, AlertTriangle, CheckCircle, ArrowLeft, Sun, Moon } from 'lucide-react'
 import axios from 'axios'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AdminSettings() {
   const navigate = useNavigate()
