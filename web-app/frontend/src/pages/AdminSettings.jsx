@@ -156,7 +156,7 @@ export default function AdminSettings() {
   }
 
   const superAdminBadgeStyle = {
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
     fontSize: '12px',
@@ -164,7 +164,6 @@ export default function AdminSettings() {
     backgroundColor: '#f3e8ff',
     padding: '4px 12px',
     borderRadius: '12px',
-    display: 'inline-flex',
     fontWeight: '500'
   }
 
