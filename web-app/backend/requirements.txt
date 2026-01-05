@@ -11,3 +11,5 @@ python-dotenv==1.0.1
 psycopg2-binary==2.9.9
 alembic==1.13.1
 pydantic[email]
+psutil==5.9.8
+requests==2.31.0

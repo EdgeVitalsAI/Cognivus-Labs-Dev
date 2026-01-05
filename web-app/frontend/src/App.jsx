@@ -19,6 +19,11 @@ import StaffIncidents from './pages/Staff/StaffIncidents';
 import StaffCommunication from './pages/Staff/StaffCommunication';
 import StaffNotes from './pages/Staff/StaffNotes';
 import StaffSettings from './pages/Staff/StaffSettings';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminDevices from './pages/AdminDevices';
+import AdminUsers from './pages/AdminUsers';
+import AdminSettings from './pages/AdminSettings';
 
 function App() {
     return (
@@ -159,6 +164,13 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+
+                {/* Admin Routes (Hidden) */}
+                <Route path="/sys/auth" element={<AdminLogin />} />
+                <Route path="/sys/dashboard" element={<AdminDashboard />} />
+                <Route path="/sys/devices" element={<AdminDevices />} />
+                <Route path="/sys/users" element={<AdminUsers />} />
+                <Route path="/sys/settings" element={<AdminSettings />} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/doctor/login" replace />} />
