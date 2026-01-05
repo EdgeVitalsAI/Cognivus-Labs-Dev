@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, text
 from datetime import datetime, timedelta
 from typing import List
 import psutil
@@ -56,10 +56,12 @@ async def get_system_health(db: Session = Depends(get_db)):
 
     # Check Database
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
+        db.commit()
         db_status = "healthy"
         db_response_time = 2
     except Exception as e:
+        print(f"Database health check failed: {e}")
         db_status = "down"
         db_response_time = None
 
