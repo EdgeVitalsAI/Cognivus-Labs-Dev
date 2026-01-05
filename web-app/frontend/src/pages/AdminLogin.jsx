@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
+  const { theme, currentTheme, toggleTheme } = useTheme()
   const [credentials, setCredentials] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,13 +37,41 @@ export default function AdminLogin() {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      backgroundColor: '#f5f5f5',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      backgroundColor: currentTheme.background,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      position: 'relative'
     }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        style={{
+          position: 'fixed',
+          top: '1.5rem',
+          right: '1.5rem',
+          width: '40px',
+          height: '40px',
+          borderRadius: '8px',
+          border: `1px solid ${currentTheme.border}`,
+          backgroundColor: currentTheme.cardBackground,
+          color: currentTheme.text,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: `0 2px 4px ${currentTheme.shadowLight}`,
+          transition: 'all 0.15s',
+          zIndex: 1000
+        }}
+        onMouseEnter={(e) => e.target.style.backgroundColor = currentTheme.hoverBackground}
+        onMouseLeave={(e) => e.target.style.backgroundColor = currentTheme.cardBackground}
+      >
+        {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+      </button>
+
       {/* Left Panel - Branding */}
       <div style={{
         flex: 1,
-        backgroundColor: '#0066cc',
+        backgroundColor: currentTheme.primary,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -61,7 +90,7 @@ export default function AdminLogin() {
             justifyContent: 'center',
             margin: '0 auto 2rem'
           }}>
-            <Shield size={60} color="#0066cc" strokeWidth={2} />
+            <Shield size={60} color={currentTheme.primary} strokeWidth={2} />
           </div>
           <h1 style={{
             fontSize: '2rem',
@@ -105,24 +134,24 @@ export default function AdminLogin() {
       }}>
         <div style={{ width: '100%', maxWidth: '420px' }}>
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: currentTheme.cardBackground,
             padding: '3rem',
             borderRadius: '4px',
-            border: '1px solid #e0e0e0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            border: `1px solid ${currentTheme.border}`,
+            boxShadow: `0 2px 4px ${currentTheme.shadow}`
           }}>
             <div style={{ marginBottom: '2rem' }}>
               <h2 style={{
                 fontSize: '1.5rem',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 marginBottom: '0.5rem'
               }}>
                 Administrator Sign In
               </h2>
               <p style={{
                 fontSize: '0.875rem',
-                color: '#666'
+                color: currentTheme.textSecondary
               }}>
                 Enter your credentials to access the system
               </p>
@@ -130,8 +159,8 @@ export default function AdminLogin() {
 
             {error && (
               <div style={{
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
+                backgroundColor: theme === 'light' ? '#fef2f2' : '#3d1a1a',
+                border: `1px solid ${currentTheme.error}`,
                 borderRadius: '4px',
                 padding: '0.75rem 1rem',
                 marginBottom: '1.5rem',
@@ -139,11 +168,11 @@ export default function AdminLogin() {
                 alignItems: 'flex-start',
                 gap: '0.75rem'
               }}>
-                <AlertCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: '1px' }} />
+                <AlertCircle size={18} color={currentTheme.error} style={{ flexShrink: 0, marginTop: '1px' }} />
                 <div>
                   <p style={{
                     fontSize: '0.875rem',
-                    color: '#991b1b',
+                    color: currentTheme.error,
                     fontWeight: '500',
                     marginBottom: '0.25rem'
                   }}>
@@ -151,7 +180,7 @@ export default function AdminLogin() {
                   </p>
                   <p style={{
                     fontSize: '0.813rem',
-                    color: '#dc2626'
+                    color: currentTheme.error
                   }}>
                     {error}
                   </p>
@@ -165,7 +194,7 @@ export default function AdminLogin() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#333',
+                  color: currentTheme.text,
                   marginBottom: '0.5rem'
                 }}>
                   Username
@@ -178,16 +207,16 @@ export default function AdminLogin() {
                     width: '100%',
                     padding: '0.625rem 0.875rem',
                     fontSize: '0.938rem',
-                    border: '1px solid #d1d5db',
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    backgroundColor: 'white',
-                    color: '#1a1a1a',
+                    backgroundColor: currentTheme.inputBackground,
+                    color: currentTheme.text,
                     outline: 'none',
                     transition: 'border-color 0.15s',
                     fontFamily: 'inherit'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
+                  onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                   required
                   autoComplete="username"
                 />
@@ -198,7 +227,7 @@ export default function AdminLogin() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#333',
+                  color: currentTheme.text,
                   marginBottom: '0.5rem'
                 }}>
                   Password
@@ -211,16 +240,16 @@ export default function AdminLogin() {
                     width: '100%',
                     padding: '0.625rem 0.875rem',
                     fontSize: '0.938rem',
-                    border: '1px solid #d1d5db',
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    backgroundColor: 'white',
-                    color: '#1a1a1a',
+                    backgroundColor: currentTheme.inputBackground,
+                    color: currentTheme.text,
                     outline: 'none',
                     transition: 'border-color 0.15s',
                     fontFamily: 'inherit'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                  onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+                  onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
+                  onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                   required
                   autoComplete="current-password"
                 />
@@ -235,15 +264,15 @@ export default function AdminLogin() {
                   fontSize: '0.938rem',
                   fontWeight: '500',
                   color: 'white',
-                  backgroundColor: loading ? '#6b7280' : '#0066cc',
+                  backgroundColor: loading ? currentTheme.textTertiary : currentTheme.primary,
                   border: 'none',
                   borderRadius: '4px',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   transition: 'background-color 0.15s',
                   fontFamily: 'inherit'
                 }}
-                onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#0052a3')}
-                onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#0066cc')}
+                onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = currentTheme.primaryHover)}
+                onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = currentTheme.primary)}
               >
                 {loading ? 'Signing In...' : 'Sign In'}
               </button>
@@ -252,11 +281,11 @@ export default function AdminLogin() {
             <div style={{
               marginTop: '2rem',
               paddingTop: '1.5rem',
-              borderTop: '1px solid #e5e7eb'
+              borderTop: `1px solid ${currentTheme.borderLight}`
             }}>
               <p style={{
                 fontSize: '0.75rem',
-                color: '#6b7280',
+                color: currentTheme.textTertiary,
                 lineHeight: '1.5',
                 textAlign: 'center'
               }}>
@@ -273,7 +302,7 @@ export default function AdminLogin() {
           }}>
             <p style={{
               fontSize: '0.813rem',
-              color: '#6b7280'
+              color: currentTheme.textTertiary
             }}>
               © 2026 Cognivus Labs. All rights reserved.
             </p>
