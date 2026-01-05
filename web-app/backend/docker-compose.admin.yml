@@ -48,11 +48,11 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
-      POSTGRES_HOST: postgres-admin
+      POSTGRES_HOST: host.docker.internal
       POSTGRES_PORT: 5432
-      POSTGRES_USER: cognivus
+      POSTGRES_USER: ${POSTGRES_USER:-cognivus_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: cognivus_health
+      POSTGRES_DB: ${POSTGRES_DB:-cognivus_auth}
       CORS_ORIGINS: http://localhost:5174,http://127.0.0.1:5174
       DEBUG: "True"
     ports:
@@ -66,9 +66,8 @@ services:
       - ./seed_system_logs.py:/app/seed_system_logs.py
     networks:
       - admin-network
-    depends_on:
-      postgres-admin:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: >
       sh -c "
         echo 'Waiting for PostgreSQL to be ready...' &&
