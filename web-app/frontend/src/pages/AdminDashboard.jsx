@@ -36,11 +36,11 @@ export default function AdminDashboard() {
       const config = { headers: { Authorization: `Bearer ${token}` } }
 
       const [analyticsRes, healthRes, devicesRes, logsRes, metricsRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/sys/system/analytics', config),
-        axios.get('http://localhost:8000/api/sys/system/health', config),
-        axios.get('http://localhost:8000/api/sys/devices/devices?limit=10', config),
-        axios.get('http://localhost:8000/api/sys/system/logs?limit=20', config),
-        axios.get('http://localhost:8000/api/sys/system/metrics', config)
+        axios.get('http://localhost:8001/api/sys/system/analytics', config),
+        axios.get('http://localhost:8001/api/sys/system/health', config),
+        axios.get('http://localhost:8001/api/sys/devices/devices?limit=10', config),
+        axios.get('http://localhost:8001/api/sys/system/logs?limit=20', config),
+        axios.get('http://localhost:8001/api/sys/system/metrics', config)
       ])
 
       setAnalytics(analyticsRes.data)
@@ -66,90 +66,235 @@ export default function AdminDashboard() {
 
   const getStatusColor = (status) => {
     const colors = {
-      healthy: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-      degraded: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      down: 'text-red-400 bg-red-500/10 border-red-500/30',
-      online: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-      offline: 'text-slate-500 bg-slate-500/10 border-slate-500/30',
-      error: 'text-red-400 bg-red-500/10 border-red-500/30',
-      maintenance: 'text-blue-400 bg-blue-500/10 border-blue-500/30'
+      healthy: { color: '#16a34a', background: '#f0fdf4', border: '#bbf7d0' },
+      degraded: { color: '#eab308', background: '#fefce8', border: '#fef08a' },
+      down: { color: '#dc2626', background: '#fef2f2', border: '#fecaca' },
+      online: { color: '#16a34a', background: '#f0fdf4', border: '#bbf7d0' },
+      offline: { color: '#666', background: '#f5f5f5', border: '#e0e0e0' },
+      error: { color: '#dc2626', background: '#fef2f2', border: '#fecaca' },
+      maintenance: { color: '#0284c7', background: '#f0f9ff', border: '#bae6fd' }
     }
     return colors[status] || colors.offline
   }
 
   const getLogLevelColor = (level) => {
     const colors = {
-      info: 'text-blue-400',
-      warning: 'text-amber-400',
-      error: 'text-red-400',
-      critical: 'text-purple-400',
-      debug: 'text-cyan-400'
+      info: '#0284c7',
+      warning: '#eab308',
+      error: '#dc2626',
+      critical: '#7c3aed',
+      debug: '#06b6d4'
     }
-    return colors[level] || 'text-slate-400'
+    return colors[level] || '#666'
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading system data...</p>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid #e0e0e0',
+            borderTop: '4px solid #0066cc',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }} />
+          <p style={{
+            color: '#666',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+          }}>Loading system data...</p>
         </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    }}>
       {/* Header */}
-      <div className="bg-slate-900/50 border-b border-slate-800 backdrop-blur-xl sticky top-0 z-50">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-cyan-400" />
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid #e0e0e0',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ padding: '16px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#0066cc',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Shield style={{ width: '20px', height: '20px', color: '#ffffff' }} />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-cyan-400" />
-                    Admin Control Panel
+                  <h1 style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#1a1a1a',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <Terminal style={{ width: '16px', height: '16px', color: '#0066cc' }} />
+                    Administrator Control Panel
                   </h1>
-                  <p className="text-xs text-slate-500 font-mono">SYS::MONITOR::v1.0</p>
+                  <p style={{
+                    fontSize: '11px',
+                    color: '#999',
+                    margin: 0,
+                    fontFamily: 'Consolas, Monaco, "Courier New", monospace'
+                  }}>System Monitor v1.0</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 onClick={() => navigate('/sys/dashboard')}
-                className="px-3 py-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors text-sm"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#666',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f5f5f5'
+                  e.target.style.color = '#1a1a1a'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = '#666'
+                }}
               >
                 Dashboard
               </button>
               <button
                 onClick={() => navigate('/sys/devices')}
-                className="px-3 py-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors text-sm"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#666',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f5f5f5'
+                  e.target.style.color = '#1a1a1a'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = '#666'
+                }}
               >
                 Devices
               </button>
               <button
                 onClick={() => navigate('/sys/users')}
-                className="px-3 py-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors text-sm"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#666',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f5f5f5'
+                  e.target.style.color = '#1a1a1a'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = '#666'
+                }}
               >
                 Users
               </button>
               <button
                 onClick={() => navigate('/sys/settings')}
-                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#666',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f5f5f5'
+                  e.target.style.color = '#1a1a1a'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = '#666'
+                }}
               >
-                <Settings className="w-5 h-5" />
+                <Settings style={{ width: '20px', height: '20px' }} />
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/30 transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #dc2626',
+                  borderRadius: '4px',
+                  color: '#dc2626',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#dc2626'
+                  e.target.style.color = '#ffffff'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = '#ffffff'
+                  e.target.style.color = '#dc2626'
+                }}
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut style={{ width: '16px', height: '16px' }} />
                 Logout
               </button>
             </div>
@@ -157,249 +302,498 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="p-6">
+      <div style={{ padding: '24px' }}>
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Package className="w-6 h-6 text-cyan-400" />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {/* Total Devices Card */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{
+                padding: '8px',
+                backgroundColor: '#e6f2ff',
+                borderRadius: '4px'
+              }}>
+                <Package style={{ width: '24px', height: '24px', color: '#0066cc' }} />
               </div>
-              <div className="flex items-center gap-1.5 text-emerald-400 text-xs">
-                <TrendingUp className="w-3 h-3" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
+                <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+12%</span>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-1">Total Devices</p>
-            <p className="text-3xl font-bold text-white">{analytics?.total_devices || 0}</p>
-            <p className="text-xs text-cyan-400 mt-2">{analytics?.online_devices || 0} online</p>
+            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Total Devices</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.total_devices || 0}</p>
+            <p style={{ fontSize: '12px', color: '#0066cc', marginTop: '8px' }}>{analytics?.online_devices || 0} online</p>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <Users className="w-6 h-6 text-emerald-400" />
+          {/* Active Patients Card */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{
+                padding: '8px',
+                backgroundColor: '#f0fdf4',
+                borderRadius: '4px'
+              }}>
+                <Users style={{ width: '24px', height: '24px', color: '#16a34a' }} />
               </div>
-              <div className="flex items-center gap-1.5 text-emerald-400 text-xs">
-                <TrendingUp className="w-3 h-3" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
+                <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+8%</span>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-1">Active Patients</p>
-            <p className="text-3xl font-bold text-white">{analytics?.total_patients || 0}</p>
-            <p className="text-xs text-emerald-400 mt-2">Monitored 24/7</p>
+            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Active Patients</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.total_patients || 0}</p>
+            <p style={{ fontSize: '12px', color: '#16a34a', marginTop: '8px' }}>Monitored 24/7</p>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-amber-500/20">
-                <AlertTriangle className="w-6 h-6 text-amber-400" />
+          {/* Alerts Today Card */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{
+                padding: '8px',
+                backgroundColor: '#fefce8',
+                borderRadius: '4px'
+              }}>
+                <AlertTriangle style={{ width: '24px', height: '24px', color: '#eab308' }} />
               </div>
-              <div className="flex items-center gap-1.5 text-red-400 text-xs">
-                <TrendingUp className="w-3 h-3" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '12px' }}>
+                <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+3</span>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-1">Alerts Today</p>
-            <p className="text-3xl font-bold text-white">{analytics?.alerts_today || 0}</p>
-            <p className="text-xs text-amber-400 mt-2">2 critical</p>
+            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Alerts Today</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.alerts_today || 0}</p>
+            <p style={{ fontSize: '12px', color: '#eab308', marginTop: '8px' }}>2 critical</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-purple-500/20">
-                <Shield className="w-6 h-6 text-purple-400" />
+          {/* System Health Card */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{
+                padding: '8px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '4px'
+              }}>
+                <Shield style={{ width: '24px', height: '24px', color: '#0284c7' }} />
               </div>
-              <div className="flex items-center gap-1.5 text-emerald-400 text-xs">
-                <CheckCircle className="w-3 h-3" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
+                <CheckCircle style={{ width: '12px', height: '12px' }} />
                 <span>100%</span>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-1">System Health</p>
-            <p className="text-3xl font-bold text-white">99.9%</p>
-            <p className="text-xs text-purple-400 mt-2">All systems operational</p>
+            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>System Health</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>99.9%</p>
+            <p style={{ fontSize: '12px', color: '#0284c7', marginTop: '8px' }}>All systems operational</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* System Health */}
-          <div className="lg:col-span-2 bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-cyan-400" />
-                System Health
-              </h2>
-              <button
-                onClick={loadData}
-                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {systemHealth.map((service, idx) => (
-                <div
-                  key={idx}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 hover:bg-slate-800/70 transition-colors"
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: '24px',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+            {/* System Health */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              padding: '24px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2 style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: '#1a1a1a',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <Activity style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                  System Health
+                </h2>
+                <button
+                  onClick={loadData}
+                  style={{
+                    padding: '8px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: '#666',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.backgroundColor = '#f5f5f5'
+                    e.target.style.color = '#1a1a1a'
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.backgroundColor = 'transparent'
+                    e.target.style.color = '#666'
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        service.status === 'healthy' ? 'bg-emerald-500 animate-pulse' :
-                        service.status === 'degraded' ? 'bg-amber-500' : 'bg-red-500'
-                      }`} />
-                      <h3 className="font-semibold text-white">{service.service_name}</h3>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {service.response_time && (
-                        <span className="text-xs text-slate-500">{service.response_time}ms</span>
+                  <RefreshCw style={{ width: '16px', height: '16px' }} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {systemHealth.map((service, idx) => {
+                  const statusStyle = getStatusColor(service.status)
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        backgroundColor: '#fafafa',
+                        border: '1px solid #e0e0e0',
+                        borderRadius: '4px',
+                        padding: '16px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = '#fafafa'}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: statusStyle.color
+                          }} />
+                          <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>{service.service_name}</h3>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {service.response_time && (
+                            <span style={{ fontSize: '12px', color: '#999' }}>{service.response_time}ms</span>
+                          )}
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            border: `1px solid ${statusStyle.border}`,
+                            backgroundColor: statusStyle.background,
+                            color: statusStyle.color
+                          }}>
+                            {service.status}
+                          </span>
+                        </div>
+                      </div>
+                      {service.details && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#999', marginTop: '8px' }}>
+                          {Object.entries(service.details).map(([key, value]) => (
+                            <span key={key}>{key}: {value}</span>
+                          ))}
+                        </div>
                       )}
-                      <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(service.status)}`}>
-                        {service.status}
-                      </span>
                     </div>
-                  </div>
-                  {service.details && (
-                    <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-                      {Object.entries(service.details).map(([key, value]) => (
-                        <span key={key}>{key}: {value}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  )
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* System Metrics */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
-              <Cpu className="w-5 h-5 text-cyan-400" />
-              System Metrics
-            </h2>
+            {/* System Metrics */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              padding: '24px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <h2 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#1a1a1a',
+                margin: '0 0 20px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <Cpu style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                System Metrics
+              </h2>
 
-            <div className="space-y-4">
-              {/* CPU */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-400">CPU Usage</span>
-                  <span className="text-sm font-mono text-white">{metrics?.cpu.usage.toFixed(1)}%</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* CPU */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: '#666' }}>CPU Usage</span>
+                    <span style={{
+                      fontSize: '13px',
+                      fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                      color: '#1a1a1a',
+                      fontWeight: '600'
+                    }}>{metrics?.cpu.usage.toFixed(1)}%</span>
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    height: '8px',
+                    overflow: 'hidden'
+                  }}>
+                    <div
+                      style={{
+                        backgroundColor: '#0066cc',
+                        height: '8px',
+                        borderRadius: '4px',
+                        width: `${metrics?.cpu.usage}%`,
+                        transition: 'width 0.3s'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all"
-                    style={{ width: `${metrics?.cpu.usage}%` }}
-                  />
-                </div>
-              </div>
 
-              {/* Memory */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-400">Memory</span>
-                  <span className="text-sm font-mono text-white">{metrics?.memory.percent.toFixed(1)}%</span>
+                {/* Memory */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: '#666' }}>Memory</span>
+                    <span style={{
+                      fontSize: '13px',
+                      fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                      color: '#1a1a1a',
+                      fontWeight: '600'
+                    }}>{metrics?.memory.percent.toFixed(1)}%</span>
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    height: '8px',
+                    overflow: 'hidden'
+                  }}>
+                    <div
+                      style={{
+                        backgroundColor: '#16a34a',
+                        height: '8px',
+                        borderRadius: '4px',
+                        width: `${metrics?.memory.percent}%`,
+                        transition: 'width 0.3s'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all"
-                    style={{ width: `${metrics?.memory.percent}%` }}
-                  />
-                </div>
-              </div>
 
-              {/* Disk */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-400">Disk Usage</span>
-                  <span className="text-sm font-mono text-white">{metrics?.disk.percent.toFixed(1)}%</span>
+                {/* Disk */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: '#666' }}>Disk Usage</span>
+                    <span style={{
+                      fontSize: '13px',
+                      fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                      color: '#1a1a1a',
+                      fontWeight: '600'
+                    }}>{metrics?.disk.percent.toFixed(1)}%</span>
+                  </div>
+                  <div style={{
+                    width: '100%',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    height: '8px',
+                    overflow: 'hidden'
+                  }}>
+                    <div
+                      style={{
+                        backgroundColor: '#7c3aed',
+                        height: '8px',
+                        borderRadius: '4px',
+                        width: `${metrics?.disk.percent}%`,
+                        transition: 'width 0.3s'
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
-                    style={{ width: `${metrics?.disk.percent}%` }}
-                  />
-                </div>
-              </div>
 
-              <div className="pt-4 border-t border-slate-800 space-y-2 text-xs text-slate-500">
-                <div className="flex justify-between">
-                  <span>Cores:</span>
-                  <span className="text-slate-300">{metrics?.cpu.cores}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total Memory:</span>
-                  <span className="text-slate-300">{(metrics?.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Disk Free:</span>
-                  <span className="text-slate-300">{(metrics?.disk.free / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                <div style={{
+                  paddingTop: '16px',
+                  borderTop: '1px solid #e0e0e0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#666'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Cores:</span>
+                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{metrics?.cpu.cores}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Total Memory:</span>
+                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{(metrics?.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Disk Free:</span>
+                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{(metrics?.disk.free / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Recent Devices */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
-              <Package className="w-5 h-5 text-cyan-400" />
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <h2 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#1a1a1a',
+              margin: '0 0 20px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Package style={{ width: '20px', height: '20px', color: '#0066cc' }} />
               Recent Devices
             </h2>
 
-            <div className="space-y-2">
-              {devices.length > 0 ? devices.map((device) => (
-                <div
-                  key={device.id}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-3 hover:bg-slate-800/70 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        device.status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
-                      }`} />
-                      <div>
-                        <p className="text-sm font-medium text-white">{device.device_name}</p>
-                        <p className="text-xs text-slate-500">{device.device_id}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {devices.length > 0 ? devices.map((device) => {
+                const statusStyle = getStatusColor(device.status)
+                return (
+                  <div
+                    key={device.id}
+                    style={{
+                      backgroundColor: '#fafafa',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      padding: '12px',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: device.status === 'online' ? '#16a34a' : '#999'
+                        }} />
+                        <div>
+                          <p style={{ fontSize: '13px', fontWeight: '500', color: '#1a1a1a', margin: 0 }}>{device.device_name}</p>
+                          <p style={{ fontSize: '11px', color: '#999', margin: '2px 0 0 0' }}>{device.device_id}</p>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{
+                          padding: '4px 12px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: '500',
+                          border: `1px solid ${statusStyle.border}`,
+                          backgroundColor: statusStyle.background,
+                          color: statusStyle.color
+                        }}>
+                          {device.status}
+                        </span>
+                        {device.battery_level && (
+                          <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 0 0' }}>{device.battery_level}% battery</p>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(device.status)}`}>
-                        {device.status}
-                      </span>
-                      {device.battery_level && (
-                        <p className="text-xs text-slate-500 mt-1">{device.battery_level}% battery</p>
-                      )}
-                    </div>
                   </div>
-                </div>
-              )) : (
-                <p className="text-sm text-slate-500 text-center py-8">No devices found</p>
+                )
+              }) : (
+                <p style={{ fontSize: '13px', color: '#999', textAlign: 'center', padding: '32px 0' }}>No devices found</p>
               )}
             </div>
           </div>
 
           {/* System Logs */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-6">
-              <Terminal className="w-5 h-5 text-cyan-400" />
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          }}>
+            <h2 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#1a1a1a',
+              margin: '0 0 20px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Terminal style={{ width: '20px', height: '20px', color: '#0066cc' }} />
               System Logs
             </h2>
 
-            <div className="space-y-1 max-h-96 overflow-y-auto custom-scrollbar">
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              maxHeight: '400px',
+              overflowY: 'auto',
+              backgroundColor: '#fafafa',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              padding: '8px'
+            }}>
               {logs.map((log) => (
                 <div
                   key={log.id}
-                  className="font-mono text-xs py-1.5 px-2 hover:bg-slate-800/50 rounded transition-colors"
+                  style={{
+                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                    fontSize: '11px',
+                    padding: '6px 8px',
+                    borderRadius: '2px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                 >
-                  <span className="text-slate-600">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                  <span style={{ color: '#999' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>
                   {' '}
-                  <span className={`font-semibold ${getLogLevelColor(log.level)}`}>{log.level.toUpperCase()}</span>
+                  <span style={{ fontWeight: '600', color: getLogLevelColor(log.level) }}>{log.level.toUpperCase()}</span>
                   {' '}
-                  <span className="text-slate-500">{log.service}</span>
+                  <span style={{ color: '#666' }}>{log.service}</span>
                   {' → '}
-                  <span className="text-slate-300">{log.message}</span>
+                  <span style={{ color: '#1a1a1a' }}>{log.message}</span>
                 </div>
               ))}
             </div>

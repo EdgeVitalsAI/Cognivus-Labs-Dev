@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings as SettingsIcon, Key, User, Mail, Shield, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Settings as SettingsIcon, Key, User, Mail, Shield, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react'
 import axios from 'axios'
 
 export default function AdminSettings() {
@@ -34,7 +34,7 @@ export default function AdminSettings() {
     try {
       const token = localStorage.getItem('admin_token')
       await axios.post(
-        'http://localhost:8000/api/sys/users/change-password',
+        'http://localhost:8001/api/sys/users/change-password',
         {
           current_password: passwordChange.current_password,
           new_password: passwordChange.new_password
@@ -55,207 +55,566 @@ export default function AdminSettings() {
     }
   }
 
+  const containerStyle = {
+    minHeight: '100vh',
+    backgroundColor: '#f5f5f5',
+    padding: '24px',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+  }
+
+  const headerContainerStyle = {
+    maxWidth: '1200px',
+    margin: '0 auto 24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px'
+  }
+
+  const backButtonStyle = {
+    padding: '8px 16px',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '14px',
+    color: '#666',
+    transition: 'all 0.2s'
+  }
+
+  const headerStyle = {
+    flex: 1
+  }
+
+  const titleStyle = {
+    fontSize: '28px',
+    fontWeight: '600',
+    color: '#1a1a1a',
+    margin: '0 0 4px 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  }
+
+  const subtitleStyle = {
+    fontSize: '14px',
+    color: '#666',
+    margin: 0
+  }
+
+  const contentWrapperStyle = {
+    maxWidth: '1200px',
+    margin: '0 auto'
+  }
+
+  const profileCardStyle = {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+    padding: '24px',
+    marginBottom: '24px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+  }
+
+  const profileContentStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px'
+  }
+
+  const avatarStyle = {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    backgroundColor: '#e3f2fd',
+    border: '2px solid #0066cc',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+
+  const profileInfoStyle = {
+    flex: 1
+  }
+
+  const profileNameStyle = {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#1a1a1a',
+    margin: '0 0 8px 0'
+  }
+
+  const profileEmailStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '14px',
+    color: '#666',
+    marginBottom: '8px'
+  }
+
+  const superAdminBadgeStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '12px',
+    color: '#7c3aed',
+    backgroundColor: '#f3e8ff',
+    padding: '4px 12px',
+    borderRadius: '12px',
+    display: 'inline-flex',
+    fontWeight: '500'
+  }
+
+  const profileStatusStyle = {
+    textAlign: 'right'
+  }
+
+  const statusBadgeStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    color: '#16a34a',
+    fontSize: '14px',
+    fontWeight: '500',
+    marginBottom: '4px',
+    justifyContent: 'flex-end'
+  }
+
+  const statusDotStyle = {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    backgroundColor: '#16a34a'
+  }
+
+  const usernameStyle = {
+    fontSize: '12px',
+    color: '#999'
+  }
+
+  const tabsContainerStyle = {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+    overflow: 'hidden',
+    marginBottom: '24px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+  }
+
+  const tabsWrapperStyle = {
+    display: 'flex',
+    gap: '0',
+    borderBottom: '1px solid #e0e0e0'
+  }
+
+  const getTabStyle = (isActive) => ({
+    flex: '1',
+    padding: '16px 24px',
+    fontSize: '14px',
+    fontWeight: '500',
+    border: 'none',
+    backgroundColor: isActive ? '#ffffff' : '#fafafa',
+    color: isActive ? '#0066cc' : '#666',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    transition: 'all 0.2s',
+    borderBottom: isActive ? '2px solid #0066cc' : '2px solid transparent',
+    outline: 'none'
+  })
+
+  const cardStyle = {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+    padding: '24px',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+  }
+
+  const cardHeaderStyle = {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1a1a1a',
+    margin: '0 0 24px 0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    paddingBottom: '16px',
+    borderBottom: '1px solid #e0e0e0'
+  }
+
+  const formGroupStyle = {
+    marginBottom: '20px'
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#1a1a1a',
+    marginBottom: '6px'
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 12px',
+    fontSize: '14px',
+    border: '1px solid #d0d0d0',
+    borderRadius: '4px',
+    backgroundColor: '#ffffff',
+    color: '#1a1a1a',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    boxSizing: 'border-box'
+  }
+
+  const inputDisabledStyle = {
+    ...inputStyle,
+    backgroundColor: '#f9f9f9',
+    color: '#999',
+    cursor: 'not-allowed'
+  }
+
+  const inputFocusStyle = {
+    borderColor: '#0066cc'
+  }
+
+  const infoBannerStyle = {
+    padding: '12px 16px',
+    backgroundColor: '#e3f2fd',
+    border: '1px solid #90caf9',
+    borderRadius: '4px',
+    marginTop: '24px'
+  }
+
+  const infoBannerTextStyle = {
+    fontSize: '13px',
+    color: '#0284c7',
+    margin: 0
+  }
+
+  const warningBannerStyle = {
+    padding: '12px 16px',
+    backgroundColor: '#fef3c7',
+    border: '1px solid #fbbf24',
+    borderRadius: '4px',
+    marginBottom: '20px'
+  }
+
+  const warningBannerTextStyle = {
+    fontSize: '13px',
+    color: '#92400e',
+    margin: 0
+  }
+
+  const successMessageStyle = {
+    marginBottom: '24px',
+    padding: '16px',
+    backgroundColor: '#dcfce7',
+    border: '1px solid #86efac',
+    borderRadius: '4px',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px'
+  }
+
+  const errorMessageStyle = {
+    marginBottom: '24px',
+    padding: '16px',
+    backgroundColor: '#fee2e2',
+    border: '1px solid #fca5a5',
+    borderRadius: '4px',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px'
+  }
+
+  const messageContentStyle = {
+    flex: 1
+  }
+
+  const messageTitleStyle = {
+    fontSize: '14px',
+    fontWeight: '600',
+    margin: '0 0 4px 0'
+  }
+
+  const messageTextStyle = {
+    fontSize: '13px',
+    margin: 0
+  }
+
+  const submitButtonStyle = {
+    width: '100%',
+    padding: '12px 24px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#ffffff',
+    backgroundColor: '#0066cc',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    marginTop: '24px'
+  }
+
+  const dividerStyle = {
+    height: '1px',
+    backgroundColor: '#e0e0e0',
+    margin: '24px 0',
+    border: 'none'
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
+    <div style={containerStyle}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2 mb-2">
-          <SettingsIcon className="w-6 h-6 text-cyan-400" />
-          Admin Settings
-        </h1>
-        <p className="text-sm text-slate-400">Manage your administrator account</p>
-      </div>
-
-      {/* Profile Card */}
-      <div className="bg-gradient-to-br from-[#2b3a66] to-[#18233f] border border-slate-700 rounded-xl p-6 mb-6 max-w-4xl">
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/30 flex items-center justify-center">
-            <Shield className="w-10 h-10 text-cyan-400" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-white mb-1">{adminUser.full_name}</h2>
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <Mail className="w-3.5 h-3.5" />
-              <span>{adminUser.email}</span>
-            </div>
-            {adminUser.is_super_admin && (
-              <div className="flex items-center gap-2 text-xs text-purple-400 mt-2">
-                <Shield className="w-3 h-3" />
-                <span>Super Administrator</span>
-              </div>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Active
-            </div>
-            <p className="text-xs text-slate-500">@{adminUser.username}</p>
-          </div>
+      <div style={headerContainerStyle}>
+        <button
+          style={backButtonStyle}
+          onClick={() => navigate(-1)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f5f5f5'
+            e.currentTarget.style.borderColor = '#0066cc'
+            e.currentTarget.style.color = '#0066cc'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#ffffff'
+            e.currentTarget.style.borderColor = '#e0e0e0'
+            e.currentTarget.style.color = '#666'
+          }}
+        >
+          <ArrowLeft style={{ width: '16px', height: '16px' }} />
+          Back
+        </button>
+        <div style={headerStyle}>
+          <h1 style={titleStyle}>
+            <SettingsIcon style={{ width: '28px', height: '28px', color: '#0066cc' }} />
+            Administrator Settings
+          </h1>
+          <p style={subtitleStyle}>Manage your administrator account and security settings</p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-6 max-w-4xl">
-        <div className="flex gap-1 p-1 bg-slate-800/50">
-          {[
-            { id: 'profile', label: 'Profile', icon: User },
-            { id: 'security', label: 'Security', icon: Key }
-          ].map((tab) => (
+      <div style={contentWrapperStyle}>
+        {/* Profile Card */}
+        <div style={profileCardStyle}>
+          <div style={profileContentStyle}>
+            <div style={avatarStyle}>
+              <Shield style={{ width: '40px', height: '40px', color: '#0066cc' }} />
+            </div>
+            <div style={profileInfoStyle}>
+              <h2 style={profileNameStyle}>{adminUser.full_name}</h2>
+              <div style={profileEmailStyle}>
+                <Mail style={{ width: '14px', height: '14px' }} />
+                <span>{adminUser.email}</span>
+              </div>
+              {adminUser.is_super_admin && (
+                <div style={superAdminBadgeStyle}>
+                  <Shield style={{ width: '12px', height: '12px' }} />
+                  <span>Super Administrator</span>
+                </div>
+              )}
+            </div>
+            <div style={profileStatusStyle}>
+              <div style={statusBadgeStyle}>
+                <div style={statusDotStyle} />
+                Active
+              </div>
+              <p style={usernameStyle}>@{adminUser.username}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={tabsContainerStyle}>
+          <div style={tabsWrapperStyle}>
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                activeTab === tab.id
-                  ? 'bg-slate-700 text-white'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+              onClick={() => setActiveTab('profile')}
+              style={getTabStyle(activeTab === 'profile')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'profile') {
+                  e.currentTarget.style.backgroundColor = '#f0f0f0'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'profile') {
+                  e.currentTarget.style.backgroundColor = '#fafafa'
+                }
+              }}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <User style={{ width: '16px', height: '16px' }} />
+              Profile
             </button>
-          ))}
+            <button
+              onClick={() => setActiveTab('security')}
+              style={getTabStyle(activeTab === 'security')}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'security') {
+                  e.currentTarget.style.backgroundColor = '#f0f0f0'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'security') {
+                  e.currentTarget.style.backgroundColor = '#fafafa'
+                }
+              }}
+            >
+              <Key style={{ width: '16px', height: '16px' }} />
+              Security
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl space-y-6">
-        {activeTab === 'profile' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-              <User className="w-5 h-5 text-slate-400" />
-              Account Information
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
-                <input
-                  type="text"
-                  value={adminUser.username}
-                  disabled
-                  className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-400 cursor-not-allowed"
-                />
-              </div>
+        {/* Content */}
+        <div>
+          {activeTab === 'profile' && (
+            <div style={cardStyle}>
+              <h2 style={cardHeaderStyle}>
+                <User style={{ width: '20px', height: '20px', color: '#666' }} />
+                Account Information
+              </h2>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <input
-                  type="email"
-                  value={adminUser.email}
-                  disabled
-                  className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-400 cursor-not-allowed"
-                />
-              </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Username</label>
+                  <input
+                    type="text"
+                    value={adminUser.username}
+                    disabled
+                    style={inputDisabledStyle}
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-                <input
-                  type="text"
-                  value={adminUser.full_name}
-                  disabled
-                  className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-400 cursor-not-allowed"
-                />
-              </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Email Address</label>
+                  <input
+                    type="email"
+                    value={adminUser.email}
+                    disabled
+                    style={inputDisabledStyle}
+                  />
+                </div>
 
-              <div className="pt-4 border-t border-slate-800">
-                <div className="px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <p className="text-xs text-blue-400">
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Full Name</label>
+                  <input
+                    type="text"
+                    value={adminUser.full_name}
+                    disabled
+                    style={inputDisabledStyle}
+                  />
+                </div>
+
+                <div style={infoBannerStyle}>
+                  <p style={infoBannerTextStyle}>
                     Account information is managed by system administrators and cannot be changed here.
                   </p>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'security' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-              <Key className="w-5 h-5 text-slate-400" />
-              Change Password
-            </h2>
+          {activeTab === 'security' && (
+            <div style={cardStyle}>
+              <h2 style={cardHeaderStyle}>
+                <Key style={{ width: '20px', height: '20px', color: '#666' }} />
+                Change Password
+              </h2>
 
-            {/* Success Message */}
-            {showSuccess && (
-              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-emerald-400">Password Changed Successfully</p>
-                  <p className="text-xs text-emerald-400/80 mt-1">
-                    Your password has been updated. Please use the new password for future logins.
-                  </p>
+              {/* Success Message */}
+              {showSuccess && (
+                <div style={successMessageStyle}>
+                  <CheckCircle style={{ width: '20px', height: '20px', color: '#16a34a', flexShrink: 0 }} />
+                  <div style={messageContentStyle}>
+                    <p style={{ ...messageTitleStyle, color: '#16a34a' }}>Password Changed Successfully</p>
+                    <p style={{ ...messageTextStyle, color: '#15803d' }}>
+                      Your password has been updated. Please use the new password for future logins.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-400">Error</p>
-                  <p className="text-xs text-red-400/80 mt-1">{error}</p>
+              {/* Error Message */}
+              {error && (
+                <div style={errorMessageStyle}>
+                  <AlertTriangle style={{ width: '20px', height: '20px', color: '#dc2626', flexShrink: 0 }} />
+                  <div style={messageContentStyle}>
+                    <p style={{ ...messageTitleStyle, color: '#dc2626' }}>Error</p>
+                    <p style={{ ...messageTextStyle, color: '#b91c1c' }}>{error}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Current Password *</label>
-                <input
-                  type="password"
-                  value={passwordChange.current_password}
-                  onChange={(e) => setPasswordChange({ ...passwordChange, current_password: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-                  placeholder="Enter your current password"
-                  required
-                />
-              </div>
+              <form onSubmit={handlePasswordChange}>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Current Password *</label>
+                  <input
+                    type="password"
+                    value={passwordChange.current_password}
+                    onChange={(e) => setPasswordChange({ ...passwordChange, current_password: e.target.value })}
+                    style={inputStyle}
+                    placeholder="Enter your current password"
+                    required
+                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
+                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">New Password *</label>
-                <input
-                  type="password"
-                  value={passwordChange.new_password}
-                  onChange={(e) => setPasswordChange({ ...passwordChange, new_password: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-                  placeholder="Enter new password (min 8 characters)"
-                  required
-                  minLength={8}
-                />
-              </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>New Password *</label>
+                  <input
+                    type="password"
+                    value={passwordChange.new_password}
+                    onChange={(e) => setPasswordChange({ ...passwordChange, new_password: e.target.value })}
+                    style={inputStyle}
+                    placeholder="Enter new password (min 8 characters)"
+                    required
+                    minLength={8}
+                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
+                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Confirm New Password *</label>
-                <input
-                  type="password"
-                  value={passwordChange.confirm_password}
-                  onChange={(e) => setPasswordChange({ ...passwordChange, confirm_password: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-                  placeholder="Confirm new password"
-                  required
-                  minLength={8}
-                />
-              </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Confirm New Password *</label>
+                  <input
+                    type="password"
+                    value={passwordChange.confirm_password}
+                    onChange={(e) => setPasswordChange({ ...passwordChange, confirm_password: e.target.value })}
+                    style={inputStyle}
+                    placeholder="Confirm new password"
+                    required
+                    minLength={8}
+                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
+                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                  />
+                </div>
 
-              <div className="pt-4 border-t border-slate-800">
-                <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-lg mb-4">
-                  <p className="text-xs text-amber-400">
-                    💡 Use a strong password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.
+                <hr style={dividerStyle} />
+
+                <div style={warningBannerStyle}>
+                  <p style={warningBannerTextStyle}>
+                    Use a strong password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.
                   </p>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors"
+                  style={submitButtonStyle}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
                 >
                   Update Password
                 </button>
-              </div>
-            </form>
-          </div>
-        )}
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

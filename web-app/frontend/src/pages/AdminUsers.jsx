@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users, UserPlus, Search, Filter, Edit2, Trash2, Key, CheckCircle,
-  XCircle, Shield, Stethoscope, Briefcase, Mail, X, AlertTriangle
+  XCircle, Shield, Stethoscope, Briefcase, Mail, X, AlertTriangle, ChevronLeft
 } from 'lucide-react'
 import axios from 'axios'
 
@@ -44,13 +44,13 @@ export default function AdminUsers() {
       const token = localStorage.getItem('admin_token')
       const config = { headers: { Authorization: `Bearer ${token}` } }
 
-      let url = 'http://localhost:8000/api/sys/users/users?limit=1000'
+      let url = 'http://localhost:8001/api/sys/users/users?limit=1000'
       if (roleFilter !== 'all') url += `&role=${roleFilter}`
       if (statusFilter !== 'all') url += `&is_active=${statusFilter === 'active'}`
 
       const [usersRes, statsRes] = await Promise.all([
         axios.get(url, config),
-        axios.get('http://localhost:8000/api/sys/users/statistics', config)
+        axios.get('http://localhost:8001/api/sys/users/statistics', config)
       ])
 
       setUsers(usersRes.data)
@@ -68,7 +68,7 @@ export default function AdminUsers() {
     e.preventDefault()
     try {
       const token = localStorage.getItem('admin_token')
-      await axios.post('http://localhost:8000/api/sys/users/users', newUser, {
+      await axios.post('http://localhost:8001/api/sys/users/users', newUser, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -94,7 +94,7 @@ export default function AdminUsers() {
     try {
       const token = localStorage.getItem('admin_token')
       await axios.patch(
-        `http://localhost:8000/api/sys/users/users/${selectedUser.id}`,
+        `http://localhost:8001/api/sys/users/users/${selectedUser.id}`,
         {
           full_name: selectedUser.full_name,
           is_active: selectedUser.is_active,
@@ -119,7 +119,7 @@ export default function AdminUsers() {
 
     try {
       const token = localStorage.getItem('admin_token')
-      await axios.delete(`http://localhost:8000/api/sys/users/users/${userId}`, {
+      await axios.delete(`http://localhost:8001/api/sys/users/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       loadData()
@@ -133,7 +133,7 @@ export default function AdminUsers() {
     try {
       const token = localStorage.getItem('admin_token')
       await axios.post(
-        `http://localhost:8000/api/sys/users/users/${passwordReset.user_id}/reset-password`,
+        `http://localhost:8001/api/sys/users/users/${passwordReset.user_id}/reset-password`,
         { user_id: passwordReset.user_id, new_password: passwordReset.new_password },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -154,211 +154,625 @@ export default function AdminUsers() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading users...</p>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid #e0e0e0',
+            borderTop: '4px solid #0066cc',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px'
+          }} />
+          <p style={{ color: '#666', fontSize: '14px' }}>Loading users...</p>
         </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      padding: '24px',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2 mb-2">
-          <Users className="w-6 h-6 text-cyan-400" />
-          User Management
-        </h1>
-        <p className="text-sm text-slate-400">Manage doctors and staff accounts</p>
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
+        padding: '20px 24px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => navigate('/sys/dashboard')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              color: '#1a1a1a',
+              fontSize: '14px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f5f5'
+              e.currentTarget.style.borderColor = '#0066cc'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff'
+              e.currentTarget.style.borderColor = '#e0e0e0'
+            }}
+          >
+            <ChevronLeft style={{ width: '16px', height: '16px' }} />
+            Back
+          </button>
+          <div>
+            <h1 style={{
+              fontSize: '24px',
+              fontWeight: '600',
+              color: '#1a1a1a',
+              margin: '0 0 4px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Users style={{ width: '24px', height: '24px', color: '#0066cc' }} />
+              User Management
+            </h1>
+            <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+              Manage doctors and staff accounts
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            backgroundColor: '#0066cc',
+            border: 'none',
+            borderRadius: '4px',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+        >
+          <UserPlus style={{ width: '16px', height: '16px' }} />
+          Create New User
+        </button>
       </div>
 
       {/* Statistics */}
       {statistics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-cyan-500/20">
-                <Users className="w-5 h-5 text-cyan-400" />
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                backgroundColor: '#e6f2ff',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Users style={{ width: '20px', height: '20px', color: '#0066cc' }} />
               </div>
             </div>
-            <p className="text-sm text-slate-400">Total Users</p>
-            <p className="text-3xl font-bold text-white">{statistics.total_users}</p>
+            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Users
+            </p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+              {statistics.total_users}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/20">
-                <Stethoscope className="w-5 h-5 text-blue-400" />
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                backgroundColor: '#e6f2ff',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Stethoscope style={{ width: '20px', height: '20px', color: '#0066cc' }} />
               </div>
             </div>
-            <p className="text-sm text-slate-400">Doctors</p>
-            <p className="text-3xl font-bold text-white">{statistics.total_doctors}</p>
+            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Doctors
+            </p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+              {statistics.total_doctors}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-emerald-500/20">
-                <Briefcase className="w-5 h-5 text-emerald-400" />
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                backgroundColor: '#e6f2ff',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Briefcase style={{ width: '20px', height: '20px', color: '#0066cc' }} />
               </div>
             </div>
-            <p className="text-sm text-slate-400">Staff</p>
-            <p className="text-3xl font-bold text-white">{statistics.total_staff}</p>
+            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Staff
+            </p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+              {statistics.total_staff}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="p-2 rounded-lg bg-green-500/20">
-                <CheckCircle className="w-5 h-5 text-green-400" />
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            padding: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '12px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                backgroundColor: '#e6f7f0',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <CheckCircle style={{ width: '20px', height: '20px', color: '#16a34a' }} />
               </div>
             </div>
-            <p className="text-sm text-slate-400">Active Users</p>
-            <p className="text-3xl font-bold text-white">{statistics.active_users}</p>
+            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Active Users
+            </p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+              {statistics.active_users}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
-        <div className="lg:col-span-5 relative">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, email, or employee ID..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-          />
-        </div>
+      {/* Search and Filters */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
+        padding: '20px',
+        marginBottom: '16px'
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto auto',
+          gap: '12px',
+          alignItems: 'center'
+        }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '16px',
+              height: '16px',
+              color: '#999'
+            }} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, or employee ID..."
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 38px',
+                border: '1px solid #e0e0e0',
+                borderRadius: '4px',
+                fontSize: '14px',
+                color: '#1a1a1a',
+                outline: 'none',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
+              onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
+            />
+          </div>
 
-        <div className="lg:col-span-2">
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            style={{
+              padding: '9px 32px 9px 12px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              fontSize: '14px',
+              color: '#1a1a1a',
+              backgroundColor: '#ffffff',
+              cursor: 'pointer',
+              outline: 'none',
+              transition: 'border-color 0.2s'
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
+            onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
           >
             <option value="all">All Roles</option>
             <option value="doctor">Doctors</option>
             <option value="staff">Staff</option>
           </select>
-        </div>
 
-        <div className="lg:col-span-2">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            style={{
+              padding: '9px 32px 9px 12px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              fontSize: '14px',
+              color: '#1a1a1a',
+              backgroundColor: '#ffffff',
+              cursor: 'pointer',
+              outline: 'none',
+              transition: 'border-color 0.2s'
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
+            onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-
-        <div className="lg:col-span-3">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
-            Create User
-          </button>
-        </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-800/50 border-b border-slate-800">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">User</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Role</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Details</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Created</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Actions</th>
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e0e0e0',
+        borderRadius: '4px',
+        overflow: 'hidden'
+      }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#fafafa', borderBottom: '1px solid #e0e0e0' }}>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  User Information
+                </th>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Role
+                </th>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Professional Details
+                </th>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Status
+                </th>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Created
+                </th>
+                <th style={{
+                  padding: '12px 16px',
+                  textAlign: 'right',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="px-4 py-3">
+            <tbody>
+              {filteredUsers.map((user, index) => (
+                <tr
+                  key={user.id}
+                  style={{
+                    borderBottom: index < filteredUsers.length - 1 ? '1px solid #e0e0e0' : 'none',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <td style={{ padding: '16px' }}>
                     <div>
-                      <p className="text-sm font-medium text-white">{user.full_name}</p>
-                      <p className="text-xs text-slate-500">{user.email}</p>
+                      <p style={{ fontSize: '14px', fontWeight: '500', color: '#1a1a1a', margin: '0 0 4px 0' }}>
+                        {user.full_name}
+                      </p>
+                      <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+                        {user.email}
+                      </p>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium border ${
-                      user.role === 'doctor'
-                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                    }`}>
-                      {user.role === 'doctor' ? <Stethoscope className="w-3 h-3" /> : <Briefcase className="w-3 h-3" />}
-                      {user.role}
+                  <td style={{ padding: '16px' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '4px 10px',
+                      backgroundColor: user.role === 'doctor' ? '#e6f2ff' : '#e6f7f0',
+                      border: `1px solid ${user.role === 'doctor' ? '#0066cc' : '#16a34a'}`,
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      color: user.role === 'doctor' ? '#0066cc' : '#16a34a'
+                    }}>
+                      {user.role === 'doctor' ? (
+                        <Stethoscope style={{ width: '12px', height: '12px' }} />
+                      ) : (
+                        <Briefcase style={{ width: '12px', height: '12px' }} />
+                      )}
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-xs text-slate-400">
+                  <td style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '13px', color: '#666' }}>
                       {user.role === 'doctor' && user.specialty && (
-                        <p>Specialty: {user.specialty}</p>
+                        <p style={{ margin: '0 0 2px 0' }}>
+                          <span style={{ fontWeight: '500' }}>Specialty:</span> {user.specialty}
+                        </p>
+                      )}
+                      {user.role === 'doctor' && user.license_number && (
+                        <p style={{ margin: '0 0 2px 0' }}>
+                          <span style={{ fontWeight: '500' }}>License:</span> {user.license_number}
+                        </p>
                       )}
                       {user.role === 'staff' && user.department && (
-                        <p>Department: {user.department}</p>
+                        <p style={{ margin: '0 0 2px 0' }}>
+                          <span style={{ fontWeight: '500' }}>Department:</span> {user.department}
+                        </p>
                       )}
                       {user.employee_id && (
-                        <p className="text-slate-600">ID: {user.employee_id}</p>
+                        <p style={{ margin: '0', color: '#999' }}>
+                          ID: {user.employee_id}
+                        </p>
+                      )}
+                      {!user.specialty && !user.department && !user.employee_id && (
+                        <span style={{ color: '#999', fontStyle: 'italic' }}>No details</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td style={{ padding: '16px' }}>
                     {user.is_active ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/30">
-                        <CheckCircle className="w-3 h-3" />
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        backgroundColor: '#e6f7f0',
+                        border: '1px solid #16a34a',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: '#16a34a'
+                      }}>
+                        <CheckCircle style={{ width: '12px', height: '12px' }} />
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/30">
-                        <XCircle className="w-3 h-3" />
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        backgroundColor: '#fff0f0',
+                        border: '1px solid #dc2626',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: '#dc2626'
+                      }}>
+                        <XCircle style={{ width: '12px', height: '12px' }} />
                         Inactive
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <p className="text-xs text-slate-500">
-                      {new Date(user.created_at).toLocaleDateString()}
+                  <td style={{ padding: '16px' }}>
+                    <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+                      {new Date(user.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
                     </p>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
+                  <td style={{ padding: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                       <button
                         onClick={() => {
                           setPasswordReset({ user_id: user.id, new_password: '' })
                           setShowPasswordReset(true)
                         }}
-                        className="p-1.5 hover:bg-slate-700 rounded text-amber-400 hover:text-amber-300 transition-colors"
+                        style={{
+                          padding: '6px',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fffbeb'
+                          e.currentTarget.style.borderColor = '#eab308'
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.borderColor = '#e0e0e0'
+                        }}
                         title="Reset Password"
                       >
-                        <Key className="w-4 h-4" />
+                        <Key style={{ width: '16px', height: '16px', color: '#eab308' }} />
                       </button>
                       <button
                         onClick={() => {
                           setSelectedUser(user)
                           setShowEditModal(true)
                         }}
-                        className="p-1.5 hover:bg-slate-700 rounded text-blue-400 hover:text-blue-300 transition-colors"
+                        style={{
+                          padding: '6px',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#e6f2ff'
+                          e.currentTarget.style.borderColor = '#0066cc'
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.borderColor = '#e0e0e0'
+                        }}
                         title="Edit User"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 style={{ width: '16px', height: '16px', color: '#0066cc' }} />
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id, user.full_name)}
-                        className="p-1.5 hover:bg-slate-700 rounded text-red-400 hover:text-red-300 transition-colors"
+                        style={{
+                          padding: '6px',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fff0f0'
+                          e.currentTarget.style.borderColor = '#dc2626'
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.borderColor = '#e0e0e0'
+                        }}
                         title="Deactivate User"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 style={{ width: '16px', height: '16px', color: '#dc2626' }} />
                       </button>
                     </div>
                   </td>
@@ -368,9 +782,12 @@ export default function AdminUsers() {
           </table>
 
           {filteredUsers.length === 0 && (
-            <div className="p-12 text-center">
-              <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-              <p className="text-slate-400">No users found</p>
+            <div style={{
+              padding: '80px 20px',
+              textAlign: 'center'
+            }}>
+              <Users style={{ width: '48px', height: '48px', color: '#e0e0e0', margin: '0 auto 16px' }} />
+              <p style={{ fontSize: '14px', color: '#999', margin: 0 }}>No users found</p>
             </div>
           )}
         </div>
@@ -378,124 +795,334 @@ export default function AdminUsers() {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Create New User</h2>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}>
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#fafafa'
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#1a1a1a',
+                margin: 0
+              }}>
+                Create New User
+              </h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                style={{
+                  padding: '6px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <X className="w-5 h-5" />
+                <X style={{ width: '20px', height: '20px', color: '#666' }} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Role *</label>
+            <form onSubmit={handleCreateUser} style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Role <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
                   <select
                     value={newUser.role}
                     onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                     required
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#1a1a1a',
+                      backgroundColor: '#ffffff',
+                      cursor: 'pointer',
+                      outline: 'none'
+                    }}
                   >
                     <option value="doctor">Doctor</option>
                     <option value="staff">Staff</option>
                   </select>
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Full Name *</label>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Full Name <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
                   <input
                     type="text"
                     value={newUser.full_name}
                     onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                     required
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#1a1a1a',
+                      outline: 'none'
+                    }}
                   />
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Email *</label>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Email <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
                   <input
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                     required
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#1a1a1a',
+                      outline: 'none'
+                    }}
                   />
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Password *</label>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Password <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
                   <input
                     type="password"
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                     required
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#1a1a1a',
+                      outline: 'none'
+                    }}
                   />
                 </div>
 
                 {newUser.role === 'doctor' && (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">Specialty</label>
-                      <input
-                        type="text"
-                        value={newUser.specialty}
-                        onChange={(e) => setNewUser({ ...newUser, specialty: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">License Number</label>
-                      <input
-                        type="text"
-                        value={newUser.license_number}
-                        onChange={(e) => setNewUser({ ...newUser, license_number: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                      />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Specialty
+                        </label>
+                        <input
+                          type="text"
+                          value={newUser.specialty}
+                          onChange={(e) => setNewUser({ ...newUser, specialty: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          License Number
+                        </label>
+                        <input
+                          type="text"
+                          value={newUser.license_number}
+                          onChange={(e) => setNewUser({ ...newUser, license_number: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
                     </div>
                   </>
                 )}
 
                 {newUser.role === 'staff' && (
                   <>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">Department</label>
-                      <input
-                        type="text"
-                        value={newUser.department}
-                        onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">Employee ID</label>
-                      <input
-                        type="text"
-                        value={newUser.employee_id}
-                        onChange={(e) => setNewUser({ ...newUser, employee_id: e.target.value })}
-                        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                      />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          value={newUser.department}
+                          onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Employee ID
+                        </label>
+                        <input
+                          type="text"
+                          value={newUser.employee_id}
+                          onChange={(e) => setNewUser({ ...newUser, employee_id: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
                     </div>
                   </>
                 )}
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '1px solid #e0e0e0'
+              }}>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    color: '#1a1a1a',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors"
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#0066cc',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
                 >
                   Create User
                 </button>
@@ -505,27 +1132,413 @@ export default function AdminUsers() {
         </div>
       )}
 
-      {/* Password Reset Modal */}
-      {showPasswordReset && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Reset Password</h2>
+      {/* Edit User Modal */}
+      {showEditModal && selectedUser && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}>
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#fafafa'
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#1a1a1a',
+                margin: 0
+              }}>
+                Edit User
+              </h2>
               <button
-                onClick={() => setShowPasswordReset(false)}
-                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                onClick={() => {
+                  setShowEditModal(false)
+                  setSelectedUser(null)
+                }}
+                style={{
+                  padding: '6px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <X className="w-5 h-5" />
+                <X style={{ width: '20px', height: '20px', color: '#666' }} />
               </button>
             </div>
 
-            <form onSubmit={handleResetPassword} className="p-6 space-y-4">
-              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <form onSubmit={handleUpdateUser} style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Full Name <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedUser.full_name}
+                    onChange={(e) => setSelectedUser({ ...selectedUser, full_name: e.target.value })}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#1a1a1a',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#1a1a1a',
+                    marginBottom: '6px'
+                  }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={selectedUser.email}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#999',
+                      backgroundColor: '#fafafa',
+                      cursor: 'not-allowed',
+                      outline: 'none'
+                    }}
+                  />
+                  <p style={{ fontSize: '12px', color: '#999', margin: '4px 0 0 0' }}>
+                    Email cannot be changed
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    color: '#1a1a1a'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedUser.is_active}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, is_active: e.target.checked })}
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{ fontWeight: '500' }}>Active User</span>
+                  </label>
+                  <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 24px' }}>
+                    Inactive users cannot log in to the system
+                  </p>
+                </div>
+
+                {selectedUser.role === 'doctor' && (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Specialty
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedUser.specialty || ''}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, specialty: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          License Number
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedUser.license_number || ''}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, license_number: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {selectedUser.role === 'staff' && (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedUser.department || ''}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          color: '#1a1a1a',
+                          marginBottom: '6px'
+                        }}>
+                          Employee ID
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedUser.employee_id || ''}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, employee_id: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '9px 12px',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            color: '#1a1a1a',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '1px solid #e0e0e0'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false)
+                    setSelectedUser(null)
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    color: '#1a1a1a',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#0066cc',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordReset && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}>
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#fafafa'
+            }}>
+              <h2 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#1a1a1a',
+                margin: 0
+              }}>
+                Reset User Password
+              </h2>
+              <button
+                onClick={() => {
+                  setShowPasswordReset(false)
+                  setPasswordReset({ user_id: null, new_password: '' })
+                }}
+                style={{
+                  padding: '6px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <X style={{ width: '20px', height: '20px', color: '#666' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleResetPassword} style={{ padding: '24px' }}>
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: '#fffbeb',
+                border: '1px solid #eab308',
+                borderRadius: '4px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <AlertTriangle style={{
+                    width: '20px',
+                    height: '20px',
+                    color: '#eab308',
+                    flexShrink: 0,
+                    marginTop: '2px'
+                  }} />
                   <div>
-                    <p className="text-sm font-medium text-amber-400">Warning</p>
-                    <p className="text-xs text-amber-400/80 mt-1">
+                    <p style={{
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      color: '#854d0e',
+                      margin: '0 0 4px 0'
+                    }}>
+                      Warning
+                    </p>
+                    <p style={{
+                      fontSize: '13px',
+                      color: '#854d0e',
+                      margin: 0,
+                      lineHeight: '1.5'
+                    }}>
                       This will reset the user's password. They will be notified to change it on next login.
                     </p>
                   </div>
@@ -533,29 +1546,82 @@ export default function AdminUsers() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">New Password *</label>
+                <label style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#1a1a1a',
+                  marginBottom: '6px'
+                }}>
+                  New Password <span style={{ color: '#dc2626' }}>*</span>
+                </label>
                 <input
                   type="password"
                   value={passwordReset.new_password}
                   onChange={(e) => setPasswordReset({ ...passwordReset, new_password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                   required
                   minLength={8}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    color: '#1a1a1a',
+                    outline: 'none'
+                  }}
                 />
-                <p className="text-xs text-slate-500 mt-1">Minimum 8 characters</p>
+                <p style={{ fontSize: '12px', color: '#999', margin: '4px 0 0 0' }}>
+                  Minimum 8 characters required
+                </p>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '1px solid #e0e0e0'
+              }}>
                 <button
                   type="button"
-                  onClick={() => setShowPasswordReset(false)}
-                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                  onClick={() => {
+                    setShowPasswordReset(false)
+                    setPasswordReset({ user_id: null, new_password: '' })
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '4px',
+                    color: '#1a1a1a',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors"
+                  style={{
+                    flex: 1,
+                    padding: '10px 20px',
+                    backgroundColor: '#eab308',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ca8a04'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eab308'}
                 >
                   Reset Password
                 </button>
