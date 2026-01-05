@@ -26,10 +26,13 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    CORS_ORIGINS: str = ""
 
     @property
     def cors_origins(self) -> List[str]:
-        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+        # Use CORS_ORIGINS if set (for admin panel), otherwise use ALLOWED_ORIGINS
+        origins = self.CORS_ORIGINS if self.CORS_ORIGINS else self.ALLOWED_ORIGINS
+        return [origin.strip() for origin in origins.split(",")]
 
     class Config:
         env_file = ".env"
