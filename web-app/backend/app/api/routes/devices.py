@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from ...core.database import get_db
-from ...models.device import Device, DeviceLog, DeviceStatus
+from ...models.device import Device, DeviceLog, DeviceStatus, AssignmentStatus
 
 router = APIRouter()
 
@@ -81,6 +81,7 @@ async def register_device(
                 ip_address=registration.ip_address,
                 firmware_version=registration.firmware_version,
                 status=DeviceStatus.ONLINE,
+                assignment_status=AssignmentStatus.AVAILABLE,  # New devices are available for assignment
                 last_ping=datetime.utcnow(),
                 activated_at=datetime.utcnow()
             )

@@ -6,7 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from ...core.database import get_db
-from ...models.device import Device, DeviceLog, DeviceStatus
+from ...models.device import Device, DeviceLog, DeviceStatus, AssignmentStatus, DeviceAssignment
 
 router = APIRouter()
 
@@ -16,10 +16,14 @@ class DeviceResponse(BaseModel):
     device_id: str
     device_name: str
     status: str
+    assignment_status: str | None
     battery_level: float | None
     firmware_version: str | None
+    patient_id: str | None
     patient_name: str | None
     assigned_room: str | None
+    assigned_at: datetime | None
+    assigned_by: str | None
     last_ping: datetime | None
     spo2: float | None
     heart_rate: int | None
@@ -33,6 +37,20 @@ class DeviceDebugCommand(BaseModel):
     device_id: str
     command: str
     parameters: dict | None = None
+
+
+class DeviceAssignmentRequest(BaseModel):
+    patient_id: str
+    patient_name: str
+    assigned_room: Optional[str] = None
+    assigned_by: str  # User ID or email
+    assigned_by_name: Optional[str] = None
+    assignment_notes: Optional[str] = None
+
+
+class DeviceUnassignmentRequest(BaseModel):
+    unassigned_by: str  # User ID or email
+    unassignment_notes: Optional[str] = None
 
 
 @router.get("/devices", response_model=List[DeviceResponse])
@@ -219,3 +237,186 @@ async def update_device(
     db.commit()
 
     return {"status": "success", "message": "Device updated successfully"}
+
+
+# ========================================
+# Device Assignment Endpoints
+# ========================================
+
+@router.post("/devices/{device_id}/assign")
+async def assign_device_to_patient(
+    device_id: str,
+    assignment: DeviceAssignmentRequest,
+    db: Session = Depends(get_db)
+):
+    """Assign a device to a patient"""
+
+    device = db.query(Device).filter(Device.device_id == device_id).first()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Check if device is already assigned
+    if device.assignment_status in [AssignmentStatus.ASSIGNED, AssignmentStatus.IN_USE]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Device is already assigned to patient {device.patient_name}"
+        )
+
+    # Update device with assignment
+    device.patient_id = assignment.patient_id
+    device.patient_name = assignment.patient_name
+    device.assigned_room = assignment.assigned_room
+    device.assigned_at = datetime.utcnow()
+    device.assigned_by = assignment.assigned_by
+    device.assignment_status = AssignmentStatus.ASSIGNED
+    device.updated_at = datetime.utcnow()
+
+    # Create assignment history record
+    assignment_record = DeviceAssignment(
+        device_id=device_id,
+        device_name=device.device_name,
+        patient_id=assignment.patient_id,
+        patient_name=assignment.patient_name,
+        assigned_room=assignment.assigned_room,
+        assigned_by=assignment.assigned_by,
+        assigned_by_name=assignment.assigned_by_name,
+        assigned_at=datetime.utcnow(),
+        is_active=True,
+        assignment_notes=assignment.assignment_notes
+    )
+
+    db.add(assignment_record)
+
+    # Log the assignment
+    log = DeviceLog(
+        device_id=device_id,
+        log_type="info",
+        message=f"Device assigned to patient {assignment.patient_name}",
+        data={
+            "patient_id": assignment.patient_id,
+            "patient_name": assignment.patient_name,
+            "assigned_by": assignment.assigned_by,
+            "assigned_room": assignment.assigned_room
+        }
+    )
+    db.add(log)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Device {device.device_name} assigned to patient {assignment.patient_name}",
+        "device_id": device_id,
+        "patient_id": assignment.patient_id
+    }
+
+
+@router.post("/devices/{device_id}/unassign")
+async def unassign_device_from_patient(
+    device_id: str,
+    unassignment: DeviceUnassignmentRequest,
+    db: Session = Depends(get_db)
+):
+    """Unassign a device from a patient"""
+
+    device = db.query(Device).filter(Device.device_id == device_id).first()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Check if device is actually assigned
+    if device.assignment_status == AssignmentStatus.AVAILABLE:
+        raise HTTPException(status_code=400, detail="Device is not assigned to any patient")
+
+    # Store patient info before clearing
+    old_patient_name = device.patient_name
+    old_patient_id = device.patient_id
+
+    # Update current active assignment record
+    active_assignment = db.query(DeviceAssignment).filter(
+        DeviceAssignment.device_id == device_id,
+        DeviceAssignment.is_active == True
+    ).first()
+
+    if active_assignment:
+        active_assignment.unassigned_at = datetime.utcnow()
+        active_assignment.unassigned_by = unassignment.unassigned_by
+        active_assignment.is_active = False
+        active_assignment.unassignment_notes = unassignment.unassignment_notes
+
+    # Clear device assignment
+    device.patient_id = None
+    device.patient_name = None
+    device.assigned_room = None
+    device.assigned_at = None
+    device.assigned_by = None
+    device.assignment_status = AssignmentStatus.AVAILABLE
+    device.updated_at = datetime.utcnow()
+
+    # Log the unassignment
+    log = DeviceLog(
+        device_id=device_id,
+        log_type="info",
+        message=f"Device unassigned from patient {old_patient_name}",
+        data={
+            "patient_id": old_patient_id,
+            "patient_name": old_patient_name,
+            "unassigned_by": unassignment.unassigned_by
+        }
+    )
+    db.add(log)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Device {device.device_name} unassigned from patient {old_patient_name}",
+        "device_id": device_id
+    }
+
+
+@router.get("/devices/available")
+async def get_available_devices(db: Session = Depends(get_db)):
+    """Get all devices that are available for assignment"""
+
+    devices = db.query(Device).filter(
+        Device.assignment_status == AssignmentStatus.AVAILABLE
+    ).order_by(Device.device_name).all()
+
+    return [{
+        "id": d.id,
+        "device_id": d.device_id,
+        "device_name": d.device_name,
+        "status": d.status.value,
+        "battery_level": d.battery_level,
+        "firmware_version": d.firmware_version,
+        "last_ping": d.last_ping
+    } for d in devices]
+
+
+@router.get("/devices/{device_id}/assignment-history")
+async def get_device_assignment_history(
+    device_id: str,
+    db: Session = Depends(get_db)
+):
+    """Get assignment history for a specific device"""
+
+    assignments = db.query(DeviceAssignment).filter(
+        DeviceAssignment.device_id == device_id
+    ).order_by(desc(DeviceAssignment.assigned_at)).all()
+
+    return [{
+        "id": a.id,
+        "patient_id": a.patient_id,
+        "patient_name": a.patient_name,
+        "assigned_room": a.assigned_room,
+        "assigned_by": a.assigned_by,
+        "assigned_by_name": a.assigned_by_name,
+        "assigned_at": a.assigned_at,
+        "unassigned_at": a.unassigned_at,
+        "unassigned_by": a.unassigned_by,
+        "is_active": a.is_active,
+        "assignment_notes": a.assignment_notes,
+        "unassignment_notes": a.unassignment_notes
+    } for a in assignments]

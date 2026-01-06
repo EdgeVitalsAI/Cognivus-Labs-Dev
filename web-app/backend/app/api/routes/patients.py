@@ -7,6 +7,7 @@ from pydantic import BaseModel, EmailStr
 
 from ...core.database import get_db
 from ...models.patient import Patient, PatientStatus, BloodType, Gender
+from ...models.device import Device, AssignmentStatus, DeviceAssignment, DeviceLog
 
 router = APIRouter()
 
@@ -424,4 +425,235 @@ async def get_patients_statistics(db: Session = Depends(get_db)):
             "discharged": discharged
         },
         "active_patients": total_patients - discharged
+    }
+
+
+# ========================================
+# Device Assignment Endpoints (for Doctors/Staff)
+# ========================================
+
+class PatientDeviceAssignmentRequest(BaseModel):
+    device_id: str
+    assigned_by: str  # Doctor/Staff email or ID
+    assigned_by_name: Optional[str] = None
+    assignment_notes: Optional[str] = None
+
+
+class PatientDeviceUnassignmentRequest(BaseModel):
+    unassigned_by: str  # Doctor/Staff email or ID
+    unassignment_notes: Optional[str] = None
+
+
+@router.get("/devices/available")
+async def get_available_devices_for_patients(db: Session = Depends(get_db)):
+    """
+    Get all devices available for assignment to patients
+    Used by doctors/staff when adding or editing patients
+    """
+
+    devices = db.query(Device).filter(
+        Device.assignment_status == AssignmentStatus.AVAILABLE
+    ).order_by(Device.device_name).all()
+
+    return [{
+        "id": d.id,
+        "device_id": d.device_id,
+        "device_name": d.device_name,
+        "status": d.status.value,
+        "assignment_status": d.assignment_status.value,
+        "battery_level": d.battery_level,
+        "firmware_version": d.firmware_version,
+        "last_ping": d.last_ping.isoformat() if d.last_ping else None
+    } for d in devices]
+
+
+@router.post("/patients/{patient_id}/assign-device")
+async def assign_device_to_patient(
+    patient_id: str,
+    assignment: PatientDeviceAssignmentRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Assign an available device to a patient
+    Called by doctors/staff when adding or editing patients
+    """
+
+    # Check if patient exists
+    patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    # Check if device exists
+    device = db.query(Device).filter(Device.device_id == assignment.device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Check if device is available
+    if device.assignment_status != AssignmentStatus.AVAILABLE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Device is not available. Current status: {device.assignment_status.value}"
+        )
+
+    # Check if patient already has a device assigned
+    existing_device = db.query(Device).filter(Device.patient_id == patient_id).first()
+    if existing_device:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Patient already has device {existing_device.device_name} assigned. Unassign it first."
+        )
+
+    # Assign device to patient
+    device.patient_id = patient_id
+    device.patient_name = patient.name
+    device.assigned_room = patient.room_number
+    device.assigned_at = datetime.utcnow()
+    device.assigned_by = assignment.assigned_by
+    device.assignment_status = AssignmentStatus.ASSIGNED
+    device.updated_at = datetime.utcnow()
+
+    # Create assignment history record
+    assignment_record = DeviceAssignment(
+        device_id=assignment.device_id,
+        device_name=device.device_name,
+        patient_id=patient_id,
+        patient_name=patient.name,
+        assigned_room=patient.room_number,
+        assigned_by=assignment.assigned_by,
+        assigned_by_name=assignment.assigned_by_name,
+        assigned_at=datetime.utcnow(),
+        is_active=True,
+        assignment_notes=assignment.assignment_notes
+    )
+    db.add(assignment_record)
+
+    # Log the assignment
+    log = DeviceLog(
+        device_id=assignment.device_id,
+        log_type="info",
+        message=f"Device assigned to patient {patient.name} by {assignment.assigned_by}",
+        data={
+            "patient_id": patient_id,
+            "patient_name": patient.name,
+            "assigned_by": assignment.assigned_by,
+            "assigned_room": patient.room_number
+        }
+    )
+    db.add(log)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Device {device.device_name} assigned to patient {patient.name}",
+        "device_id": assignment.device_id,
+        "patient_id": patient_id
+    }
+
+
+@router.post("/patients/{patient_id}/unassign-device")
+async def unassign_device_from_patient(
+    patient_id: str,
+    unassignment: PatientDeviceUnassignmentRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Unassign device from a patient
+    Called by doctors/staff when editing patients or removing device assignment
+    """
+
+    # Check if patient exists
+    patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    # Find device assigned to this patient
+    device = db.query(Device).filter(Device.patient_id == patient_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="No device assigned to this patient")
+
+    # Store device info before clearing
+    device_name = device.device_name
+    device_id = device.device_id
+
+    # Update current active assignment record
+    active_assignment = db.query(DeviceAssignment).filter(
+        DeviceAssignment.device_id == device_id,
+        DeviceAssignment.patient_id == patient_id,
+        DeviceAssignment.is_active == True
+    ).first()
+
+    if active_assignment:
+        active_assignment.unassigned_at = datetime.utcnow()
+        active_assignment.unassigned_by = unassignment.unassigned_by
+        active_assignment.is_active = False
+        active_assignment.unassignment_notes = unassignment.unassignment_notes
+
+    # Clear device assignment
+    device.patient_id = None
+    device.patient_name = None
+    device.assigned_room = None
+    device.assigned_at = None
+    device.assigned_by = None
+    device.assignment_status = AssignmentStatus.AVAILABLE
+    device.updated_at = datetime.utcnow()
+
+    # Log the unassignment
+    log = DeviceLog(
+        device_id=device_id,
+        log_type="info",
+        message=f"Device unassigned from patient {patient.name} by {unassignment.unassigned_by}",
+        data={
+            "patient_id": patient_id,
+            "patient_name": patient.name,
+            "unassigned_by": unassignment.unassigned_by
+        }
+    )
+    db.add(log)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Device {device_name} unassigned from patient {patient.name}",
+        "device_id": device_id,
+        "patient_id": patient_id
+    }
+
+
+@router.get("/patients/{patient_id}/assigned-device")
+async def get_patient_assigned_device(patient_id: str, db: Session = Depends(get_db)):
+    """
+    Get the device currently assigned to a patient
+    """
+
+    patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    device = db.query(Device).filter(Device.patient_id == patient_id).first()
+
+    if not device:
+        return {
+            "has_device": False,
+            "device": None
+        }
+
+    return {
+        "has_device": True,
+        "device": {
+            "id": device.id,
+            "device_id": device.device_id,
+            "device_name": device.device_name,
+            "status": device.status.value,
+            "assignment_status": device.assignment_status.value,
+            "battery_level": device.battery_level,
+            "firmware_version": device.firmware_version,
+            "last_ping": device.last_ping.isoformat() if device.last_ping else None,
+            "assigned_at": device.assigned_at.isoformat() if device.assigned_at else None,
+            "assigned_by": device.assigned_by,
+            "spo2": device.spo2,
+            "heart_rate": device.heart_rate,
+            "temperature": device.temperature
+        }
     }
