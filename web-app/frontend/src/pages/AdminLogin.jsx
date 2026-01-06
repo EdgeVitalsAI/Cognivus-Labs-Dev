@@ -81,16 +81,17 @@ export default function AdminLogin() {
       }}>
         <div style={{ maxWidth: '400px', textAlign: 'center' }}>
           <div style={{
-            width: '100px',
-            height: '100px',
+            width: '120px',
+            height: '120px',
             backgroundColor: 'white',
             borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 2rem'
+            margin: '0 auto 2rem',
+            padding: '1rem'
           }}>
-            <Shield size={60} color={currentTheme.primary} strokeWidth={2} />
+            <img src="/LOGO.png" alt="CognivusLabs" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h1 style={{
             fontSize: '2rem',

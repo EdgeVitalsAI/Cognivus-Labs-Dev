@@ -48,7 +48,7 @@ export const themes = {
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('admin_theme')
-    return saved || 'light'
+    return saved || 'dark'  // Default to dark theme
   })
 
   useEffect(() => {

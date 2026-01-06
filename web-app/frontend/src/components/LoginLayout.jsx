@@ -11,12 +11,7 @@ const LoginLayout = ({ children, userType }) => {
         <div className="w-full flex flex-col justify-between p-12">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <img src="/favicon.png" alt="CognivusLabs" className="w-12 h-12" />
-            <div>
-              <h1 className="text-lg font-display font-semibold text-white tracking-tight">
-                COGNIVUSLABS
-              </h1>
-            </div>
+            <img src="/LOGO.png" alt="CognivusLabs" className="h-12 w-auto" />
           </div>
 
           {/* Content */}
@@ -65,10 +60,7 @@ const LoginLayout = ({ children, userType }) => {
         >
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center space-x-2.5 mb-10">
-            <img src="/favicon.png" alt="CognivusLabs" className="w-10 h-10" />
-            <h1 className="text-base font-display font-semibold text-primary tracking-tight">
-              COGNIVUSLABS
-            </h1>
+            <img src="/LOGO.png" alt="CognivusLabs" className="h-10 w-auto" />
           </div>
 
           {/* Header */}
