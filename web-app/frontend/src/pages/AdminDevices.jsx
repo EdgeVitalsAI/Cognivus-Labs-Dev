@@ -20,6 +20,7 @@ export default function AdminDevices() {
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const [debugCommand, setDebugCommand] = useState('')
   const [debugOutput, setDebugOutput] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     loadDevices()
@@ -29,6 +30,7 @@ export default function AdminDevices() {
 
   const loadDevices = async () => {
     try {
+      setLoading(true)
       const token = localStorage.getItem('admin_token')
       const url = statusFilter === 'all'
         ? 'http://localhost:8001/api/sys/devices/devices'
@@ -40,6 +42,8 @@ export default function AdminDevices() {
       setDevices(response.data)
     } catch (error) {
       console.error('Failed to load devices:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -187,7 +191,7 @@ export default function AdminDevices() {
             <ThemeToggle />
           </div>
           <button
-            onClick={() => loadData()}
+            onClick={() => loadDevices()}
             disabled={loading}
             style={{
               display: 'flex',
