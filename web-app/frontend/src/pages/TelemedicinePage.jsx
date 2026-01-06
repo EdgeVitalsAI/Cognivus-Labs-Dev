@@ -26,7 +26,7 @@ const TelemedicinePage = () => {
     const fetchConsultations = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await axios.get(`${API_BASE_URL}/telemedicine`, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 params: { limit: 100 }
@@ -70,7 +70,7 @@ const TelemedicinePage = () => {
 
     const handleScheduleConsultation = async (newConsultation) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(`${API_BASE_URL}/telemedicine`, newConsultation, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -98,7 +98,7 @@ const TelemedicinePage = () => {
 
     const handleCancel = async (consultationId) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.patch(
                 `${API_BASE_URL}/telemedicine/${consultationId}`,
                 { status: 'CANCELLED' },

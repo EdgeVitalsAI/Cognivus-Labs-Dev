@@ -30,7 +30,7 @@ const PrescriptionsPage = () => {
     const fetchPrescriptions = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await axios.get(`${API_BASE_URL}/prescriptions`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -131,7 +131,7 @@ const PrescriptionsPage = () => {
         }
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(
                 `${API_BASE_URL}/prescriptions/${prescriptionId}/discontinue`,
                 {
@@ -156,7 +156,7 @@ const PrescriptionsPage = () => {
 
     const handleAddPrescription = async (newPrescription) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(`${API_BASE_URL}/prescriptions`, newPrescription, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

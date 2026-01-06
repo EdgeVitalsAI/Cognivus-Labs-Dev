@@ -18,7 +18,7 @@ export default function StaffTasks() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
       const response = await axios.get(`${API_BASE_URL}/tasks`, {
         headers: { 'Authorization': `Bearer ${token}` },
         params: { limit: 100 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Briefcase, Key, Save } from 'lucide-react';
+import { User, Mail, Phone, Briefcase, Key, Save, Camera } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import { authService } from '../services/api';
@@ -13,6 +13,8 @@ const ProfileSettingsPage = () => {
     const [user] = useState(authService.getCurrentUser());
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [profileImage, setProfileImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [profileData, setProfileData] = useState({
         full_name: '',
         email: '',
@@ -39,7 +41,7 @@ const ProfileSettingsPage = () => {
     const fetchProfile = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await axios.get(`${API_BASE_URL}/profile/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -80,11 +82,23 @@ const ProfileSettingsPage = () => {
         }));
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setProfileImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSaveProfile = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.patch(`${API_BASE_URL}/profile/me`, profileData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -120,7 +134,7 @@ const ProfileSettingsPage = () => {
 
         try {
             setSaving(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(
                 `${API_BASE_URL}/profile/change-password`,
                 {
@@ -191,6 +205,39 @@ const ProfileSettingsPage = () => {
                             {message.text}
                         </div>
                     )}
+
+                    {/* Profile Image Upload */}
+                    <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 mb-6">
+                        <h2 className="text-xl font-bold text-white mb-4">Profile Picture</h2>
+                        <div className="flex items-center gap-6">
+                            <div className="relative">
+                                <div className="w-24 h-24 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
+                                    {imagePreview ? (
+                                        <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User className="w-12 h-12 text-slate-400" />
+                                    )}
+                                </div>
+                                <label
+                                    htmlFor="profile-image"
+                                    className="absolute bottom-0 right-0 w-8 h-8 bg-sky-600 hover:bg-sky-500 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                                >
+                                    <Camera className="w-4 h-4 text-white" />
+                                </label>
+                                <input
+                                    id="profile-image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-300 mb-1">Upload a new profile picture</p>
+                                <p className="text-xs text-slate-500">JPG, PNG or GIF. Max size 2MB</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Profile Information */}

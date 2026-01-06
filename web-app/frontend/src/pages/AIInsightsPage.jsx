@@ -23,7 +23,7 @@ const AIInsightsPage = () => {
     const fetchInsights = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await axios.get(`${API_BASE_URL}/ai-insights`, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 params: { limit: 100 }

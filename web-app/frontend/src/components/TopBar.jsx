@@ -1,11 +1,7 @@
-import { Search, ChevronDown } from 'lucide-react'
-import { authService } from '../services/api'
+import { Search } from 'lucide-react'
+import ProfileDropdown from './ProfileDropdown'
 
-const TopBar = ({ userName, avatarUrl = null }) => {
-  // Get user data from localStorage if not provided
-  const currentUser = authService.getCurrentUser()
-  const displayName = userName || currentUser?.full_name || 'User'
-
+const TopBar = ({ userName, avatarUrl = null, onLogout }) => {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
       {/* Logo + Tagline */}
@@ -23,16 +19,8 @@ const TopBar = ({ userName, avatarUrl = null }) => {
         />
       </div>
 
-      {/* Profile */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-slate-700 overflow-hidden">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-          ) : null}
-        </div>
-        <div className="text-sm text-slate-200">{displayName}</div>
-        <ChevronDown className="w-4 h-4 text-slate-400" />
-      </div>
+      {/* Profile Dropdown */}
+      <ProfileDropdown userName={userName} avatarUrl={avatarUrl} onLogout={onLogout} />
     </div>
   )
 }

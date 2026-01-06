@@ -117,7 +117,7 @@ const StaffDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
       const headers = { 'Authorization': `Bearer ${token}` }
 
       const [tasksRes, patientsRes, activityRes] = await Promise.all([

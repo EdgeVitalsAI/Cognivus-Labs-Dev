@@ -26,7 +26,7 @@ const NotesReportsPage = () => {
     const fetchNotes = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await axios.get(`${API_BASE_URL}/notes`, {
                 headers: { 'Authorization': `Bearer ${token}` },
                 params: { limit: 100 }
@@ -69,7 +69,7 @@ const NotesReportsPage = () => {
 
     const handleAddNote = async (newNote) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             await axios.post(`${API_BASE_URL}/notes`, {
                 ...newNote,
                 created_by_id: user.id

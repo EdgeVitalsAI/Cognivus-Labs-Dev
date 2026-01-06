@@ -28,7 +28,7 @@ const DoctorDashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const headers = { 'Authorization': `Bearer ${token}` };
 
             // Fetch all dashboard data in parallel

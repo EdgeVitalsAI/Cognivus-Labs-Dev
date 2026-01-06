@@ -37,7 +37,7 @@ const PatientsPage = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
       const response = await axios.get(`${API_BASE_URL}/patients`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -78,7 +78,7 @@ const PatientsPage = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
       const response = await axios.get(`${API_BASE_URL}/patients/statistics/summary`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -166,7 +166,7 @@ const PatientsPage = () => {
 
   const handleAddPatient = async (newPatient) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('access_token')
       await axios.post(`${API_BASE_URL}/patients`, newPatient, {
         headers: {
           'Authorization': `Bearer ${token}`,
