@@ -81,15 +81,15 @@ export default function AdminLogin() {
       }}>
         <div style={{ maxWidth: '400px', textAlign: 'center' }}>
           <div style={{
-            width: '120px',
-            height: '120px',
-            backgroundColor: 'white',
-            borderRadius: '8px',
+            width: '220px',
+            height: '220px',
+            backgroundColor: 'transparent',
+            borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 2rem',
-            padding: '1rem'
+            padding: '0.5rem'
           }}>
             <img src="/LOGO.png" alt="CognivusLabs" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>

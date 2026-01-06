@@ -155,35 +155,61 @@ export default function AdminDevices() {
     }}>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={() => navigate('/admin')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 12px',
+                backgroundColor: currentTheme.cardBackground,
+                border: `1px solid ${currentTheme.border}`,
+                borderRadius: '4px',
+                color: currentTheme.text,
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.hover
+                e.currentTarget.style.borderColor = currentTheme.accent
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.cardBackground
+                e.currentTarget.style.borderColor = currentTheme.border
+              }}
+            >
+              <ArrowLeft style={{ width: '16px', height: '16px' }} />
+              Back to Dashboard
+            </button>
+            <ThemeToggle />
+          </div>
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => loadData()}
+            disabled={loading}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: currentTheme.cardBackground,
-              border: `1px solid ${currentTheme.border}`,
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: currentTheme.accent,
+              border: 'none',
               borderRadius: '4px',
-              color: currentTheme.text,
+              color: '#ffffff',
               fontSize: '14px',
-              cursor: 'pointer',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
               transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = currentTheme.hover
-              e.currentTarget.style.borderColor = currentTheme.accent
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = currentTheme.cardBackground
-              e.currentTarget.style.borderColor = currentTheme.border
-            }}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.opacity = '0.9')}
+            onMouseOut={(e) => !loading && (e.currentTarget.style.opacity = '1')}
           >
-            <ArrowLeft style={{ width: '16px', height: '16px' }} />
-            Back to Dashboard
+            <RefreshCw style={{ width: '16px', height: '16px' }} />
+            {loading ? 'Refreshing...' : 'Refresh Devices'}
           </button>
-          <ThemeToggle />
         </div>
         <h1 style={{
           fontSize: '28px',
@@ -198,7 +224,7 @@ export default function AdminDevices() {
           Device Management
         </h1>
         <p style={{ fontSize: '14px', color: currentTheme.textSecondary }}>
-          Monitor and debug smart patient tracking devices
+          Monitor and debug smart patient tracking devices • Auto-discovered ESP32 devices
         </p>
       </div>
 

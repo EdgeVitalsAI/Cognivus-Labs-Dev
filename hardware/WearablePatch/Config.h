@@ -46,6 +46,12 @@ constexpr unsigned long SPO2_SAMPLE_INTERVAL = 40;  // milliseconds
 constexpr unsigned long SPO2_SEND_INTERVAL = 2000;  // milliseconds (WebSocket update rate)
 
 // ========================================
+// Backend Server Configuration
+// ========================================
+extern const char* BACKEND_SERVER_URL;   // Backend API URL (e.g., "http://192.168.1.100:8000")
+constexpr unsigned long REGISTRATION_RETRY_INTERVAL = 10000; // milliseconds
+
+// ========================================
 // Server Configuration
 // ========================================
 constexpr int WEB_SERVER_PORT = 80;      // REST API port (JSON only, no HTML)

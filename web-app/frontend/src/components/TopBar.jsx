@@ -5,9 +5,9 @@ const TopBar = ({ userName, avatarUrl = null, onLogout }) => {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
       {/* Logo + Tagline */}
-      <div className="flex items-center gap-3">
-        <img src="/LOGO.png" alt="CognivusLabs" className="h-10 w-auto" />
-        <div className="hidden md:block text-[11px] text-slate-400">PREDICT. PROTECT. HEAL.</div>
+      <div className="flex items-center gap-4">
+        <img src="/LOGO.png" alt="CognivusLabs" className="h-20 w-auto" />
+        <div className="hidden md:block text-xs text-slate-400 font-medium tracking-wider">PREDICT. PROTECT. HEAL.</div>
       </div>
 
       {/* Search */}

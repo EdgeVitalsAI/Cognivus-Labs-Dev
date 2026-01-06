@@ -1,4 +1,4 @@
-import { Cpu, Plus, Search } from 'lucide-react';
+import { Cpu, Plus, Search, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -118,16 +118,26 @@ const DeviceManagementPage = () => {
                                 <h1 className="text-3xl font-bold text-white">Device Management</h1>
                             </div>
                             <p className="text-slate-400">
-                                Monitor and manage IoT devices and wearables
+                                Monitor and manage IoT devices and wearables • Auto-discovered ESP32 devices
                             </p>
                         </div>
-                        <button
-                            onClick={() => setIsPairDeviceModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors border border-sky-500"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Pair Device
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => fetchDevices()}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors border border-slate-600"
+                            >
+                                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                                {loading ? 'Refreshing...' : 'Refresh Devices'}
+                            </button>
+                            <button
+                                onClick={() => setIsPairDeviceModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors border border-sky-500"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Pair Device
+                            </button>
+                        </div>
                     </div>
 
                     {/* Stats */}

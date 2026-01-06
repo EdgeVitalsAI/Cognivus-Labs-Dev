@@ -18,7 +18,8 @@ from .api.routes import (
     telemedicine,
     clinical_notes,
     ai_insights,
-    staff_tasks
+    staff_tasks,
+    devices  # Device auto-registration (public endpoint)
 )
 
 Base.metadata.create_all(bind=engine)
@@ -60,6 +61,9 @@ app.add_middleware(CustomCORSMiddleware)
 
 # Public authentication routes
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+
+# Public device registration (ESP32 auto-registration, no auth required)
+app.include_router(devices.router, prefix="/api", tags=["Device Registration"])
 
 # Admin routes (hidden under /sys prefix)
 app.include_router(admin_auth.router, prefix="/api/sys/auth", tags=["Admin Auth"])
