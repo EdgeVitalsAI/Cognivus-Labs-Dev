@@ -624,6 +624,16 @@ export default function AdminDevices() {
               }}>
                 <Terminal style={{ width: '18px', height: '18px', color: currentTheme.accent }} />
                 Debug Console
+                <span style={{
+                  marginLeft: '8px',
+                  padding: '2px 8px',
+                  backgroundColor: currentTheme.inputBackground,
+                  border: `1px solid ${currentTheme.border}`,
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '500',
+                  color: currentTheme.textTertiary
+                }}>Phase 6</span>
               </h2>
               <button
                 onClick={() => setShowDebugPanel(false)}
@@ -706,10 +716,11 @@ export default function AdminDevices() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons - Disabled (Phase 6 Features) */}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => restartDevice(deviceDetails.device.device_id)}
+                  disabled
+                  title="Phase 6 Feature - Device remote control via WebSocket/MQTT"
                   style={{
                     flex: 1,
                     display: 'flex',
@@ -717,26 +728,22 @@ export default function AdminDevices() {
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
-                    border: `1px solid ${theme === 'dark' ? '#f87171' : '#dc2626'}`,
+                    backgroundColor: currentTheme.inputBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: theme === 'dark' ? '#f87171' : '#dc2626',
+                    color: currentTheme.textTertiary,
                     fontSize: '13px',
                     fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(239, 68, 68, 0.25)' : '#fee2e2'
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2'
+                    cursor: 'not-allowed',
+                    opacity: 0.5
                   }}
                 >
                   <Power style={{ width: '14px', height: '14px' }} />
-                  Restart
+                  Restart (Phase 6)
                 </button>
                 <button
+                  disabled
+                  title="Phase 6 Feature - Device configuration via WebSocket/MQTT"
                   style={{
                     flex: 1,
                     display: 'flex',
@@ -744,26 +751,18 @@ export default function AdminDevices() {
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: currentTheme.cardBackground,
+                    backgroundColor: currentTheme.inputBackground,
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: currentTheme.text,
+                    color: currentTheme.textTertiary,
                     fontSize: '13px',
                     fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = currentTheme.hover
-                    e.currentTarget.style.borderColor = currentTheme.accent
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = currentTheme.cardBackground
-                    e.currentTarget.style.borderColor = currentTheme.border
+                    cursor: 'not-allowed',
+                    opacity: 0.5
                   }}
                 >
                   <Settings style={{ width: '14px', height: '14px' }} />
-                  Config
+                  Config (Phase 6)
                 </button>
               </div>
             </div>

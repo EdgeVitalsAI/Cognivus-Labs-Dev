@@ -29,6 +29,9 @@ public:
   bool registerWithBackend();
   bool isRegistered() const;
 
+  // Heartbeat (keep-alive)
+  bool sendHeartbeat();
+
 private:
   bool connected;
   bool registered;

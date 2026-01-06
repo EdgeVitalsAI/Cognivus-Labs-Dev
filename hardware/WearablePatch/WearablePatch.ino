@@ -53,6 +53,7 @@ SystemMonitor systemMonitor;
 
 // System monitoring
 unsigned long lastSystemUpdate = 0;
+unsigned long lastHeartbeat = 0;
 
 // ========================================
 // Setup - Initialize all modules
@@ -162,6 +163,18 @@ void loop() {
   if (millis() - lastSystemUpdate > SYSTEM_MONITOR_UPDATE_INTERVAL) {
     systemMonitor.update();
     lastSystemUpdate = millis();
+  }
+
+  // Send heartbeat to backend server periodically
+  if (millis() - lastHeartbeat > HEARTBEAT_INTERVAL) {
+    if (wifiManager.isConnected()) {
+      if (wifiManager.sendHeartbeat()) {
+        Serial.println("✓ Heartbeat sent to backend");
+      } else {
+        Serial.println("✗ Heartbeat failed");
+      }
+    }
+    lastHeartbeat = millis();
   }
 
   // Small delay to prevent watchdog issues

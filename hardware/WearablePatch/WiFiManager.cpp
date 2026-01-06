@@ -152,3 +152,27 @@ bool WiFiManager::sendRegistrationRequest() {
   registered = false;
   return false;
 }
+
+// Send heartbeat to backend server
+bool WiFiManager::sendHeartbeat() {
+  if (!isConnected()) {
+    return false;
+  }
+
+  HTTPClient http;
+  String url = String(BACKEND_SERVER_URL) + "/api/devices/" + deviceID + "/heartbeat";
+
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+
+  // Send POST request (empty body)
+  int httpCode = http.POST("{}");
+
+  if (httpCode == 200 || httpCode == 201) {
+    http.end();
+    return true;
+  }
+
+  http.end();
+  return false;
+}

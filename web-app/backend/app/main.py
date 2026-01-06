@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from .core.config import settings
 from .core.database import engine, Base
+from .core.background_tasks import start_background_tasks
 from .api.routes import (
     auth,
     admin_auth,
@@ -58,6 +59,15 @@ class CustomCORSMiddleware(BaseHTTPMiddleware):
 
 # Add custom CORS middleware
 app.add_middleware(CustomCORSMiddleware)
+
+
+# Startup event - start background tasks
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks on application startup"""
+    await start_background_tasks()
+    print("✓ Background tasks started (device heartbeat monitoring)")
+
 
 # Public authentication routes
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])

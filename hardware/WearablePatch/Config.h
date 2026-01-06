@@ -50,6 +50,7 @@ constexpr unsigned long SPO2_SEND_INTERVAL = 2000;  // milliseconds (WebSocket u
 // ========================================
 extern const char* BACKEND_SERVER_URL;   // Backend API URL (e.g., "http://192.168.1.100:8000")
 constexpr unsigned long REGISTRATION_RETRY_INTERVAL = 10000; // milliseconds
+constexpr unsigned long HEARTBEAT_INTERVAL = 30000; // milliseconds (30 seconds)
 
 // ========================================
 // Server Configuration
