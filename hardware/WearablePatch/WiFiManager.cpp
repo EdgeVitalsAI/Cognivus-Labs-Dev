@@ -9,6 +9,16 @@ WiFiManager::WiFiManager()
 
 bool WiFiManager::connect() {
   Serial.println("\nConnecting to WiFi...");
+
+  // Disconnect first to ensure clean connection
+  WiFi.disconnect(true);
+  delay(1000);
+
+  // Set WiFi mode
+  WiFi.mode(WIFI_STA);
+  delay(100);
+
+  // Start connection
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
@@ -16,6 +26,14 @@ bool WiFiManager::connect() {
     delay(500);
     Serial.print(".");
     attempts++;
+
+    // If stuck, try reconnecting
+    if (attempts > 0 && attempts % 20 == 0) {
+      Serial.println("\nRetrying WiFi connection...");
+      WiFi.disconnect();
+      delay(500);
+      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    }
   }
 
   if (WiFi.status() == WL_CONNECTED) {

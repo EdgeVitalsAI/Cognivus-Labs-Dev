@@ -131,6 +131,7 @@ async def device_heartbeat(
     device = db.query(Device).filter(Device.device_id == device_id).first()
 
     if not device:
+        print(f"❌ Heartbeat failed: Device {device_id} not found")
         raise HTTPException(status_code=404, detail="Device not found")
 
     try:
@@ -140,6 +141,8 @@ async def device_heartbeat(
 
         db.commit()
 
+        print(f"💓 Heartbeat received from {device.device_name} ({device_id})")
+
         return {
             "status": "success",
             "message": "Heartbeat received",
@@ -147,6 +150,7 @@ async def device_heartbeat(
         }
 
     except Exception as e:
+        print(f"❌ Heartbeat error for {device_id}: {e}")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
