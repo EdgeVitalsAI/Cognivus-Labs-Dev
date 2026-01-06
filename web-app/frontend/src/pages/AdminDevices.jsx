@@ -21,6 +21,10 @@ export default function AdminDevices() {
   const [debugCommand, setDebugCommand] = useState('')
   const [debugOutput, setDebugOutput] = useState([])
   const [loading, setLoading] = useState(false)
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [deviceToAssign, setDeviceToAssign] = useState(null)
+  const [patients, setPatients] = useState([])
+  const [selectedPatientId, setSelectedPatientId] = useState('')
 
   useEffect(() => {
     loadDevices()
@@ -114,6 +118,107 @@ export default function AdminDevices() {
     } catch (error) {
       console.error('Failed to restart device:', error)
     }
+  }
+
+  const loadPatients = async () => {
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await axios.get('http://localhost:8000/api/patients', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setPatients(response.data)
+    } catch (error) {
+      console.error('Failed to load patients:', error)
+    }
+  }
+
+  const handleAssignDevice = async () => {
+    if (!selectedPatientId || !deviceToAssign) return
+
+    try {
+      const token = localStorage.getItem('admin_token')
+      const patient = patients.find(p => p.patient_id === selectedPatientId)
+
+      await axios.post(
+        `http://localhost:8000/api/sys/devices/${deviceToAssign.device_id}/assign`,
+        {
+          patient_id: selectedPatientId,
+          patient_name: patient?.name || '',
+          assigned_room: patient?.room_number || '',
+          assigned_by: localStorage.getItem('admin_user') || 'admin',
+          assigned_by_name: 'Admin'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      setShowAssignModal(false)
+      setDeviceToAssign(null)
+      setSelectedPatientId('')
+      loadDevices()
+      alert('Device assigned successfully!')
+    } catch (error) {
+      console.error('Failed to assign device:', error)
+      alert(error.response?.data?.detail || 'Failed to assign device')
+    }
+  }
+
+  const handleUnassignDevice = async (device) => {
+    if (!confirm(`Unassign device ${device.device_name} from patient ${device.patient_name}?`)) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('admin_token')
+
+      await axios.post(
+        `http://localhost:8000/api/sys/devices/${device.device_id}/unassign`,
+        {
+          unassigned_by: localStorage.getItem('admin_user') || 'admin'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      loadDevices()
+      alert('Device unassigned successfully!')
+    } catch (error) {
+      console.error('Failed to unassign device:', error)
+      alert(error.response?.data?.detail || 'Failed to unassign device')
+    }
+  }
+
+  const openAssignModal = (device) => {
+    setDeviceToAssign(device)
+    setShowAssignModal(true)
+    loadPatients()
+  }
+
+  const getAssignmentColor = (assignmentStatus) => {
+    const isDark = theme === 'dark'
+
+    const colors = {
+      available: {
+        bg: isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7',
+        text: isDark ? '#4ade80' : '#16a34a',
+        border: isDark ? '#4ade80' : '#22c55e'
+      },
+      assigned: {
+        bg: isDark ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe',
+        text: isDark ? '#60a5fa' : '#0284c7',
+        border: isDark ? '#60a5fa' : '#3b82f6'
+      },
+      in_use: {
+        bg: isDark ? 'rgba(168, 85, 247, 0.15)' : '#f3e8ff',
+        text: isDark ? '#c084fc' : '#9333ea',
+        border: isDark ? '#c084fc' : '#a855f7'
+      },
+      maintenance: {
+        bg: isDark ? 'rgba(245, 158, 11, 0.15)' : '#fef3c7',
+        text: isDark ? '#fbbf24' : '#d97706',
+        border: isDark ? '#fbbf24' : '#f59e0b'
+      }
+    }
+
+    return colors[assignmentStatus] || colors.available
   }
 
   const getStatusColor = (status) => {
@@ -412,6 +517,15 @@ export default function AdminDevices() {
                     color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
+                  }}>Assignment</th>
+                  <th style={{
+                    padding: '12px 16px',
+                    textAlign: 'left',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: currentTheme.textSecondary,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}>Vitals</th>
                   <th style={{
                     padding: '12px 16px',
@@ -422,6 +536,15 @@ export default function AdminDevices() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Battery</th>
+                  <th style={{
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: currentTheme.textSecondary,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -512,6 +635,28 @@ export default function AdminDevices() {
                         </span>
                       </td>
 
+                      {/* Assignment Status */}
+                      <td style={{ padding: '16px' }}>
+                        {device.assignment_status && (() => {
+                          const assignmentColors = getAssignmentColor(device.assignment_status)
+                          return (
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '4px 12px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              color: assignmentColors.text,
+                              backgroundColor: assignmentColors.bg,
+                              border: `1px solid ${assignmentColors.border}`,
+                              borderRadius: '3px',
+                              textTransform: 'capitalize'
+                            }}>
+                              {device.assignment_status.replace('_', ' ')}
+                            </span>
+                          )
+                        })()}
+                      </td>
+
                       {/* Vitals */}
                       <td style={{ padding: '16px' }}>
                         {device.status === 'online' && (
@@ -561,6 +706,51 @@ export default function AdminDevices() {
                             )}
                             <span>{device.battery_level}%</span>
                           </div>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '16px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        {device.assignment_status === 'available' ? (
+                          <button
+                            onClick={() => openAssignModal(device)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              color: '#ffffff',
+                              backgroundColor: '#0284c7',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+                          >
+                            Assign
+                          </button>
+                        ) : (device.assignment_status === 'assigned' || device.assignment_status === 'in_use') ? (
+                          <button
+                            onClick={() => handleUnassignDevice(device)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              color: '#ffffff',
+                              backgroundColor: '#dc2626',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b91c1c'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                          >
+                            Unassign
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '12px', color: currentTheme.textTertiary }}>-</span>
                         )}
                       </td>
                     </tr>
@@ -927,6 +1117,116 @@ export default function AdminDevices() {
           </div>
         )}
       </div>
+
+      {/* Assignment Modal */}
+      {showAssignModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}
+        onClick={() => setShowAssignModal(false)}
+        >
+          <div style={{
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
+            borderRadius: '8px',
+            padding: '24px',
+            minWidth: '400px',
+            maxWidth: '500px'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              margin: '0 0 16px 0',
+              fontSize: '18px',
+              fontWeight: '600',
+              color: currentTheme.text
+            }}>
+              Assign Device: {deviceToAssign?.device_name}
+            </h3>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: currentTheme.text
+              }}>
+                Select Patient:
+              </label>
+              <select
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  color: currentTheme.text,
+                  backgroundColor: currentTheme.inputBackground,
+                  border: `1px solid ${currentTheme.border}`,
+                  borderRadius: '4px',
+                  outline: 'none'
+                }}
+              >
+                <option value="">-- Select Patient --</option>
+                {patients.map(patient => (
+                  <option key={patient.patient_id} value={patient.patient_id}>
+                    {patient.name} - Room {patient.room_number}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowAssignModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: currentTheme.text,
+                  backgroundColor: currentTheme.inputBackground,
+                  border: `1px solid ${currentTheme.border}`,
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssignDevice}
+                disabled={!selectedPatientId}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  backgroundColor: selectedPatientId ? '#0284c7' : '#64748b',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: selectedPatientId ? 'pointer' : 'not-allowed',
+                  opacity: selectedPatientId ? 1 : 0.6
+                }}
+              >
+                Assign Device
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
