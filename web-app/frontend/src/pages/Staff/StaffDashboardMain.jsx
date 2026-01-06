@@ -3,48 +3,91 @@ import { AlertCircle, Users, CheckSquare, Package, Clock, TrendingUp, Activity, 
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 import StatCard from '../../components/staff/StatCard'
+import axios from 'axios'
+
+const API_BASE_URL = 'http://localhost:8000/api'
 
 export default function StaffDashboardMain() {
   const [dashboardData, setDashboardData] = useState({
-    assignedPatients: 12,
-    pendingTasks: 8,
-    criticalAlertCount: 3,
-    tasksToday: 15,
-    completedToday: 7
+    assignedPatients: 0,
+    pendingTasks: 0,
+    criticalAlertCount: 0,
+    tasksToday: 0,
+    completedToday: 0
   })
 
-  const [urgentTasks] = useState([
-    { id: 1, title: 'Administer meds - Room 302A', dueIn: '15 mins', patient: 'Sarah Johnson', priority: 'high', time: '2:45 PM' },
-    { id: 2, title: 'Check vitals - Room 410C', dueIn: '30 mins', patient: 'Emma Davis', priority: 'high', time: '3:00 PM' },
-    { id: 3, title: 'Wound dressing - Room 215B', dueIn: '2 hours', patient: 'Michael Chen', priority: 'medium', time: '4:30 PM' },
-    { id: 4, title: 'Assist with mobility - Room 108A', dueIn: '3 hours', patient: 'Robert Williams', priority: 'low', time: '5:30 PM' }
-  ])
-
-  const [myPatients] = useState([
-    { id: 1, name: 'Sarah Johnson', room: '302A', age: 58, condition: 'Post-op', hr: 125, temp: 98.6, bp: '135/85', o2: 97, status: 'critical' },
-    { id: 2, name: 'Emma Davis', room: '410C', age: 67, condition: 'Recovery', hr: 88, temp: 99.1, bp: '140/90', o2: 88, status: 'critical' },
-    { id: 3, name: 'Michael Chen', room: '215B', age: 45, condition: 'Stable', hr: 72, temp: 98.2, bp: '120/78', o2: 98, status: 'stable' },
-    { id: 4, name: 'Robert Williams', room: '108A', age: 52, condition: 'Observation', hr: 78, temp: 98.4, bp: '118/76', o2: 99, status: 'stable' }
-  ])
-
-  const [recentActivity] = useState([
-    { id: 1, action: 'Vitals recorded', patient: 'Sarah Johnson', room: '302A', time: '10 mins ago', type: 'vital' },
-    { id: 2, action: 'Medication administered', patient: 'Michael Chen', room: '215B', time: '25 mins ago', type: 'medication' },
-    { id: 3, action: 'Incident reported', patient: 'Emma Davis', room: '410C', time: '1 hour ago', type: 'incident' },
-    { id: 4, action: 'Task completed', patient: 'Robert Williams', room: '108A', time: '2 hours ago', type: 'task' }
-  ])
+  const [urgentTasks, setUrgentTasks] = useState([])
+  const [myPatients, setMyPatients] = useState([])
+  const [recentActivity, setRecentActivity] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load dashboard data from API
-    const loadData = async () => {
-      try {
-        // API call here
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error)
-      }
-    }
     loadData()
   }, [])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const headers = { 'Authorization': `Bearer ${token}` }
+
+      const [tasksRes, patientsRes, activityRes, statsRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/tasks`, { headers, params: { limit: 10, status: 'PENDING', priority: 'HIGH' } }),
+        axios.get(`${API_BASE_URL}/patients`, { headers, params: { limit: 4, status: 'ADMITTED' } }),
+        axios.get(`${API_BASE_URL}/dashboard/activity`, { headers, params: { limit: 4 } }),
+        axios.get(`${API_BASE_URL}/tasks/statistics/summary`, { headers })
+      ])
+
+      const transformedTasks = tasksRes.data.tasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        dueIn: t.due_date ? new Date(t.due_date).toLocaleTimeString() : 'N/A',
+        patient: t.patient_name || 'Unassigned',
+        priority: t.priority.toLowerCase(),
+        time: new Date(t.created_at).toLocaleTimeString()
+      }))
+
+      const transformedPatients = patientsRes.data.patients.map(p => {
+        const latestVital = p.vitals?.[0] || {}
+        return {
+          id: p.id,
+          name: p.name,
+          room: p.room_number || 'N/A',
+          age: p.age || 0,
+          condition: p.primary_diagnosis || 'Unknown',
+          hr: latestVital.heart_rate || 0,
+          temp: latestVital.temperature || 0,
+          bp: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          o2: latestVital.oxygen_saturation || 0,
+          status: p.status === 'CRITICAL' ? 'critical' : 'stable'
+        }
+      })
+
+      const transformedActivity = activityRes.data.activity.map(a => ({
+        id: a.id,
+        action: a.description,
+        patient: a.patient_name || 'System',
+        room: 'N/A',
+        time: new Date(a.created_at).toLocaleTimeString(),
+        type: 'task'
+      }))
+
+      setUrgentTasks(transformedTasks)
+      setMyPatients(transformedPatients)
+      setRecentActivity(transformedActivity)
+      setDashboardData({
+        assignedPatients: patientsRes.data.total || 0,
+        pendingTasks: statsRes.data.pending || 0,
+        criticalAlertCount: statsRes.data.pending || 0,
+        tasksToday: statsRes.data.total_tasks || 0,
+        completedToday: statsRes.data.completed || 0
+      })
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-slate-950">
@@ -60,6 +103,14 @@ export default function StaffDashboardMain() {
               <h1 className="text-2xl font-bold text-white mb-1">Staff Dashboard</h1>
               <p className="text-sm text-slate-400">Day Shift • 7:00 AM - 3:00 PM</p>
             </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                <p className="ml-4 text-slate-400">Loading dashboard...</p>
+              </div>
+            ) : (
+              <>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -195,6 +246,8 @@ export default function StaffDashboardMain() {
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         </div>
       </div>

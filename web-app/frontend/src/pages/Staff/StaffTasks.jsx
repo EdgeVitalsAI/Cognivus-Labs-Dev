@@ -1,78 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, CheckCircle2, Clock, User, AlertTriangle } from 'lucide-react'
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
+import axios from 'axios'
+
+const API_BASE_URL = 'http://localhost:8000/api'
 
 export default function StaffTasks() {
   const [activeTab, setActiveTab] = useState('todo')
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: 'Administer medication - Morning dose',
-      description: 'Lisinopril 10mg, Metformin 500mg',
-      dueTime: '9:00 AM',
-      patient: 'Sarah Johnson',
-      room: '302A',
-      priority: 'high',
-      status: 'todo',
-      category: 'Medication'
-    },
-    {
-      id: 2,
-      title: 'Check vitals and record',
-      description: 'Post-op monitoring - BP, HR, O2, Temp',
-      dueTime: '10:30 AM',
-      patient: 'Emma Davis',
-      room: '410C',
-      priority: 'high',
-      status: 'todo',
-      category: 'Vital Signs'
-    },
-    {
-      id: 3,
-      title: 'Wound dressing change',
-      description: 'Surgical site - sterile technique',
-      dueTime: '2:00 PM',
-      patient: 'Michael Chen',
-      room: '215B',
-      priority: 'medium',
-      status: 'todo',
-      category: 'Treatment'
-    },
-    {
-      id: 4,
-      title: 'Assist with mobility exercises',
-      description: 'Physical therapy session',
-      dueTime: '3:30 PM',
-      patient: 'Robert Williams',
-      room: '108A',
-      priority: 'low',
-      status: 'todo',
-      category: 'Therapy'
-    },
-    {
-      id: 5,
-      title: 'IV line check and flush',
-      description: 'Saline flush q4h',
-      dueTime: '11:00 AM',
-      patient: 'Sarah Johnson',
-      room: '302A',
-      priority: 'medium',
-      status: 'inprogress',
-      category: 'Nursing Care'
-    },
-    {
-      id: 6,
-      title: 'Patient education - Diabetes management',
-      description: 'Review insulin administration',
-      dueTime: 'Completed at 8:30 AM',
-      patient: 'Michael Chen',
-      room: '215B',
-      priority: 'low',
-      status: 'completed',
-      category: 'Education'
+  const [tasks, setTasks] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${API_BASE_URL}/tasks`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { limit: 100 }
+      })
+
+      const transformed = response.data.tasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || 'No description',
+        dueTime: t.due_date ? new Date(t.due_date).toLocaleTimeString() : 'N/A',
+        patient: t.patient_name || 'Unassigned',
+        room: t.location || 'N/A',
+        priority: t.priority.toLowerCase(),
+        status: t.status === 'PENDING' ? 'todo' : t.status === 'IN_PROGRESS' ? 'inprogress' : 'completed',
+        category: t.category
+      }))
+
+      setTasks(transformed)
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err)
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -198,7 +168,12 @@ export default function StaffTasks() {
 
               {/* Tasks List */}
               <div className="divide-y divide-slate-800">
-                {filteredTasks.length > 0 ? (
+                {loading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
+                    <p className="ml-3 text-slate-400">Loading tasks...</p>
+                  </div>
+                ) : filteredTasks.length > 0 ? (
                   filteredTasks.map((task) => (
                     <div key={task.id} className="p-4 hover:bg-slate-800/50 transition-colors">
                       <div className="flex items-start gap-4">

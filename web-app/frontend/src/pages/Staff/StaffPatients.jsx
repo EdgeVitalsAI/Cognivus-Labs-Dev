@@ -1,60 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus } from 'lucide-react'
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
+import axios from 'axios'
+
+const API_BASE_URL = 'http://localhost:8000/api'
 
 export default function StaffPatients() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      age: 58,
-      gender: 'F',
-      room: '302A',
-      department: 'Cardiology',
-      doctor: 'Dr. Smith',
-      diagnosis: 'Acute Coronary Syndrome',
-      hr: 125,
-      temp: 98.6,
-      bp: '135/85',
-      o2: 97,
-      alerts: 2,
-      status: 'critical'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      age: 45,
-      gender: 'M',
-      room: '215B',
-      department: 'Cardiology',
-      doctor: 'Dr. Johnson',
-      diagnosis: 'Hypertension',
-      hr: 72,
-      temp: 98.2,
-      bp: '120/78',
-      o2: 98,
-      alerts: 1,
-      status: 'stable'
-    },
-    {
-      id: 3,
-      name: 'Emma Davis',
-      age: 72,
-      gender: 'F',
-      room: '410C',
-      department: 'Post-op',
-      doctor: 'Dr. Williams',
-      diagnosis: 'Hip Replacement Recovery',
-      hr: 68,
-      temp: 98.4,
-      bp: '118/76',
-      o2: 96,
-      alerts: 0,
-      status: 'stable'
+  const [patients, setPatients] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchPatients()
+  }, [])
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${API_BASE_URL}/patients`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { limit: 100, status: 'ADMITTED' }
+      })
+
+      const transformed = response.data.patients.map(p => {
+        const latestVital = p.vitals?.[0] || {}
+        return {
+          id: p.id,
+          name: p.name,
+          age: p.age || 0,
+          gender: p.gender || 'U',
+          room: p.room_number || 'N/A',
+          department: p.department || 'General',
+          doctor: 'Dr. ' + (p.doctor_name || 'Unknown'),
+          diagnosis: p.primary_diagnosis || 'Unknown',
+          hr: latestVital.heart_rate || 0,
+          temp: latestVital.temperature || 0,
+          bp: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          o2: latestVital.oxygen_saturation || 0,
+          alerts: 0,
+          status: p.status === 'CRITICAL' ? 'critical' : 'stable'
+        }
+      })
+
+      setPatients(transformed)
+    } catch (err) {
+      console.error('Failed to fetch patients:', err)
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
 
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [showDetail, setShowDetail] = useState(false)

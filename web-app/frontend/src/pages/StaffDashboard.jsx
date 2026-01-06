@@ -4,6 +4,9 @@ import { Activity, Clipboard, Package, TrendingUp } from 'lucide-react'
 import { authService } from '../services/api'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
+import axios from 'axios'
+
+const API_BASE_URL = 'http://localhost:8000/api'
 
 const StatCard = ({ icon: Icon, label, value, sub }) => (
   <div className="rounded-xl p-5 bg-gradient-to-br from-[#2b3a66] to-[#18233f] border border-slate-700 text-slate-200">
@@ -98,37 +101,63 @@ const ActivityLog = ({ activities }) => (
 const StaffDashboard = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
-
-  const [tasks] = useState([
-    { title: 'Prepare ECG equipment for Room 302A', assignedBy: 'Dr. Smith', dueDate: 'Today 2:00 PM', status: 'pending' },
-    { title: 'Stock blood pressure monitors', assignedBy: 'Nurse Lead', dueDate: 'Today 3:30 PM', status: 'in-progress' },
-    { title: 'Clean patient bed - Ward 105', assignedBy: 'Housekeeping', dueDate: 'Tomorrow', status: 'completed' },
-  ])
-
-  const [admissions] = useState([
-    { name: 'Michael Johnson', room: 'Room 402B', diagnosis: 'Acute Cardiac Event', time: '30 mins ago' },
-    { name: 'Sarah Williams', room: 'Ward 3 - 05C', diagnosis: 'Hypertension Monitoring', time: '2 hours ago' },
-    { name: 'James Brown', room: 'Room 310A', diagnosis: 'Respiratory Monitor', time: '4 hours ago' },
-  ])
-
-  const [inventory] = useState([
-    { name: 'ECG Electrodes', stock: '45 units', level: 'high' },
-    { name: 'Blood Pressure Cuffs', stock: '12 units', level: 'medium' },
-    { name: 'Oxygen Sensors', stock: '3 units', level: 'low' },
-    { name: 'IV Stands', stock: '28 units', level: 'high' },
-  ])
-
-  const [activities] = useState([
-    { action: 'Patient John Doe admitted to Room 402B', by: 'You', time: '30 mins ago' },
-    { action: 'Equipment maintenance completed in Ward 5', by: 'Tech Sam', time: '1 hour ago' },
-    { action: 'Inventory restocked - ECG Electrodes', by: 'Supply Manager', time: '2 hours ago' },
-    { action: 'Patient discharge - Emma Davis from Room 310', by: 'Dr. Wilson', time: '4 hours ago' },
-  ])
+  const [tasks, setTasks] = useState([])
+  const [admissions, setAdmissions] = useState([])
+  const [inventory, setInventory] = useState([])
+  const [activities, setActivities] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activePatients, setActivePatients] = useState(0)
 
   useEffect(() => {
     const userData = authService.getCurrentUser()
     setUser(userData)
+    fetchDashboardData()
   }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const headers = { 'Authorization': `Bearer ${token}` }
+
+      const [tasksRes, patientsRes, activityRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/tasks`, { headers, params: { limit: 10, status: 'PENDING' } }),
+        axios.get(`${API_BASE_URL}/patients`, { headers, params: { limit: 5, status: 'ADMITTED' } }),
+        axios.get(`${API_BASE_URL}/dashboard/activity`, { headers, params: { limit: 5 } })
+      ])
+
+      const transformedTasks = tasksRes.data.tasks.map(t => ({
+        title: t.title,
+        assignedBy: 'System',
+        dueDate: t.due_date ? new Date(t.due_date).toLocaleString() : 'No due date',
+        status: t.status.toLowerCase()
+      }))
+
+      const transformedAdmissions = patientsRes.data.patients.map(p => ({
+        name: p.name,
+        room: p.room_number || 'Unassigned',
+        diagnosis: p.primary_diagnosis || 'N/A',
+        time: new Date(p.admission_date).toLocaleString()
+      }))
+
+      const transformedActivity = activityRes.data.activity.map(a => ({
+        action: a.description,
+        by: a.created_by_name || 'System',
+        time: new Date(a.created_at).toLocaleString()
+      }))
+
+      setTasks(transformedTasks)
+      setAdmissions(transformedAdmissions)
+      setActivities(transformedActivity)
+      setActivePatients(patientsRes.data.total || 0)
+
+      setInventory([])
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleLogout = () => {
     authService.logout()
@@ -143,25 +172,34 @@ const StaffDashboard = () => {
         <Sidebar onLogout={handleLogout} />
 
         <main className="flex-1 p-6">
-          {/* KPI Cards */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            <StatCard icon={Activity} label="Active Patients" value={12} sub={'Currently monitored'} />
-            <StatCard icon={Clipboard} label="Pending Tasks" value={tasks.filter(t => t.status !== 'completed').length} sub={'Assigned to you'} />
-            <StatCard icon={Package} label="Low Stock Items" value={1} sub={'Requires order'} />
-            <StatCard icon={TrendingUp} label="Patient Admissions" value={admissions.length} sub={'This shift'} />
-          </section>
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+              <p className="ml-4 text-slate-400">Loading dashboard...</p>
+            </div>
+          ) : (
+            <>
+              {/* KPI Cards */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                <StatCard icon={Activity} label="Active Patients" value={activePatients} sub={'Currently monitored'} />
+                <StatCard icon={Clipboard} label="Pending Tasks" value={tasks.filter(t => t.status !== 'completed').length} sub={'Assigned to you'} />
+                <StatCard icon={Package} label="Low Stock Items" value={inventory.length} sub={'Requires order'} />
+                <StatCard icon={TrendingUp} label="Patient Admissions" value={admissions.length} sub={'This shift'} />
+              </section>
 
-          {/* Main grid */}
-          <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <TasksPanel tasks={tasks} />
-            <PatientAdmissionPanel admissions={admissions} />
-          </section>
+              {/* Main grid */}
+              <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TasksPanel tasks={tasks} />
+                <PatientAdmissionPanel admissions={admissions} />
+              </section>
 
-          {/* Bottom grid */}
-          <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <InventoryPanel items={inventory} />
-            <ActivityLog activities={activities} />
-          </section>
+              {/* Bottom grid */}
+              <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <InventoryPanel items={inventory} />
+                <ActivityLog activities={activities} />
+              </section>
+            </>
+          )}
         </main>
       </div>
     </div>
