@@ -1,8 +1,9 @@
 """
-Initialize the PostgreSQL database with demo users
+Initialize the PostgreSQL database with demo users and admin account
 """
 from app.core.database import SessionLocal, engine, Base
 from app.models.user import User, UserRole
+from app.models.admin import Admin
 from app.core.security import get_password_hash
 
 def init_db():
@@ -12,7 +13,25 @@ def init_db():
     db = SessionLocal()
 
     try:
-        print("Checking for existing users...")
+        # Create default admin account
+        print("Checking for admin account...")
+        admin = db.query(Admin).filter(Admin.username == "admin").first()
+        if not admin:
+            admin = Admin(
+                username="admin",
+                hashed_password=get_password_hash("admin123"),
+                email="admin@cognivuslabs.com",
+                full_name="System Administrator",
+                is_super_admin=True,
+                is_active=True
+            )
+            db.add(admin)
+            db.commit()
+            print("Created default admin account: admin / admin123")
+        else:
+            print("Admin account already exists")
+
+        print("\nChecking for existing users...")
 
         demo_users = [
             {
@@ -58,13 +77,19 @@ def init_db():
 
         db.commit()
         print("\nDatabase initialization completed successfully!")
-        print("\nDemo credentials:")
-        print("-" * 50)
+        print("\n" + "=" * 60)
+        print("SYSTEM CREDENTIALS")
+        print("=" * 60)
+        print("\nADMIN PANEL (http://localhost:5174/sys/auth):")
+        print("  Username: admin")
+        print("  Password: admin123")
+        print("\nDEMO ACCOUNTS:")
+        print("-" * 60)
         for user_data in demo_users:
             print(f"\n{user_data['role'].value.upper()}:")
             print(f"  Email: {user_data['email']}")
             print(f"  Password: {user_data['password']}")
-        print("-" * 50)
+        print("=" * 60)
 
     except Exception as e:
         print(f"Error initializing database: {e}")

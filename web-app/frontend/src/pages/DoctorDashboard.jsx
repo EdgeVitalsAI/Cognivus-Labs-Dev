@@ -8,98 +8,45 @@ import StatsSection from '../components/dashboard/StatsSection';
 import TasksPanel from '../components/dashboard/TasksPanel';
 import VitalsTrends from '../components/dashboard/VitalsTrends';
 import { authService } from '../services/api';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:8000/api';
 
 const DoctorDashboard = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
-    const [patients] = useState([
-        {
-            name: 'Wathsala Dewmina',
-            room: 'Room No. 302A',
-            condition: 'Low O2',
-            severity: 'low',
-            time: '2 sec ago',
-        },
-        {
-            name: 'Wooshan Gamage',
-            room: 'Room No. 108C',
-            condition: 'High HR',
-            severity: 'high',
-            time: '1 mins ago',
-        },
-        {
-            name: 'Rivindu Ashinsa',
-            room: 'Ward 3 2A',
-            condition: 'Low O2',
-            severity: 'high',
-            time: '2 mins ago',
-        },
-        {
-            name: 'Robert Key',
-            room: 'Room No. 152B',
-            condition: 'Low BP',
-            severity: 'medium',
-            time: '5 mins ago',
-        },
-        {
-            name: 'Lakindu Minosha',
-            room: 'Ward 1 10C',
-            condition: 'High HR',
-            severity: 'medium',
-            time: '5 mins ago',
-        },
-        {
-            name: 'Ben Southern',
-            room: 'Room No. 311B',
-            condition: 'High HR',
-            severity: 'medium',
-            time: '9 mins ago',
-        },
-    ]);
-    const [alerts] = useState(
-        patients.map((p) => ({
-            patient: p.name,
-            room: p.room,
-            condition: p.condition,
-            severity: p.severity,
-            time: p.time,
-        }))
-    );
-    const [activity] = useState([
-        {
-            title: 'Prescription approved for Emma Davis',
-            author: 'Dr. Sarah Smith',
-            time: '15 mins ago',
-        },
-        {
-            title: 'Vitals updated for Wooshan - BP: 120/80',
-            author: 'Nurse Teneesha',
-            time: 'Today at 2:30 PM',
-        },
-        {
-            title: 'New patient admitted - Room 405B',
-            author: 'Staff Garcia',
-            time: 'Oct 29, 2025 - 10:45 AM',
-        },
-    ]);
-    const [tasks] = useState([
-        {
-            title: 'Review lab results - Michael Chen',
-            when: 'HIGH Due in 30 mins',
-            priority: 'HIGH',
-        },
-        {
-            title: 'Schedule follow-up - Emma Davis',
-            when: 'MEDIUM Due in 2 hours',
-            priority: 'MEDIUM',
-        },
-        { title: 'Update treatment plan - James W.', when: 'LOW Due in 4 hours', priority: 'LOW' },
-    ]);
+    const [alerts, setAlerts] = useState([]);
+    const [activity, setActivity] = useState([]);
+    const [tasks, setTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const userData = authService.getCurrentUser();
         setUser(userData);
+        fetchDashboardData();
     }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            // Fetch all dashboard data in parallel
+            const [alertsRes, activityRes, tasksRes] = await Promise.all([
+                axios.get(`${API_BASE_URL}/dashboard/alerts`, { headers }),
+                axios.get(`${API_BASE_URL}/dashboard/activity`, { headers }),
+                axios.get(`${API_BASE_URL}/dashboard/tasks`, { headers })
+            ]);
+
+            setAlerts(alertsRes.data.alerts);
+            setActivity(activityRes.data.activity);
+            setTasks(tasksRes.data.tasks);
+        } catch (err) {
+            console.error('Failed to fetch dashboard data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         authService.logout();
@@ -119,14 +66,48 @@ const DoctorDashboard = () => {
 
                     {/* Alerts */}
                     <section className="mt-6">
-                        <AlertsPanel alerts={alerts} />
+                        {loading ? (
+                            <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 animate-pulse">
+                                <div className="h-6 bg-slate-700 rounded w-1/4 mb-4"></div>
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="h-16 bg-slate-700 rounded"></div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <AlertsPanel alerts={alerts} />
+                        )}
                     </section>
 
                     {/* Bottom grid */}
                     <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="space-y-6 lg:col-span-2">
-                            <ActivityFeed items={activity} />
-                            <TasksPanel tasks={tasks} />
+                            {loading ? (
+                                <>
+                                    <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 animate-pulse">
+                                        <div className="h-6 bg-slate-700 rounded w-1/4 mb-4"></div>
+                                        <div className="space-y-3">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="h-12 bg-slate-700 rounded"></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 animate-pulse">
+                                        <div className="h-6 bg-slate-700 rounded w-1/4 mb-4"></div>
+                                        <div className="space-y-3">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="h-12 bg-slate-700 rounded"></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <ActivityFeed items={activity} />
+                                    <TasksPanel tasks={tasks} />
+                                </>
+                            )}
                         </div>
                         <VitalsTrends />
                     </section>

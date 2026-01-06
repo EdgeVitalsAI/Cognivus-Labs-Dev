@@ -13,7 +13,12 @@ from .api.routes import (
     patients,
     patient_vitals,
     prescriptions,
-    profile
+    profile,
+    dashboard,
+    telemedicine,
+    clinical_notes,
+    ai_insights,
+    staff_tasks
 )
 
 Base.metadata.create_all(bind=engine)
@@ -67,6 +72,11 @@ app.include_router(patients.router, prefix="/api", tags=["Patients"])
 app.include_router(patient_vitals.router, prefix="/api", tags=["Patient Vitals"])
 app.include_router(prescriptions.router, prefix="/api", tags=["Prescriptions"])
 app.include_router(profile.router, prefix="/api", tags=["Profile"])
+app.include_router(dashboard.router, prefix="/api", tags=["Dashboard"])
+app.include_router(telemedicine.router, prefix="/api", tags=["Telemedicine"])
+app.include_router(clinical_notes.router, prefix="/api", tags=["Clinical Notes"])
+app.include_router(ai_insights.router, prefix="/api", tags=["AI Insights"])
+app.include_router(staff_tasks.router, prefix="/api", tags=["Staff Tasks"])
 
 
 @app.get("/")
