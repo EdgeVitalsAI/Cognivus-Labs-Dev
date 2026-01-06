@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import {
   Package, Search, Filter, Wifi, WifiOff, Battery, BatteryCharging,
   Activity, Heart, Thermometer, Wind, Terminal, Send, RefreshCw,
-  AlertTriangle, CheckCircle, Settings, Power, PlayCircle, X, ArrowLeft,
-  Sun, Moon
+  AlertTriangle, CheckCircle, Settings, Power, PlayCircle, X, ArrowLeft
 } from 'lucide-react'
 import axios from 'axios'
 import { useTheme } from '../contexts/ThemeContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminDevices() {
   const navigate = useNavigate()
-  const { theme, currentTheme, toggleTheme } = useTheme()
+  const { currentTheme, theme } = useTheme()
   const [devices, setDevices] = useState([])
   const [selectedDevice, setSelectedDevice] = useState(null)
   const [deviceDetails, setDeviceDetails] = useState(null)
@@ -113,11 +113,29 @@ export default function AdminDevices() {
   }
 
   const getStatusColor = (status) => {
+    const isDark = theme === 'dark'
+
     const colors = {
-      online: { bg: '#e6f4ea', text: '#16a34a', border: '#16a34a' },
-      offline: { bg: '#f5f5f5', text: '#666666', border: '#999999' },
-      error: { bg: '#fef2f2', text: '#dc2626', border: '#dc2626' },
-      maintenance: { bg: '#dbeafe', text: '#0284c7', border: '#0284c7' }
+      online: {
+        bg: isDark ? 'rgba(22, 163, 74, 0.15)' : '#e6f4ea',
+        text: isDark ? '#4ade80' : '#16a34a',
+        border: isDark ? '#4ade80' : '#16a34a'
+      },
+      offline: {
+        bg: isDark ? 'rgba(115, 115, 115, 0.15)' : '#f5f5f5',
+        text: isDark ? '#a3a3a3' : '#666666',
+        border: isDark ? '#737373' : '#999999'
+      },
+      error: {
+        bg: isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
+        text: isDark ? '#f87171' : '#dc2626',
+        border: isDark ? '#f87171' : '#dc2626'
+      },
+      maintenance: {
+        bg: isDark ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe',
+        text: isDark ? '#60a5fa' : '#0284c7',
+        border: isDark ? '#60a5fa' : '#0284c7'
+      }
     }
     return colors[status] || colors.offline
   }
@@ -131,7 +149,7 @@ export default function AdminDevices() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: currentTheme.background,
       padding: '24px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     }}>
@@ -145,40 +163,41 @@ export default function AdminDevices() {
               alignItems: 'center',
               gap: '6px',
               padding: '8px 12px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.cardBackground,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#f5f5f5'
-              e.currentTarget.style.borderColor = '#0066cc'
+              e.currentTarget.style.backgroundColor = currentTheme.hover
+              e.currentTarget.style.borderColor = currentTheme.accent
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#ffffff'
-              e.currentTarget.style.borderColor = '#e0e0e0'
+              e.currentTarget.style.backgroundColor = currentTheme.cardBackground
+              e.currentTarget.style.borderColor = currentTheme.border
             }}
           >
             <ArrowLeft style={{ width: '16px', height: '16px' }} />
             Back to Dashboard
           </button>
+          <ThemeToggle />
         </div>
         <h1 style={{
           fontSize: '28px',
           fontWeight: '600',
-          color: '#1a1a1a',
+          color: currentTheme.text,
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           marginBottom: '8px'
         }}>
-          <Package style={{ width: '32px', height: '32px', color: '#0066cc' }} />
+          <Package style={{ width: '32px', height: '32px', color: currentTheme.accent }} />
           Device Management
         </h1>
-        <p style={{ fontSize: '14px', color: '#666666' }}>
+        <p style={{ fontSize: '14px', color: currentTheme.textSecondary }}>
           Monitor and debug smart patient tracking devices
         </p>
       </div>
@@ -199,7 +218,7 @@ export default function AdminDevices() {
             transform: 'translateY(-50%)',
             width: '16px',
             height: '16px',
-            color: '#999999'
+            color: currentTheme.textSecondary
           }} />
           <input
             type="text"
@@ -212,16 +231,16 @@ export default function AdminDevices() {
               paddingRight: '12px',
               paddingTop: '10px',
               paddingBottom: '10px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.inputBackground,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               outline: 'none',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+            onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+            onBlur={(e) => e.target.style.borderColor = currentTheme.border}
           />
         </div>
 
@@ -233,17 +252,17 @@ export default function AdminDevices() {
             style={{
               width: '100%',
               padding: '10px 12px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.inputBackground,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               outline: 'none',
               cursor: 'pointer',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+            onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+            onBlur={(e) => e.target.style.borderColor = currentTheme.border}
           >
             <option value="all">All Status</option>
             <option value="online">Online</option>
@@ -264,7 +283,7 @@ export default function AdminDevices() {
               justifyContent: 'center',
               gap: '8px',
               padding: '10px 16px',
-              backgroundColor: '#0066cc',
+              backgroundColor: currentTheme.accent,
               border: 'none',
               borderRadius: '4px',
               color: '#ffffff',
@@ -273,8 +292,8 @@ export default function AdminDevices() {
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.accentHover}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.accent}
           >
             <RefreshCw style={{ width: '16px', height: '16px' }} />
             Refresh
@@ -290,22 +309,22 @@ export default function AdminDevices() {
       }}>
         {/* Devices List */}
         <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #e0e0e0',
+          backgroundColor: currentTheme.cardBackground,
+          border: `1px solid ${currentTheme.border}`,
           borderRadius: '4px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          boxShadow: currentTheme.shadow,
           overflow: 'hidden'
         }}>
           {/* Table Header */}
           <div style={{
             padding: '16px',
-            backgroundColor: '#fafafa',
-            borderBottom: '1px solid #e0e0e0'
+            backgroundColor: currentTheme.sectionBackground,
+            borderBottom: `1px solid ${currentTheme.border}`
           }}>
             <h2 style={{
               fontSize: '16px',
               fontWeight: '600',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               margin: 0
             }}>
               Devices ({filteredDevices.length})
@@ -322,8 +341,8 @@ export default function AdminDevices() {
               borderCollapse: 'collapse'
             }}>
               <thead style={{
-                backgroundColor: '#fafafa',
-                borderBottom: '2px solid #e0e0e0',
+                backgroundColor: currentTheme.sectionBackground,
+                borderBottom: `2px solid ${currentTheme.border}`,
                 position: 'sticky',
                 top: 0
               }}>
@@ -333,7 +352,7 @@ export default function AdminDevices() {
                     textAlign: 'left',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#666666',
+                    color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Device</th>
@@ -342,7 +361,7 @@ export default function AdminDevices() {
                     textAlign: 'left',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#666666',
+                    color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Patient</th>
@@ -351,7 +370,7 @@ export default function AdminDevices() {
                     textAlign: 'left',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#666666',
+                    color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Status</th>
@@ -360,7 +379,7 @@ export default function AdminDevices() {
                     textAlign: 'left',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#666666',
+                    color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Vitals</th>
@@ -369,7 +388,7 @@ export default function AdminDevices() {
                     textAlign: 'center',
                     fontSize: '13px',
                     fontWeight: '600',
-                    color: '#666666',
+                    color: currentTheme.textSecondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>Battery</th>
@@ -386,12 +405,12 @@ export default function AdminDevices() {
                         loadDeviceDetails(device.device_id)
                       }}
                       style={{
-                        borderBottom: '1px solid #e0e0e0',
+                        borderBottom: `1px solid ${currentTheme.border}`,
                         cursor: 'pointer',
                         transition: 'background-color 0.15s'
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hover}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.cardBackground}
                     >
                       {/* Device Name & ID */}
                       <td style={{ padding: '16px' }}>
@@ -407,14 +426,14 @@ export default function AdminDevices() {
                             <div style={{
                               fontSize: '14px',
                               fontWeight: '500',
-                              color: '#1a1a1a',
+                              color: currentTheme.text,
                               marginBottom: '4px'
                             }}>
                               {device.device_name}
                             </div>
                             <div style={{
                               fontSize: '12px',
-                              color: '#999999',
+                              color: currentTheme.textSecondary,
                               fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                             }}>
                               {device.device_id}
@@ -429,20 +448,20 @@ export default function AdminDevices() {
                           <div>
                             <div style={{
                               fontSize: '14px',
-                              color: '#1a1a1a',
+                              color: currentTheme.text,
                               marginBottom: '2px'
                             }}>
                               {device.patient_name}
                             </div>
                             <div style={{
                               fontSize: '12px',
-                              color: '#999999'
+                              color: currentTheme.textSecondary
                             }}>
                               Room {device.assigned_room}
                             </div>
                           </div>
                         ) : (
-                          <span style={{ fontSize: '13px', color: '#999999' }}>Unassigned</span>
+                          <span style={{ fontSize: '13px', color: currentTheme.textSecondary }}>Unassigned</span>
                         )}
                       </td>
 
@@ -470,7 +489,7 @@ export default function AdminDevices() {
                             display: 'flex',
                             gap: '12px',
                             fontSize: '13px',
-                            color: '#666666'
+                            color: currentTheme.textSecondary
                           }}>
                             {device.heart_rate && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -503,7 +522,7 @@ export default function AdminDevices() {
                             justifyContent: 'center',
                             gap: '6px',
                             fontSize: '13px',
-                            color: device.battery_level > 20 ? '#666666' : '#dc2626'
+                            color: device.battery_level > 20 ? currentTheme.textSecondary : '#dc2626'
                           }}>
                             {device.battery_level > 20 ? (
                               <Battery style={{ width: '16px', height: '16px' }} />
@@ -528,12 +547,12 @@ export default function AdminDevices() {
                 <Package style={{
                   width: '48px',
                   height: '48px',
-                  color: '#cccccc',
+                  color: currentTheme.textSecondary,
                   margin: '0 auto 16px'
                 }} />
                 <p style={{
                   fontSize: '14px',
-                  color: '#999999',
+                  color: currentTheme.textSecondary,
                   margin: 0
                 }}>
                   No devices found
@@ -546,10 +565,10 @@ export default function AdminDevices() {
         {/* Debug Panel */}
         {showDebugPanel && deviceDetails && (
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            boxShadow: currentTheme.shadow,
             overflow: 'hidden',
             maxHeight: 'calc(100vh - 200px)',
             display: 'flex',
@@ -558,8 +577,8 @@ export default function AdminDevices() {
             {/* Debug Panel Header */}
             <div style={{
               padding: '16px',
-              backgroundColor: '#fafafa',
-              borderBottom: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.sectionBackground,
+              borderBottom: `1px solid ${currentTheme.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -567,13 +586,13 @@ export default function AdminDevices() {
               <h2 style={{
                 fontSize: '16px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 margin: 0,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Terminal style={{ width: '18px', height: '18px', color: '#0066cc' }} />
+                <Terminal style={{ width: '18px', height: '18px', color: currentTheme.accent }} />
                 Debug Console
               </h2>
               <button
@@ -583,17 +602,17 @@ export default function AdminDevices() {
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: '3px',
-                  color: '#666666',
+                  color: currentTheme.textSecondary,
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e0e0e0'
-                  e.currentTarget.style.color = '#1a1a1a'
+                  e.currentTarget.style.backgroundColor = currentTheme.hover
+                  e.currentTarget.style.color = currentTheme.text
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent'
-                  e.currentTarget.style.color = '#666666'
+                  e.currentTarget.style.color = currentTheme.textSecondary
                 }}
               >
                 <X style={{ width: '18px', height: '18px' }} />
@@ -603,13 +622,13 @@ export default function AdminDevices() {
             {/* Device Information Card */}
             <div style={{
               padding: '16px',
-              backgroundColor: '#f9f9f9',
-              borderBottom: '1px solid #e0e0e0'
+              backgroundColor: currentTheme.sectionBackground,
+              borderBottom: `1px solid ${currentTheme.border}`
             }}>
               <h3 style={{
                 fontSize: '15px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 marginBottom: '12px',
                 marginTop: 0
               }}>
@@ -623,33 +642,33 @@ export default function AdminDevices() {
                 marginBottom: '12px'
               }}>
                 <div>
-                  <span style={{ color: '#666666' }}>ID: </span>
+                  <span style={{ color: currentTheme.textSecondary }}>ID: </span>
                   <span style={{
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.device_id}
                   </span>
                 </div>
                 <div>
-                  <span style={{ color: '#666666' }}>Firmware: </span>
-                  <span style={{ color: '#1a1a1a' }}>
+                  <span style={{ color: currentTheme.textSecondary }}>Firmware: </span>
+                  <span style={{ color: currentTheme.text }}>
                     {deviceDetails.device.firmware_version || 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <span style={{ color: '#666666' }}>IP: </span>
+                  <span style={{ color: currentTheme.textSecondary }}>IP: </span>
                   <span style={{
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.ip_address || 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <span style={{ color: '#666666' }}>MAC: </span>
+                  <span style={{ color: currentTheme.textSecondary }}>MAC: </span>
                   <span style={{
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.mac_address || 'N/A'}
@@ -668,20 +687,20 @@ export default function AdminDevices() {
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: '#fef2f2',
-                    border: '1px solid #dc2626',
+                    backgroundColor: theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
+                    border: `1px solid ${theme === 'dark' ? '#f87171' : '#dc2626'}`,
                     borderRadius: '4px',
-                    color: '#dc2626',
+                    color: theme === 'dark' ? '#f87171' : '#dc2626',
                     fontSize: '13px',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#fee2e2'
+                    e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(239, 68, 68, 0.25)' : '#fee2e2'
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = '#fef2f2'
+                    e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2'
                   }}
                 >
                   <Power style={{ width: '14px', height: '14px' }} />
@@ -695,22 +714,22 @@ export default function AdminDevices() {
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '8px 12px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: currentTheme.cardBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontSize: '13px',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f5f5f5'
-                    e.currentTarget.style.borderColor = '#0066cc'
+                    e.currentTarget.style.backgroundColor = currentTheme.hover
+                    e.currentTarget.style.borderColor = currentTheme.accent
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ffffff'
-                    e.currentTarget.style.borderColor = '#e0e0e0'
+                    e.currentTarget.style.backgroundColor = currentTheme.cardBackground
+                    e.currentTarget.style.borderColor = currentTheme.border
                   }}
                 >
                   <Settings style={{ width: '14px', height: '14px' }} />
@@ -723,33 +742,34 @@ export default function AdminDevices() {
             <div style={{
               flex: 1,
               padding: '16px',
-              backgroundColor: '#fafafa',
-              borderBottom: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.inputBackground,
+              borderBottom: `1px solid ${currentTheme.border}`,
               fontFamily: 'Consolas, Monaco, "Courier New", monospace',
               fontSize: '12px',
               overflowY: 'auto',
               minHeight: '200px',
-              maxHeight: '300px'
+              maxHeight: '300px',
+              color: currentTheme.text
             }}>
               {debugOutput.map((output, idx) => (
                 <div key={idx} style={{ marginBottom: '8px' }}>
-                  <span style={{ color: '#999999' }}>
+                  <span style={{ color: currentTheme.textSecondary }}>
                     [{new Date(output.timestamp).toLocaleTimeString()}]
                   </span>
                   {' '}
                   {output.type === 'command' && (
-                    <span style={{ color: '#0066cc' }}>$ {output.content}</span>
+                    <span style={{ color: currentTheme.accent }}>$ {output.content}</span>
                   )}
                   {output.type === 'response' && (
-                    <span style={{ color: '#16a34a' }}>{output.content}</span>
+                    <span style={{ color: theme === 'dark' ? '#4ade80' : '#16a34a' }}>{output.content}</span>
                   )}
                   {output.type === 'error' && (
-                    <span style={{ color: '#dc2626' }}>Error: {output.content}</span>
+                    <span style={{ color: theme === 'dark' ? '#f87171' : '#dc2626' }}>Error: {output.content}</span>
                   )}
                 </div>
               ))}
               {debugOutput.length === 0 && (
-                <p style={{ color: '#999999', margin: 0 }}>
+                <p style={{ color: currentTheme.textSecondary, margin: 0 }}>
                   Waiting for commands...
                 </p>
               )}
@@ -758,8 +778,8 @@ export default function AdminDevices() {
             {/* Command Input */}
             <div style={{
               padding: '16px',
-              backgroundColor: '#ffffff',
-              borderBottom: '1px solid #e0e0e0'
+              backgroundColor: currentTheme.cardBackground,
+              borderBottom: `1px solid ${currentTheme.border}`
             }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <input
@@ -771,38 +791,38 @@ export default function AdminDevices() {
                   style={{
                     flex: 1,
                     padding: '8px 12px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: currentTheme.inputBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     fontSize: '13px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace',
                     outline: 'none',
                     transition: 'border-color 0.2s'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+                  onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                 />
                 <button
                   onClick={sendDebugCommand}
                   style={{
                     padding: '8px 16px',
-                    backgroundColor: '#0066cc',
+                    backgroundColor: currentTheme.accent,
                     border: 'none',
                     borderRadius: '4px',
                     color: '#ffffff',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.accentHover}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.accent}
                 >
                   <Send style={{ width: '16px', height: '16px' }} />
                 </button>
               </div>
               <p style={{
                 fontSize: '12px',
-                color: '#999999',
+                color: currentTheme.textSecondary,
                 margin: 0
               }}>
                 Try: status, reboot, reset, get_logs, update_firmware
@@ -812,14 +832,14 @@ export default function AdminDevices() {
             {/* Recent Logs */}
             <div style={{
               padding: '16px',
-              backgroundColor: '#ffffff',
+              backgroundColor: currentTheme.cardBackground,
               maxHeight: '200px',
               overflowY: 'auto'
             }}>
               <h3 style={{
                 fontSize: '14px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 marginBottom: '12px',
                 marginTop: 0
               }}>
@@ -834,14 +854,14 @@ export default function AdminDevices() {
                       fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                     }}
                   >
-                    <span style={{ color: '#999999' }}>
+                    <span style={{ color: currentTheme.textSecondary }}>
                       [{new Date(log.timestamp).toLocaleTimeString()}]
                     </span>
                     {' '}
                     <span style={{
-                      color: log.log_type === 'error' ? '#dc2626' :
+                      color: log.log_type === 'error' ? (theme === 'dark' ? '#f87171' : '#dc2626') :
                              log.log_type === 'warning' ? '#eab308' :
-                             log.log_type === 'debug' ? '#0066cc' : '#666666'
+                             log.log_type === 'debug' ? currentTheme.accent : currentTheme.textSecondary
                     }}>
                       {log.message}
                     </span>
@@ -855,22 +875,22 @@ export default function AdminDevices() {
         {/* Empty Debug Panel State */}
         {!showDebugPanel && (
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            boxShadow: currentTheme.shadow,
             padding: '60px 20px',
             textAlign: 'center'
           }}>
             <Terminal style={{
               width: '48px',
               height: '48px',
-              color: '#cccccc',
+              color: currentTheme.textSecondary,
               margin: '0 auto 16px'
             }} />
             <p style={{
               fontSize: '14px',
-              color: '#999999',
+              color: currentTheme.textSecondary,
               margin: 0
             }}>
               Select a device to debug

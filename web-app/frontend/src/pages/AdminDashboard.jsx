@@ -6,9 +6,12 @@ import {
   Circle, RefreshCw, LogOut, Bell, Settings, BarChart3, Package
 } from 'lucide-react'
 import axios from 'axios'
+import { useTheme } from '../contexts/ThemeContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
+  const { currentTheme, theme } = useTheme()
   const [activeTab, setActiveTab] = useState('overview')
   const [analytics, setAnalytics] = useState(null)
   const [systemHealth, setSystemHealth] = useState([])
@@ -65,19 +68,21 @@ export default function AdminDashboard() {
   }
 
   const getStatusColor = (status) => {
+    const isDark = theme === 'dark'
     const colors = {
-      healthy: { color: '#16a34a', background: '#f0fdf4', border: '#bbf7d0' },
-      degraded: { color: '#eab308', background: '#fefce8', border: '#fef08a' },
-      down: { color: '#dc2626', background: '#fef2f2', border: '#fecaca' },
-      online: { color: '#16a34a', background: '#f0fdf4', border: '#bbf7d0' },
-      offline: { color: '#666', background: '#f5f5f5', border: '#e0e0e0' },
-      error: { color: '#dc2626', background: '#fef2f2', border: '#fecaca' },
-      maintenance: { color: '#0284c7', background: '#f0f9ff', border: '#bae6fd' }
+      healthy: { color: '#16a34a', background: isDark ? '#1a2e1a' : '#f0fdf4', border: isDark ? '#16a34a' : '#bbf7d0' },
+      degraded: { color: '#eab308', background: isDark ? '#2e2a1a' : '#fefce8', border: isDark ? '#eab308' : '#fef08a' },
+      down: { color: '#dc2626', background: isDark ? '#2e1a1a' : '#fef2f2', border: isDark ? '#dc2626' : '#fecaca' },
+      online: { color: '#16a34a', background: isDark ? '#1a2e1a' : '#f0fdf4', border: isDark ? '#16a34a' : '#bbf7d0' },
+      offline: { color: currentTheme.textTertiary, background: currentTheme.hoverBackground, border: currentTheme.border },
+      error: { color: '#dc2626', background: isDark ? '#2e1a1a' : '#fef2f2', border: isDark ? '#dc2626' : '#fecaca' },
+      maintenance: { color: '#0284c7', background: isDark ? '#1a252e' : '#f0f9ff', border: isDark ? '#0284c7' : '#bae6fd' }
     }
     return colors[status] || colors.offline
   }
 
   const getLogLevelColor = (level) => {
+    const isDark = theme === 'dark'
     const colors = {
       info: '#0284c7',
       warning: '#eab308',
@@ -85,14 +90,14 @@ export default function AdminDashboard() {
       critical: '#7c3aed',
       debug: '#06b6d4'
     }
-    return colors[level] || '#666'
+    return colors[level] || (isDark ? currentTheme.textSecondary : '#666')
   }
 
   if (loading) {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: currentTheme.background,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -101,14 +106,14 @@ export default function AdminDashboard() {
           <div style={{
             width: '60px',
             height: '60px',
-            border: '4px solid #e0e0e0',
+            border: `4px solid ${currentTheme.border}`,
             borderTop: '4px solid #0066cc',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }} />
           <p style={{
-            color: '#666',
+            color: currentTheme.textSecondary,
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
           }}>Loading system data...</p>
         </div>
@@ -125,17 +130,17 @@ export default function AdminDashboard() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: currentTheme.background,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     }}>
       {/* Header */}
       <div style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e0e0e0',
+        backgroundColor: currentTheme.surface,
+        borderBottom: `1px solid ${currentTheme.border}`,
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.1)'
       }}>
         <div style={{ padding: '16px 24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -144,7 +149,7 @@ export default function AdminDashboard() {
                 <div style={{
                   width: '40px',
                   height: '40px',
-                  backgroundColor: '#0066cc',
+                  backgroundColor: currentTheme.primary,
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
@@ -156,18 +161,18 @@ export default function AdminDashboard() {
                   <h1 style={{
                     fontSize: '18px',
                     fontWeight: '600',
-                    color: '#1a1a1a',
+                    color: currentTheme.textPrimary,
                     margin: 0,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
                   }}>
-                    <Terminal style={{ width: '16px', height: '16px', color: '#0066cc' }} />
+                    <Terminal style={{ width: '16px', height: '16px', color: currentTheme.primary }} />
                     Administrator Control Panel
                   </h1>
                   <p style={{
                     fontSize: '11px',
-                    color: '#999',
+                    color: currentTheme.textTertiary,
                     margin: 0,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>System Monitor v1.0</p>
@@ -183,18 +188,18 @@ export default function AdminDashboard() {
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: '4px',
-                  color: '#666',
+                  color: currentTheme.textSecondary,
                   fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f5f5f5'
-                  e.target.style.color = '#1a1a1a'
+                  e.target.style.backgroundColor = currentTheme.hoverBackground
+                  e.target.style.color = currentTheme.textPrimary
                 }}
                 onMouseOut={(e) => {
                   e.target.style.backgroundColor = 'transparent'
-                  e.target.style.color = '#666'
+                  e.target.style.color = currentTheme.textSecondary
                 }}
               >
                 Dashboard
@@ -206,18 +211,18 @@ export default function AdminDashboard() {
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: '4px',
-                  color: '#666',
+                  color: currentTheme.textSecondary,
                   fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f5f5f5'
-                  e.target.style.color = '#1a1a1a'
+                  e.target.style.backgroundColor = currentTheme.hoverBackground
+                  e.target.style.color = currentTheme.textPrimary
                 }}
                 onMouseOut={(e) => {
                   e.target.style.backgroundColor = 'transparent'
-                  e.target.style.color = '#666'
+                  e.target.style.color = currentTheme.textSecondary
                 }}
               >
                 Devices
@@ -229,18 +234,18 @@ export default function AdminDashboard() {
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: '4px',
-                  color: '#666',
+                  color: currentTheme.textSecondary,
                   fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f5f5f5'
-                  e.target.style.color = '#1a1a1a'
+                  e.target.style.backgroundColor = currentTheme.hoverBackground
+                  e.target.style.color = currentTheme.textPrimary
                 }}
                 onMouseOut={(e) => {
                   e.target.style.backgroundColor = 'transparent'
-                  e.target.style.color = '#666'
+                  e.target.style.color = currentTheme.textSecondary
                 }}
               >
                 Users
@@ -252,7 +257,7 @@ export default function AdminDashboard() {
                   backgroundColor: 'transparent',
                   border: 'none',
                   borderRadius: '4px',
-                  color: '#666',
+                  color: currentTheme.textSecondary,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   display: 'flex',
@@ -260,16 +265,17 @@ export default function AdminDashboard() {
                   justifyContent: 'center'
                 }}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f5f5f5'
-                  e.target.style.color = '#1a1a1a'
+                  e.target.style.backgroundColor = currentTheme.hoverBackground
+                  e.target.style.color = currentTheme.textPrimary
                 }}
                 onMouseOut={(e) => {
                   e.target.style.backgroundColor = 'transparent'
-                  e.target.style.color = '#666'
+                  e.target.style.color = currentTheme.textSecondary
                 }}
               >
                 <Settings style={{ width: '20px', height: '20px' }} />
               </button>
+              <ThemeToggle />
               <button
                 onClick={handleLogout}
                 style={{
@@ -277,7 +283,7 @@ export default function AdminDashboard() {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '8px 16px',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: currentTheme.surface,
                   border: '1px solid #dc2626',
                   borderRadius: '4px',
                   color: '#dc2626',
@@ -290,7 +296,7 @@ export default function AdminDashboard() {
                   e.target.style.color = '#ffffff'
                 }}
                 onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#ffffff'
+                  e.target.style.backgroundColor = currentTheme.surface
                   e.target.style.color = '#dc2626'
                 }}
               >
@@ -312,42 +318,42 @@ export default function AdminDashboard() {
         }}>
           {/* Total Devices Card */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: '#e6f2ff',
+                backgroundColor: theme === 'dark' ? '#1a2633' : '#e6f2ff',
                 borderRadius: '4px'
               }}>
-                <Package style={{ width: '24px', height: '24px', color: '#0066cc' }} />
+                <Package style={{ width: '24px', height: '24px', color: currentTheme.primary }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
                 <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+12%</span>
               </div>
             </div>
-            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Total Devices</p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.total_devices || 0}</p>
-            <p style={{ fontSize: '12px', color: '#0066cc', marginTop: '8px' }}>{analytics?.online_devices || 0} online</p>
+            <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Total Devices</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.total_devices || 0}</p>
+            <p style={{ fontSize: '12px', color: currentTheme.primary, marginTop: '8px' }}>{analytics?.online_devices || 0} online</p>
           </div>
 
           {/* Active Patients Card */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: '#f0fdf4',
+                backgroundColor: theme === 'dark' ? '#1a2e1a' : '#f0fdf4',
                 borderRadius: '4px'
               }}>
                 <Users style={{ width: '24px', height: '24px', color: '#16a34a' }} />
@@ -357,23 +363,23 @@ export default function AdminDashboard() {
                 <span>+8%</span>
               </div>
             </div>
-            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Active Patients</p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.total_patients || 0}</p>
+            <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Active Patients</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.total_patients || 0}</p>
             <p style={{ fontSize: '12px', color: '#16a34a', marginTop: '8px' }}>Monitored 24/7</p>
           </div>
 
           {/* Alerts Today Card */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: '#fefce8',
+                backgroundColor: theme === 'dark' ? '#2e2a1a' : '#fefce8',
                 borderRadius: '4px'
               }}>
                 <AlertTriangle style={{ width: '24px', height: '24px', color: '#eab308' }} />
@@ -383,23 +389,23 @@ export default function AdminDashboard() {
                 <span>+3</span>
               </div>
             </div>
-            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>Alerts Today</p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>{analytics?.alerts_today || 0}</p>
+            <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Alerts Today</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.alerts_today || 0}</p>
             <p style={{ fontSize: '12px', color: '#eab308', marginTop: '8px' }}>2 critical</p>
           </div>
 
           {/* System Health Card */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: '#f0f9ff',
+                backgroundColor: theme === 'dark' ? '#1a252e' : '#f0f9ff',
                 borderRadius: '4px'
               }}>
                 <Shield style={{ width: '24px', height: '24px', color: '#0284c7' }} />
@@ -409,8 +415,8 @@ export default function AdminDashboard() {
                 <span>100%</span>
               </div>
             </div>
-            <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>System Health</p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: '0' }}>99.9%</p>
+            <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>System Health</p>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>99.9%</p>
             <p style={{ fontSize: '12px', color: '#0284c7', marginTop: '8px' }}>All systems operational</p>
           </div>
         </div>
@@ -424,23 +430,23 @@ export default function AdminDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
             {/* System Health */}
             <div style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.surface,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               padding: '24px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{
                   fontSize: '16px',
                   fontWeight: '600',
-                  color: '#1a1a1a',
+                  color: currentTheme.textPrimary,
                   margin: 0,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <Activity style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                  <Activity style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
                   System Health
                 </h2>
                 <button
@@ -450,7 +456,7 @@ export default function AdminDashboard() {
                     backgroundColor: 'transparent',
                     border: 'none',
                     borderRadius: '4px',
-                    color: '#666',
+                    color: currentTheme.textSecondary,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     display: 'flex',
@@ -458,12 +464,12 @@ export default function AdminDashboard() {
                     justifyContent: 'center'
                   }}
                   onMouseOver={(e) => {
-                    e.target.style.backgroundColor = '#f5f5f5'
-                    e.target.style.color = '#1a1a1a'
+                    e.target.style.backgroundColor = currentTheme.hoverBackground
+                    e.target.style.color = currentTheme.textPrimary
                   }}
                   onMouseOut={(e) => {
                     e.target.style.backgroundColor = 'transparent'
-                    e.target.style.color = '#666'
+                    e.target.style.color = currentTheme.textSecondary
                   }}
                 >
                   <RefreshCw style={{ width: '16px', height: '16px' }} />
@@ -477,14 +483,14 @@ export default function AdminDashboard() {
                     <div
                       key={idx}
                       style={{
-                        backgroundColor: '#fafafa',
-                        border: '1px solid #e0e0e0',
+                        backgroundColor: currentTheme.hoverBackground,
+                        border: `1px solid ${currentTheme.border}`,
                         borderRadius: '4px',
                         padding: '16px',
                         transition: 'all 0.2s'
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = '#fafafa'}
+                      onMouseOver={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = currentTheme.hoverBackground}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -494,11 +500,11 @@ export default function AdminDashboard() {
                             borderRadius: '50%',
                             backgroundColor: statusStyle.color
                           }} />
-                          <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>{service.service_name}</h3>
+                          <h3 style={{ fontSize: '14px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0 }}>{service.service_name}</h3>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {service.response_time && (
-                            <span style={{ fontSize: '12px', color: '#999' }}>{service.response_time}ms</span>
+                            <span style={{ fontSize: '12px', color: currentTheme.textTertiary }}>{service.response_time}ms</span>
                           )}
                           <span style={{
                             padding: '4px 12px',
@@ -514,7 +520,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       {service.details && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#999', marginTop: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: currentTheme.textTertiary, marginTop: '8px' }}>
                           {Object.entries(service.details).map(([key, value]) => (
                             <span key={key}>{key}: {value}</span>
                           ))}
@@ -528,22 +534,22 @@ export default function AdminDashboard() {
 
             {/* System Metrics */}
             <div style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.surface,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               padding: '24px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
             }}>
               <h2 style={{
                 fontSize: '16px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.textPrimary,
                 margin: '0 0 20px 0',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Cpu style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                <Cpu style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
                 System Metrics
               </h2>
 
@@ -551,24 +557,24 @@ export default function AdminDashboard() {
                 {/* CPU */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: '#666' }}>CPU Usage</span>
+                    <span style={{ fontSize: '13px', color: currentTheme.textSecondary }}>CPU Usage</span>
                     <span style={{
                       fontSize: '13px',
                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                      color: '#1a1a1a',
+                      color: currentTheme.textPrimary,
                       fontWeight: '600'
                     }}>{metrics?.cpu.usage.toFixed(1)}%</span>
                   </div>
                   <div style={{
                     width: '100%',
-                    backgroundColor: '#e0e0e0',
+                    backgroundColor: currentTheme.border,
                     borderRadius: '4px',
                     height: '8px',
                     overflow: 'hidden'
                   }}>
                     <div
                       style={{
-                        backgroundColor: '#0066cc',
+                        backgroundColor: currentTheme.primary,
                         height: '8px',
                         borderRadius: '4px',
                         width: `${metrics?.cpu.usage}%`,
@@ -581,17 +587,17 @@ export default function AdminDashboard() {
                 {/* Memory */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: '#666' }}>Memory</span>
+                    <span style={{ fontSize: '13px', color: currentTheme.textSecondary }}>Memory</span>
                     <span style={{
                       fontSize: '13px',
                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                      color: '#1a1a1a',
+                      color: currentTheme.textPrimary,
                       fontWeight: '600'
                     }}>{metrics?.memory.percent.toFixed(1)}%</span>
                   </div>
                   <div style={{
                     width: '100%',
-                    backgroundColor: '#e0e0e0',
+                    backgroundColor: currentTheme.border,
                     borderRadius: '4px',
                     height: '8px',
                     overflow: 'hidden'
@@ -611,17 +617,17 @@ export default function AdminDashboard() {
                 {/* Disk */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', color: '#666' }}>Disk Usage</span>
+                    <span style={{ fontSize: '13px', color: currentTheme.textSecondary }}>Disk Usage</span>
                     <span style={{
                       fontSize: '13px',
                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                      color: '#1a1a1a',
+                      color: currentTheme.textPrimary,
                       fontWeight: '600'
                     }}>{metrics?.disk.percent.toFixed(1)}%</span>
                   </div>
                   <div style={{
                     width: '100%',
-                    backgroundColor: '#e0e0e0',
+                    backgroundColor: currentTheme.border,
                     borderRadius: '4px',
                     height: '8px',
                     overflow: 'hidden'
@@ -640,24 +646,24 @@ export default function AdminDashboard() {
 
                 <div style={{
                   paddingTop: '16px',
-                  borderTop: '1px solid #e0e0e0',
+                  borderTop: `1px solid ${currentTheme.border}`,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                   fontSize: '12px',
-                  color: '#666'
+                  color: currentTheme.textSecondary
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Cores:</span>
-                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{metrics?.cpu.cores}</span>
+                    <span style={{ color: currentTheme.textPrimary, fontWeight: '500' }}>{metrics?.cpu.cores}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Total Memory:</span>
-                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{(metrics?.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                    <span style={{ color: currentTheme.textPrimary, fontWeight: '500' }}>{(metrics?.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Disk Free:</span>
-                    <span style={{ color: '#1a1a1a', fontWeight: '500' }}>{(metrics?.disk.free / 1024 / 1024 / 1024).toFixed(2)} GB</span>
+                    <span style={{ color: currentTheme.textPrimary, fontWeight: '500' }}>{(metrics?.disk.free / 1024 / 1024 / 1024).toFixed(2)} GB</span>
                   </div>
                 </div>
               </div>
@@ -668,22 +674,22 @@ export default function AdminDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Recent Devices */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <h2 style={{
               fontSize: '16px',
               fontWeight: '600',
-              color: '#1a1a1a',
+              color: currentTheme.textPrimary,
               margin: '0 0 20px 0',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Package style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+              <Package style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
               Recent Devices
             </h2>
 
@@ -694,15 +700,15 @@ export default function AdminDashboard() {
                   <div
                     key={device.id}
                     style={{
-                      backgroundColor: '#fafafa',
-                      border: '1px solid #e0e0e0',
+                      backgroundColor: currentTheme.hoverBackground,
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       padding: '12px',
                       transition: 'all 0.2s',
                       cursor: 'pointer'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -710,11 +716,11 @@ export default function AdminDashboard() {
                           width: '8px',
                           height: '8px',
                           borderRadius: '50%',
-                          backgroundColor: device.status === 'online' ? '#16a34a' : '#999'
+                          backgroundColor: device.status === 'online' ? '#16a34a' : currentTheme.textTertiary
                         }} />
                         <div>
-                          <p style={{ fontSize: '13px', fontWeight: '500', color: '#1a1a1a', margin: 0 }}>{device.device_name}</p>
-                          <p style={{ fontSize: '11px', color: '#999', margin: '2px 0 0 0' }}>{device.device_id}</p>
+                          <p style={{ fontSize: '13px', fontWeight: '500', color: currentTheme.textPrimary, margin: 0 }}>{device.device_name}</p>
+                          <p style={{ fontSize: '11px', color: currentTheme.textTertiary, margin: '2px 0 0 0' }}>{device.device_id}</p>
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
@@ -730,36 +736,36 @@ export default function AdminDashboard() {
                           {device.status}
                         </span>
                         {device.battery_level && (
-                          <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 0 0' }}>{device.battery_level}% battery</p>
+                          <p style={{ fontSize: '11px', color: currentTheme.textTertiary, margin: '4px 0 0 0' }}>{device.battery_level}% battery</p>
                         )}
                       </div>
                     </div>
                   </div>
                 )
               }) : (
-                <p style={{ fontSize: '13px', color: '#999', textAlign: 'center', padding: '32px 0' }}>No devices found</p>
+                <p style={{ fontSize: '13px', color: currentTheme.textTertiary, textAlign: 'center', padding: '32px 0' }}>No devices found</p>
               )}
             </div>
           </div>
 
           {/* System Logs */}
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <h2 style={{
               fontSize: '16px',
               fontWeight: '600',
-              color: '#1a1a1a',
+              color: currentTheme.textPrimary,
               margin: '0 0 20px 0',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Terminal style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+              <Terminal style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
               System Logs
             </h2>
 
@@ -769,8 +775,8 @@ export default function AdminDashboard() {
               gap: '4px',
               maxHeight: '400px',
               overflowY: 'auto',
-              backgroundColor: '#fafafa',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.hoverBackground,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               padding: '8px'
             }}>
@@ -784,16 +790,16 @@ export default function AdminDashboard() {
                     borderRadius: '2px',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                  onMouseOver={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                 >
-                  <span style={{ color: '#999' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                  <span style={{ color: currentTheme.textTertiary }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>
                   {' '}
                   <span style={{ fontWeight: '600', color: getLogLevelColor(log.level) }}>{log.level.toUpperCase()}</span>
                   {' '}
-                  <span style={{ color: '#666' }}>{log.service}</span>
+                  <span style={{ color: currentTheme.textSecondary }}>{log.service}</span>
                   {' → '}
-                  <span style={{ color: '#1a1a1a' }}>{log.message}</span>
+                  <span style={{ color: currentTheme.textPrimary }}>{log.message}</span>
                 </div>
               ))}
             </div>

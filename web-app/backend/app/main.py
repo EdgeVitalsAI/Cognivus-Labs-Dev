@@ -4,7 +4,17 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from .core.config import settings
 from .core.database import engine, Base
-from .api.routes import auth, admin_auth, admin_system, admin_devices, admin_users
+from .api.routes import (
+    auth,
+    admin_auth,
+    admin_system,
+    admin_devices,
+    admin_users,
+    patients,
+    patient_vitals,
+    prescriptions,
+    profile
+)
 
 Base.metadata.create_all(bind=engine)
 
@@ -51,6 +61,12 @@ app.include_router(admin_auth.router, prefix="/api/sys/auth", tags=["Admin Auth"
 app.include_router(admin_system.router, prefix="/api/sys/system", tags=["System Monitoring"])
 app.include_router(admin_devices.router, prefix="/api/sys/devices", tags=["Device Management"])
 app.include_router(admin_users.router, prefix="/api/sys/users", tags=["User Management"])
+
+# Clinical data routes (for doctors and staff)
+app.include_router(patients.router, prefix="/api", tags=["Patients"])
+app.include_router(patient_vitals.router, prefix="/api", tags=["Patient Vitals"])
+app.include_router(prescriptions.router, prefix="/api", tags=["Prescriptions"])
+app.include_router(profile.router, prefix="/api", tags=["Profile"])
 
 
 @app.get("/")

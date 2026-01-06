@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Settings as SettingsIcon, Key, User, Mail, Shield, AlertTriangle, CheckCircle, ArrowLeft, Sun, Moon } from 'lucide-react'
 import axios from 'axios'
 import { useTheme } from '../contexts/ThemeContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminSettings() {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('profile')
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState('')
+  const { currentTheme, theme } = useTheme()
 
   const [passwordChange, setPasswordChange] = useState({
     current_password: '',
@@ -58,7 +60,7 @@ export default function AdminSettings() {
 
   const containerStyle = {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: currentTheme.background,
     padding: '24px',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
   }
@@ -73,15 +75,15 @@ export default function AdminSettings() {
 
   const backButtonStyle = {
     padding: '8px 16px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e0e0e0',
+    backgroundColor: currentTheme.cardBackground,
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     fontSize: '14px',
-    color: '#666',
+    color: currentTheme.textSecondary,
     transition: 'all 0.2s'
   }
 
@@ -92,7 +94,7 @@ export default function AdminSettings() {
   const titleStyle = {
     fontSize: '28px',
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: currentTheme.text,
     margin: '0 0 4px 0',
     display: 'flex',
     alignItems: 'center',
@@ -101,7 +103,7 @@ export default function AdminSettings() {
 
   const subtitleStyle = {
     fontSize: '14px',
-    color: '#666',
+    color: currentTheme.textSecondary,
     margin: 0
   }
 
@@ -111,8 +113,8 @@ export default function AdminSettings() {
   }
 
   const profileCardStyle = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e0e0e0',
+    backgroundColor: currentTheme.cardBackground,
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
     padding: '24px',
     marginBottom: '24px',
@@ -129,8 +131,8 @@ export default function AdminSettings() {
     width: '80px',
     height: '80px',
     borderRadius: '50%',
-    backgroundColor: '#e3f2fd',
-    border: '2px solid #0066cc',
+    backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.2)' : '#e3f2fd',
+    border: `2px solid ${currentTheme.primary}`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
@@ -143,7 +145,7 @@ export default function AdminSettings() {
   const profileNameStyle = {
     fontSize: '20px',
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: currentTheme.text,
     margin: '0 0 8px 0'
   }
 
@@ -152,7 +154,7 @@ export default function AdminSettings() {
     alignItems: 'center',
     gap: '8px',
     fontSize: '14px',
-    color: '#666',
+    color: currentTheme.textSecondary,
     marginBottom: '8px'
   }
 
@@ -162,7 +164,7 @@ export default function AdminSettings() {
     gap: '6px',
     fontSize: '12px',
     color: '#7c3aed',
-    backgroundColor: '#f3e8ff',
+    backgroundColor: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : '#f3e8ff',
     padding: '4px 12px',
     borderRadius: '12px',
     fontWeight: '500'
@@ -192,12 +194,12 @@ export default function AdminSettings() {
 
   const usernameStyle = {
     fontSize: '12px',
-    color: '#999'
+    color: currentTheme.textTertiary
   }
 
   const tabsContainerStyle = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e0e0e0',
+    backgroundColor: currentTheme.cardBackground,
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
     overflow: 'hidden',
     marginBottom: '24px',
@@ -207,7 +209,7 @@ export default function AdminSettings() {
   const tabsWrapperStyle = {
     display: 'flex',
     gap: '0',
-    borderBottom: '1px solid #e0e0e0'
+    borderBottom: `1px solid ${currentTheme.border}`
   }
 
   const getTabStyle = (isActive) => ({
@@ -216,21 +218,21 @@ export default function AdminSettings() {
     fontSize: '14px',
     fontWeight: '500',
     border: 'none',
-    backgroundColor: isActive ? '#ffffff' : '#fafafa',
-    color: isActive ? '#0066cc' : '#666',
+    backgroundColor: isActive ? currentTheme.cardBackground : currentTheme.hoverBackground,
+    color: isActive ? currentTheme.primary : currentTheme.textSecondary,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
     transition: 'all 0.2s',
-    borderBottom: isActive ? '2px solid #0066cc' : '2px solid transparent',
+    borderBottom: isActive ? `2px solid ${currentTheme.primary}` : '2px solid transparent',
     outline: 'none'
   })
 
   const cardStyle = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e0e0e0',
+    backgroundColor: currentTheme.cardBackground,
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
     padding: '24px',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
@@ -239,13 +241,13 @@ export default function AdminSettings() {
   const cardHeaderStyle = {
     fontSize: '18px',
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: currentTheme.text,
     margin: '0 0 24px 0',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
     paddingBottom: '16px',
-    borderBottom: '1px solid #e0e0e0'
+    borderBottom: `1px solid ${currentTheme.border}`
   }
 
   const formGroupStyle = {
@@ -256,7 +258,7 @@ export default function AdminSettings() {
     display: 'block',
     fontSize: '13px',
     fontWeight: '500',
-    color: '#1a1a1a',
+    color: currentTheme.text,
     marginBottom: '6px'
   }
 
@@ -264,10 +266,10 @@ export default function AdminSettings() {
     width: '100%',
     padding: '10px 12px',
     fontSize: '14px',
-    border: '1px solid #d0d0d0',
+    border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
-    backgroundColor: '#ffffff',
-    color: '#1a1a1a',
+    backgroundColor: currentTheme.cardBackground,
+    color: currentTheme.text,
     outline: 'none',
     transition: 'border-color 0.2s',
     boxSizing: 'border-box'
@@ -275,48 +277,48 @@ export default function AdminSettings() {
 
   const inputDisabledStyle = {
     ...inputStyle,
-    backgroundColor: '#f9f9f9',
-    color: '#999',
+    backgroundColor: currentTheme.hoverBackground,
+    color: currentTheme.textTertiary,
     cursor: 'not-allowed'
   }
 
   const inputFocusStyle = {
-    borderColor: '#0066cc'
+    borderColor: currentTheme.primary
   }
 
   const infoBannerStyle = {
     padding: '12px 16px',
-    backgroundColor: '#e3f2fd',
-    border: '1px solid #90caf9',
+    backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.2)' : '#e3f2fd',
+    border: theme === 'dark' ? '1px solid rgba(0, 102, 204, 0.3)' : '1px solid #90caf9',
     borderRadius: '4px',
     marginTop: '24px'
   }
 
   const infoBannerTextStyle = {
     fontSize: '13px',
-    color: '#0284c7',
+    color: theme === 'dark' ? '#90caf9' : '#0284c7',
     margin: 0
   }
 
   const warningBannerStyle = {
     padding: '12px 16px',
-    backgroundColor: '#fef3c7',
-    border: '1px solid #fbbf24',
+    backgroundColor: theme === 'dark' ? 'rgba(251, 191, 36, 0.2)' : '#fef3c7',
+    border: theme === 'dark' ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid #fbbf24',
     borderRadius: '4px',
     marginBottom: '20px'
   }
 
   const warningBannerTextStyle = {
     fontSize: '13px',
-    color: '#92400e',
+    color: theme === 'dark' ? '#fbbf24' : '#92400e',
     margin: 0
   }
 
   const successMessageStyle = {
     marginBottom: '24px',
     padding: '16px',
-    backgroundColor: '#dcfce7',
-    border: '1px solid #86efac',
+    backgroundColor: theme === 'dark' ? '#1a2e1a' : '#f0fdf4',
+    border: theme === 'dark' ? '1px solid #16a34a' : '1px solid #86efac',
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'flex-start',
@@ -326,8 +328,8 @@ export default function AdminSettings() {
   const errorMessageStyle = {
     marginBottom: '24px',
     padding: '16px',
-    backgroundColor: '#fee2e2',
-    border: '1px solid #fca5a5',
+    backgroundColor: theme === 'dark' ? '#3d1a1a' : '#fef2f2',
+    border: theme === 'dark' ? '1px solid #dc2626' : '1px solid #fca5a5',
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'flex-start',
@@ -355,7 +357,7 @@ export default function AdminSettings() {
     fontSize: '14px',
     fontWeight: '500',
     color: '#ffffff',
-    backgroundColor: '#0066cc',
+    backgroundColor: currentTheme.primary,
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
@@ -365,7 +367,7 @@ export default function AdminSettings() {
 
   const dividerStyle = {
     height: '1px',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: currentTheme.border,
     margin: '24px 0',
     border: 'none'
   }
@@ -378,14 +380,14 @@ export default function AdminSettings() {
           style={backButtonStyle}
           onClick={() => navigate(-1)}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f5f5f5'
-            e.currentTarget.style.borderColor = '#0066cc'
-            e.currentTarget.style.color = '#0066cc'
+            e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
+            e.currentTarget.style.borderColor = currentTheme.primary
+            e.currentTarget.style.color = currentTheme.primary
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#ffffff'
-            e.currentTarget.style.borderColor = '#e0e0e0'
-            e.currentTarget.style.color = '#666'
+            e.currentTarget.style.backgroundColor = currentTheme.cardBackground
+            e.currentTarget.style.borderColor = currentTheme.border
+            e.currentTarget.style.color = currentTheme.textSecondary
           }}
         >
           <ArrowLeft style={{ width: '16px', height: '16px' }} />
@@ -393,11 +395,12 @@ export default function AdminSettings() {
         </button>
         <div style={headerStyle}>
           <h1 style={titleStyle}>
-            <SettingsIcon style={{ width: '28px', height: '28px', color: '#0066cc' }} />
+            <SettingsIcon style={{ width: '28px', height: '28px', color: currentTheme.primary }} />
             Administrator Settings
           </h1>
           <p style={subtitleStyle}>Manage your administrator account and security settings</p>
         </div>
+        <ThemeToggle />
       </div>
 
       <div style={contentWrapperStyle}>
@@ -405,7 +408,7 @@ export default function AdminSettings() {
         <div style={profileCardStyle}>
           <div style={profileContentStyle}>
             <div style={avatarStyle}>
-              <Shield style={{ width: '40px', height: '40px', color: '#0066cc' }} />
+              <Shield style={{ width: '40px', height: '40px', color: currentTheme.primary }} />
             </div>
             <div style={profileInfoStyle}>
               <h2 style={profileNameStyle}>{adminUser.full_name}</h2>
@@ -438,12 +441,12 @@ export default function AdminSettings() {
               style={getTabStyle(activeTab === 'profile')}
               onMouseEnter={(e) => {
                 if (activeTab !== 'profile') {
-                  e.currentTarget.style.backgroundColor = '#f0f0f0'
+                  e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'profile') {
-                  e.currentTarget.style.backgroundColor = '#fafafa'
+                  e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
                 }
               }}
             >
@@ -455,12 +458,12 @@ export default function AdminSettings() {
               style={getTabStyle(activeTab === 'security')}
               onMouseEnter={(e) => {
                 if (activeTab !== 'security') {
-                  e.currentTarget.style.backgroundColor = '#f0f0f0'
+                  e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'security') {
-                  e.currentTarget.style.backgroundColor = '#fafafa'
+                  e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
                 }
               }}
             >
@@ -475,7 +478,7 @@ export default function AdminSettings() {
           {activeTab === 'profile' && (
             <div style={cardStyle}>
               <h2 style={cardHeaderStyle}>
-                <User style={{ width: '20px', height: '20px', color: '#666' }} />
+                <User style={{ width: '20px', height: '20px', color: currentTheme.textSecondary }} />
                 Account Information
               </h2>
 
@@ -522,7 +525,7 @@ export default function AdminSettings() {
           {activeTab === 'security' && (
             <div style={cardStyle}>
               <h2 style={cardHeaderStyle}>
-                <Key style={{ width: '20px', height: '20px', color: '#666' }} />
+                <Key style={{ width: '20px', height: '20px', color: currentTheme.textSecondary }} />
                 Change Password
               </h2>
 
@@ -560,8 +563,8 @@ export default function AdminSettings() {
                     style={inputStyle}
                     placeholder="Enter your current password"
                     required
-                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                    onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
+                    onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                   />
                 </div>
 
@@ -575,8 +578,8 @@ export default function AdminSettings() {
                     placeholder="Enter new password (min 8 characters)"
                     required
                     minLength={8}
-                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                    onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
+                    onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                   />
                 </div>
 
@@ -590,8 +593,8 @@ export default function AdminSettings() {
                     placeholder="Confirm new password"
                     required
                     minLength={8}
-                    onFocus={(e) => e.target.style.borderColor = '#0066cc'}
-                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                    onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
+                    onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                   />
                 </div>
 
@@ -606,8 +609,8 @@ export default function AdminSettings() {
                 <button
                   type="submit"
                   style={submitButtonStyle}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
                 >
                   Update Password
                 </button>

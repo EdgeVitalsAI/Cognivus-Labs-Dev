@@ -5,9 +5,12 @@ import {
   XCircle, Shield, Stethoscope, Briefcase, Mail, X, AlertTriangle, ChevronLeft
 } from 'lucide-react'
 import axios from 'axios'
+import { useTheme } from '../contexts/ThemeContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminUsers() {
   const navigate = useNavigate()
+  const { currentTheme, theme } = useTheme()
   const [users, setUsers] = useState([])
   const [statistics, setStatistics] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -156,7 +159,7 @@ export default function AdminUsers() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: currentTheme.background,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -165,13 +168,13 @@ export default function AdminUsers() {
           <div style={{
             width: '60px',
             height: '60px',
-            border: '4px solid #e0e0e0',
-            borderTop: '4px solid #0066cc',
+            border: `4px solid ${currentTheme.border}`,
+            borderTop: `4px solid ${currentTheme.primary}`,
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
           }} />
-          <p style={{ color: '#666', fontSize: '14px' }}>Loading users...</p>
+          <p style={{ color: currentTheme.secondaryText, fontSize: '14px' }}>Loading users...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -186,14 +189,14 @@ export default function AdminUsers() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: currentTheme.background,
       padding: '24px',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
     }}>
       {/* Header */}
       <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #e0e0e0',
+        backgroundColor: currentTheme.cardBackground,
+        border: `1px solid ${currentTheme.border}`,
         borderRadius: '4px',
         padding: '20px 24px',
         marginBottom: '24px',
@@ -209,21 +212,21 @@ export default function AdminUsers() {
               alignItems: 'center',
               gap: '6px',
               padding: '8px 16px',
-              backgroundColor: '#ffffff',
-              border: '1px solid #e0e0e0',
+              backgroundColor: currentTheme.cardBackground,
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#f5f5f5'
-              e.currentTarget.style.borderColor = '#0066cc'
+              e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
+              e.currentTarget.style.borderColor = currentTheme.primary
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#ffffff'
-              e.currentTarget.style.borderColor = '#e0e0e0'
+              e.currentTarget.style.backgroundColor = currentTheme.cardBackground
+              e.currentTarget.style.borderColor = currentTheme.border
             }}
           >
             <ChevronLeft style={{ width: '16px', height: '16px' }} />
@@ -233,42 +236,45 @@ export default function AdminUsers() {
             <h1 style={{
               fontSize: '24px',
               fontWeight: '600',
-              color: '#1a1a1a',
+              color: currentTheme.text,
               margin: '0 0 4px 0',
               display: 'flex',
               alignItems: 'center',
               gap: '8px'
             }}>
-              <Users style={{ width: '24px', height: '24px', color: '#0066cc' }} />
+              <Users style={{ width: '24px', height: '24px', color: currentTheme.primary }} />
               User Management
             </h1>
-            <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: currentTheme.secondaryText, margin: 0 }}>
               Manage doctors and staff accounts
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '10px 20px',
-            backgroundColor: '#0066cc',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#ffffff',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
-        >
-          <UserPlus style={{ width: '16px', height: '16px' }} />
-          Create New User
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <ThemeToggle />
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              backgroundColor: currentTheme.primary,
+              border: 'none',
+              borderRadius: '4px',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
+          >
+            <UserPlus style={{ width: '16px', height: '16px' }} />
+            Create New User
+          </button>
+        </div>
       </div>
 
       {/* Statistics */}
@@ -280,8 +286,8 @@ export default function AdminUsers() {
           marginBottom: '24px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px'
           }}>
@@ -294,26 +300,26 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: '#e6f2ff',
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Users style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                <Users style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
               </div>
             </div>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Total Users
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
               {statistics.total_users}
             </p>
           </div>
 
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px'
           }}>
@@ -326,26 +332,26 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: '#e6f2ff',
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Stethoscope style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                <Stethoscope style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
               </div>
             </div>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Doctors
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
               {statistics.total_doctors}
             </p>
           </div>
 
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px'
           }}>
@@ -358,26 +364,26 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: '#e6f2ff',
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Briefcase style={{ width: '20px', height: '20px', color: '#0066cc' }} />
+                <Briefcase style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
               </div>
             </div>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Staff
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
               {statistics.total_staff}
             </p>
           </div>
 
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             padding: '20px'
           }}>
@@ -390,7 +396,7 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: '#e6f7f0',
+                backgroundColor: theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -399,10 +405,10 @@ export default function AdminUsers() {
                 <CheckCircle style={{ width: '20px', height: '20px', color: '#16a34a' }} />
               </div>
             </div>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Active Users
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a1a', margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
               {statistics.active_users}
             </p>
           </div>
@@ -411,8 +417,8 @@ export default function AdminUsers() {
 
       {/* Search and Filters */}
       <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #e0e0e0',
+        backgroundColor: currentTheme.cardBackground,
+        border: `1px solid ${currentTheme.border}`,
         borderRadius: '4px',
         padding: '20px',
         marginBottom: '16px'
@@ -431,7 +437,7 @@ export default function AdminUsers() {
               transform: 'translateY(-50%)',
               width: '16px',
               height: '16px',
-              color: '#999'
+              color: currentTheme.secondaryText
             }} />
             <input
               type="text"
@@ -441,15 +447,16 @@ export default function AdminUsers() {
               style={{
                 width: '100%',
                 padding: '9px 12px 9px 38px',
-                border: '1px solid #e0e0e0',
+                border: `1px solid ${currentTheme.border}`,
                 borderRadius: '4px',
                 fontSize: '14px',
-                color: '#1a1a1a',
+                color: currentTheme.text,
+                backgroundColor: currentTheme.inputBackground,
                 outline: 'none',
                 transition: 'border-color 0.2s'
               }}
-              onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
-              onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
+              onFocus={(e) => e.currentTarget.style.borderColor = currentTheme.primary}
+              onBlur={(e) => e.currentTarget.style.borderColor = currentTheme.border}
             />
           </div>
 
@@ -458,17 +465,17 @@ export default function AdminUsers() {
             onChange={(e) => setRoleFilter(e.target.value)}
             style={{
               padding: '9px 32px 9px 12px',
-              border: '1px solid #e0e0e0',
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: '#1a1a1a',
-              backgroundColor: '#ffffff',
+              color: currentTheme.text,
+              backgroundColor: currentTheme.inputBackground,
               cursor: 'pointer',
               outline: 'none',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
-            onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
+            onFocus={(e) => e.currentTarget.style.borderColor = currentTheme.primary}
+            onBlur={(e) => e.currentTarget.style.borderColor = currentTheme.border}
           >
             <option value="all">All Roles</option>
             <option value="doctor">Doctors</option>
@@ -480,17 +487,17 @@ export default function AdminUsers() {
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{
               padding: '9px 32px 9px 12px',
-              border: '1px solid #e0e0e0',
+              border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: '#1a1a1a',
-              backgroundColor: '#ffffff',
+              color: currentTheme.text,
+              backgroundColor: currentTheme.inputBackground,
               cursor: 'pointer',
               outline: 'none',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.currentTarget.style.borderColor = '#0066cc'}
-            onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
+            onFocus={(e) => e.currentTarget.style.borderColor = currentTheme.primary}
+            onBlur={(e) => e.currentTarget.style.borderColor = currentTheme.border}
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -501,21 +508,21 @@ export default function AdminUsers() {
 
       {/* Users Table */}
       <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #e0e0e0',
+        backgroundColor: currentTheme.cardBackground,
+        border: `1px solid ${currentTheme.border}`,
         borderRadius: '4px',
         overflow: 'hidden'
       }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: '#fafafa', borderBottom: '1px solid #e0e0e0' }}>
+              <tr style={{ backgroundColor: currentTheme.tableHeaderBackground, borderBottom: `1px solid ${currentTheme.border}` }}>
                 <th style={{
                   padding: '12px 16px',
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -526,7 +533,7 @@ export default function AdminUsers() {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -537,7 +544,7 @@ export default function AdminUsers() {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -548,7 +555,7 @@ export default function AdminUsers() {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -559,7 +566,7 @@ export default function AdminUsers() {
                   textAlign: 'left',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -570,7 +577,7 @@ export default function AdminUsers() {
                   textAlign: 'right',
                   fontSize: '12px',
                   fontWeight: '600',
-                  color: '#666',
+                  color: currentTheme.secondaryText,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
@@ -583,18 +590,18 @@ export default function AdminUsers() {
                 <tr
                   key={user.id}
                   style={{
-                    borderBottom: index < filteredUsers.length - 1 ? '1px solid #e0e0e0' : 'none',
+                    borderBottom: index < filteredUsers.length - 1 ? `1px solid ${currentTheme.border}` : 'none',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <td style={{ padding: '16px' }}>
                     <div>
-                      <p style={{ fontSize: '14px', fontWeight: '500', color: '#1a1a1a', margin: '0 0 4px 0' }}>
+                      <p style={{ fontSize: '14px', fontWeight: '500', color: currentTheme.text, margin: '0 0 4px 0' }}>
                         {user.full_name}
                       </p>
-                      <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+                      <p style={{ fontSize: '13px', color: currentTheme.secondaryText, margin: 0 }}>
                         {user.email}
                       </p>
                     </div>
@@ -605,12 +612,14 @@ export default function AdminUsers() {
                       alignItems: 'center',
                       gap: '6px',
                       padding: '4px 10px',
-                      backgroundColor: user.role === 'doctor' ? '#e6f2ff' : '#e6f7f0',
-                      border: `1px solid ${user.role === 'doctor' ? '#0066cc' : '#16a34a'}`,
+                      backgroundColor: user.role === 'doctor'
+                        ? (theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff')
+                        : (theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0'),
+                      border: `1px solid ${user.role === 'doctor' ? currentTheme.primary : '#16a34a'}`,
                       borderRadius: '4px',
                       fontSize: '12px',
                       fontWeight: '500',
-                      color: user.role === 'doctor' ? '#0066cc' : '#16a34a'
+                      color: user.role === 'doctor' ? currentTheme.primary : '#16a34a'
                     }}>
                       {user.role === 'doctor' ? (
                         <Stethoscope style={{ width: '12px', height: '12px' }} />
@@ -621,7 +630,7 @@ export default function AdminUsers() {
                     </span>
                   </td>
                   <td style={{ padding: '16px' }}>
-                    <div style={{ fontSize: '13px', color: '#666' }}>
+                    <div style={{ fontSize: '13px', color: currentTheme.secondaryText }}>
                       {user.role === 'doctor' && user.specialty && (
                         <p style={{ margin: '0 0 2px 0' }}>
                           <span style={{ fontWeight: '500' }}>Specialty:</span> {user.specialty}
@@ -638,12 +647,12 @@ export default function AdminUsers() {
                         </p>
                       )}
                       {user.employee_id && (
-                        <p style={{ margin: '0', color: '#999' }}>
+                        <p style={{ margin: '0', color: currentTheme.mutedText }}>
                           ID: {user.employee_id}
                         </p>
                       )}
                       {!user.specialty && !user.department && !user.employee_id && (
-                        <span style={{ color: '#999', fontStyle: 'italic' }}>No details</span>
+                        <span style={{ color: currentTheme.mutedText, fontStyle: 'italic' }}>No details</span>
                       )}
                     </div>
                   </td>
@@ -654,7 +663,7 @@ export default function AdminUsers() {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '4px 10px',
-                        backgroundColor: '#e6f7f0',
+                        backgroundColor: theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0',
                         border: '1px solid #16a34a',
                         borderRadius: '4px',
                         fontSize: '12px',
@@ -670,7 +679,7 @@ export default function AdminUsers() {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '4px 10px',
-                        backgroundColor: '#fff0f0',
+                        backgroundColor: theme === 'dark' ? 'rgba(220, 38, 38, 0.15)' : '#fff0f0',
                         border: '1px solid #dc2626',
                         borderRadius: '4px',
                         fontSize: '12px',
@@ -683,7 +692,7 @@ export default function AdminUsers() {
                     )}
                   </td>
                   <td style={{ padding: '16px' }}>
-                    <p style={{ fontSize: '13px', color: '#666', margin: 0 }}>
+                    <p style={{ fontSize: '13px', color: currentTheme.secondaryText, margin: 0 }}>
                       {new Date(user.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
@@ -701,7 +710,7 @@ export default function AdminUsers() {
                         style={{
                           padding: '6px',
                           backgroundColor: 'transparent',
-                          border: '1px solid #e0e0e0',
+                          border: `1px solid ${currentTheme.border}`,
                           borderRadius: '4px',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
@@ -710,12 +719,12 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fffbeb'
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(234, 179, 8, 0.15)' : '#fffbeb'
                           e.currentTarget.style.borderColor = '#eab308'
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.borderColor = '#e0e0e0'
+                          e.currentTarget.style.borderColor = currentTheme.border
                         }}
                         title="Reset Password"
                       >
@@ -729,7 +738,7 @@ export default function AdminUsers() {
                         style={{
                           padding: '6px',
                           backgroundColor: 'transparent',
-                          border: '1px solid #e0e0e0',
+                          border: `1px solid ${currentTheme.border}`,
                           borderRadius: '4px',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
@@ -738,23 +747,23 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = '#e6f2ff'
-                          e.currentTarget.style.borderColor = '#0066cc'
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff'
+                          e.currentTarget.style.borderColor = currentTheme.primary
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.borderColor = '#e0e0e0'
+                          e.currentTarget.style.borderColor = currentTheme.border
                         }}
                         title="Edit User"
                       >
-                        <Edit2 style={{ width: '16px', height: '16px', color: '#0066cc' }} />
+                        <Edit2 style={{ width: '16px', height: '16px', color: currentTheme.primary }} />
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id, user.full_name)}
                         style={{
                           padding: '6px',
                           backgroundColor: 'transparent',
-                          border: '1px solid #e0e0e0',
+                          border: `1px solid ${currentTheme.border}`,
                           borderRadius: '4px',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
@@ -763,12 +772,12 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fff0f0'
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(220, 38, 38, 0.15)' : '#fff0f0'
                           e.currentTarget.style.borderColor = '#dc2626'
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.borderColor = '#e0e0e0'
+                          e.currentTarget.style.borderColor = currentTheme.border
                         }}
                         title="Deactivate User"
                       >
@@ -786,8 +795,8 @@ export default function AdminUsers() {
               padding: '80px 20px',
               textAlign: 'center'
             }}>
-              <Users style={{ width: '48px', height: '48px', color: '#e0e0e0', margin: '0 auto 16px' }} />
-              <p style={{ fontSize: '14px', color: '#999', margin: 0 }}>No users found</p>
+              <Users style={{ width: '48px', height: '48px', color: currentTheme.border, margin: '0 auto 16px' }} />
+              <p style={{ fontSize: '14px', color: currentTheme.mutedText, margin: 0 }}>No users found</p>
             </div>
           )}
         </div>
@@ -806,8 +815,8 @@ export default function AdminUsers() {
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             maxWidth: '600px',
             width: '100%',
@@ -817,16 +826,16 @@ export default function AdminUsers() {
           }}>
             <div style={{
               padding: '20px 24px',
-              borderBottom: '1px solid #e0e0e0',
+              borderBottom: `1px solid ${currentTheme.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: '#fafafa'
+              backgroundColor: currentTheme.tableHeaderBackground
             }}>
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 margin: 0
               }}>
                 Create New User
@@ -844,10 +853,10 @@ export default function AdminUsers() {
                   justifyContent: 'center',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <X style={{ width: '20px', height: '20px', color: '#666' }} />
+                <X style={{ width: '20px', height: '20px', color: currentTheme.secondaryText }} />
               </button>
             </div>
 
@@ -858,7 +867,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Role <span style={{ color: '#dc2626' }}>*</span>
@@ -870,11 +879,11 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#1a1a1a',
-                      backgroundColor: '#ffffff',
+                      color: currentTheme.text,
+                      backgroundColor: currentTheme.inputBackground,
                       cursor: 'pointer',
                       outline: 'none'
                     }}
@@ -889,7 +898,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Full Name <span style={{ color: '#dc2626' }}>*</span>
@@ -902,10 +911,11 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#1a1a1a',
+                      color: currentTheme.text,
+                      backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
                   />
@@ -916,7 +926,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Email <span style={{ color: '#dc2626' }}>*</span>
@@ -929,10 +939,11 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#1a1a1a',
+                      color: currentTheme.text,
+                      backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
                   />
@@ -943,7 +954,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Password <span style={{ color: '#dc2626' }}>*</span>
@@ -956,10 +967,11 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#1a1a1a',
+                      color: currentTheme.text,
+                      backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
                   />
@@ -973,7 +985,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Specialty
@@ -985,10 +997,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -998,7 +1011,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           License Number
@@ -1010,10 +1023,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1030,7 +1044,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Department
@@ -1042,10 +1056,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1055,7 +1070,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Employee ID
@@ -1067,10 +1082,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1085,7 +1101,7 @@ export default function AdminUsers() {
                 gap: '12px',
                 marginTop: '24px',
                 paddingTop: '20px',
-                borderTop: '1px solid #e0e0e0'
+                borderTop: `1px solid ${currentTheme.border}`
               }}>
                 <button
                   type="button"
@@ -1093,17 +1109,17 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: currentTheme.cardBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.cardBackground}
                 >
                   Cancel
                 </button>
@@ -1112,7 +1128,7 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: '#0066cc',
+                    backgroundColor: currentTheme.primary,
                     border: 'none',
                     borderRadius: '4px',
                     color: '#ffffff',
@@ -1121,8 +1137,8 @@ export default function AdminUsers() {
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
                 >
                   Create User
                 </button>
@@ -1145,8 +1161,8 @@ export default function AdminUsers() {
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             maxWidth: '600px',
             width: '100%',
@@ -1156,16 +1172,16 @@ export default function AdminUsers() {
           }}>
             <div style={{
               padding: '20px 24px',
-              borderBottom: '1px solid #e0e0e0',
+              borderBottom: `1px solid ${currentTheme.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: '#fafafa'
+              backgroundColor: currentTheme.tableHeaderBackground
             }}>
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 margin: 0
               }}>
                 Edit User
@@ -1186,10 +1202,10 @@ export default function AdminUsers() {
                   justifyContent: 'center',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <X style={{ width: '20px', height: '20px', color: '#666' }} />
+                <X style={{ width: '20px', height: '20px', color: currentTheme.secondaryText }} />
               </button>
             </div>
 
@@ -1200,7 +1216,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Full Name <span style={{ color: '#dc2626' }}>*</span>
@@ -1213,10 +1229,11 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#1a1a1a',
+                      color: currentTheme.text,
+                      backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
                   />
@@ -1227,7 +1244,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
                     Email
@@ -1239,16 +1256,16 @@ export default function AdminUsers() {
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #e0e0e0',
+                      border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: '#999',
-                      backgroundColor: '#fafafa',
+                      color: currentTheme.mutedText,
+                      backgroundColor: currentTheme.disabledBackground,
                       cursor: 'not-allowed',
                       outline: 'none'
                     }}
                   />
-                  <p style={{ fontSize: '12px', color: '#999', margin: '4px 0 0 0' }}>
+                  <p style={{ fontSize: '12px', color: currentTheme.mutedText, margin: '4px 0 0 0' }}>
                     Email cannot be changed
                   </p>
                 </div>
@@ -1260,7 +1277,7 @@ export default function AdminUsers() {
                     gap: '8px',
                     cursor: 'pointer',
                     fontSize: '14px',
-                    color: '#1a1a1a'
+                    color: currentTheme.text
                   }}>
                     <input
                       type="checkbox"
@@ -1274,7 +1291,7 @@ export default function AdminUsers() {
                     />
                     <span style={{ fontWeight: '500' }}>Active User</span>
                   </label>
-                  <p style={{ fontSize: '12px', color: '#666', margin: '4px 0 0 24px' }}>
+                  <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '4px 0 0 24px' }}>
                     Inactive users cannot log in to the system
                   </p>
                 </div>
@@ -1287,7 +1304,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Specialty
@@ -1299,10 +1316,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1312,7 +1330,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           License Number
@@ -1324,10 +1342,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1344,7 +1363,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Department
@@ -1356,10 +1375,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1369,7 +1389,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: '#1a1a1a',
+                          color: currentTheme.text,
                           marginBottom: '6px'
                         }}>
                           Employee ID
@@ -1381,10 +1401,11 @@ export default function AdminUsers() {
                           style={{
                             width: '100%',
                             padding: '9px 12px',
-                            border: '1px solid #e0e0e0',
+                            border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: '#1a1a1a',
+                            color: currentTheme.text,
+                            backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
                         />
@@ -1399,7 +1420,7 @@ export default function AdminUsers() {
                 gap: '12px',
                 marginTop: '24px',
                 paddingTop: '20px',
-                borderTop: '1px solid #e0e0e0'
+                borderTop: `1px solid ${currentTheme.border}`
               }}>
                 <button
                   type="button"
@@ -1410,17 +1431,17 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: currentTheme.cardBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.cardBackground}
                 >
                   Cancel
                 </button>
@@ -1429,7 +1450,7 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: '#0066cc',
+                    backgroundColor: currentTheme.primary,
                     border: 'none',
                     borderRadius: '4px',
                     color: '#ffffff',
@@ -1438,8 +1459,8 @@ export default function AdminUsers() {
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0052a3'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0066cc'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
                 >
                   Save Changes
                 </button>
@@ -1462,8 +1483,8 @@ export default function AdminUsers() {
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
+            backgroundColor: currentTheme.cardBackground,
+            border: `1px solid ${currentTheme.border}`,
             borderRadius: '4px',
             maxWidth: '500px',
             width: '100%',
@@ -1471,16 +1492,16 @@ export default function AdminUsers() {
           }}>
             <div style={{
               padding: '20px 24px',
-              borderBottom: '1px solid #e0e0e0',
+              borderBottom: `1px solid ${currentTheme.border}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: '#fafafa'
+              backgroundColor: currentTheme.tableHeaderBackground
             }}>
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: '#1a1a1a',
+                color: currentTheme.text,
                 margin: 0
               }}>
                 Reset User Password
@@ -1501,17 +1522,17 @@ export default function AdminUsers() {
                   justifyContent: 'center',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <X style={{ width: '20px', height: '20px', color: '#666' }} />
+                <X style={{ width: '20px', height: '20px', color: currentTheme.secondaryText }} />
               </button>
             </div>
 
             <form onSubmit={handleResetPassword} style={{ padding: '24px' }}>
               <div style={{
                 padding: '12px 16px',
-                backgroundColor: '#fffbeb',
+                backgroundColor: theme === 'dark' ? 'rgba(234, 179, 8, 0.15)' : '#fffbeb',
                 border: '1px solid #eab308',
                 borderRadius: '4px',
                 marginBottom: '20px'
@@ -1528,14 +1549,14 @@ export default function AdminUsers() {
                     <p style={{
                       fontSize: '13px',
                       fontWeight: '600',
-                      color: '#854d0e',
+                      color: theme === 'dark' ? '#fde047' : '#854d0e',
                       margin: '0 0 4px 0'
                     }}>
                       Warning
                     </p>
                     <p style={{
                       fontSize: '13px',
-                      color: '#854d0e',
+                      color: theme === 'dark' ? '#fde047' : '#854d0e',
                       margin: 0,
                       lineHeight: '1.5'
                     }}>
@@ -1550,7 +1571,7 @@ export default function AdminUsers() {
                   display: 'block',
                   fontSize: '13px',
                   fontWeight: '500',
-                  color: '#1a1a1a',
+                  color: currentTheme.text,
                   marginBottom: '6px'
                 }}>
                   New Password <span style={{ color: '#dc2626' }}>*</span>
@@ -1564,14 +1585,15 @@ export default function AdminUsers() {
                   style={{
                     width: '100%',
                     padding: '9px 12px',
-                    border: '1px solid #e0e0e0',
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     fontSize: '14px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
+                    backgroundColor: currentTheme.inputBackground,
                     outline: 'none'
                   }}
                 />
-                <p style={{ fontSize: '12px', color: '#999', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '12px', color: currentTheme.mutedText, margin: '4px 0 0 0' }}>
                   Minimum 8 characters required
                 </p>
               </div>
@@ -1581,7 +1603,7 @@ export default function AdminUsers() {
                 gap: '12px',
                 marginTop: '24px',
                 paddingTop: '20px',
-                borderTop: '1px solid #e0e0e0'
+                borderTop: `1px solid ${currentTheme.border}`
               }}>
                 <button
                   type="button"
@@ -1592,17 +1614,17 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e0e0e0',
+                    backgroundColor: currentTheme.cardBackground,
+                    border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: '#1a1a1a',
+                    color: currentTheme.text,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.cardBackground}
                 >
                   Cancel
                 </button>

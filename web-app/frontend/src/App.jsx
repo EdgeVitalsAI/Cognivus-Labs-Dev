@@ -19,6 +19,7 @@ import StaffIncidents from './pages/Staff/StaffIncidents';
 import StaffCommunication from './pages/Staff/StaffCommunication';
 import StaffNotes from './pages/Staff/StaffNotes';
 import StaffSettings from './pages/Staff/StaffSettings';
+import ProfileSettingsPage from './pages/ProfileSettingsPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminDevices from './pages/AdminDevices';
@@ -97,6 +98,14 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/doctor/profile"
+                    element={
+                        <ProtectedRoute role="doctor">
+                            <ProfileSettingsPage />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Staff Routes */}
                 <Route path="/staff/login" element={<StaffLogin />} />
@@ -161,6 +170,14 @@ function App() {
                     element={
                         <ProtectedRoute role="staff">
                             <StaffSettings />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/profile"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <ProfileSettingsPage />
                         </ProtectedRoute>
                     }
                 />

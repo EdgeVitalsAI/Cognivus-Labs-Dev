@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime
@@ -11,6 +12,7 @@ from ...models.user import User, UserRole
 from ...models.admin import Admin
 
 router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/sys/auth/login")
 
 
 class UserCreateRequest(BaseModel):
@@ -251,13 +253,22 @@ async def admin_reset_password(
 async def change_admin_password(
     password_data: PasswordChangeRequest,
     db: Session = Depends(get_db),
-    # TODO: Add admin authentication dependency
+    token: str = Depends(oauth2_scheme)
 ):
     """Admin changes their own password"""
+    from ...core.security import decode_access_token
 
-    # For now, get admin from token (you'll need to implement this)
-    # This is a placeholder - you should extract admin_id from JWT token
-    admin_id = 1  # Replace with actual admin ID from token
+    # Extract admin ID from JWT token
+    payload = decode_access_token(token)
+    if not payload or payload.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid admin credentials"
+        )
+
+    admin_id = payload.get("admin_id")
+    if not admin_id:
+        raise HTTPException(status_code=401, detail="Invalid token: missing admin ID")
 
     admin = db.query(Admin).filter(Admin.id == admin_id).first()
 
