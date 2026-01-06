@@ -6,18 +6,27 @@ export const themes = {
   light: {
     background: '#f5f5f5',
     cardBackground: '#ffffff',
+    surface: '#ffffff',
     text: '#1a1a1a',
+    textPrimary: '#0f172a',
     textSecondary: '#666666',
     textTertiary: '#999999',
+    secondaryText: '#666666',
+    mutedText: '#999999',
     border: '#e0e0e0',
     borderLight: '#f0f0f0',
     primary: '#0066cc',
+    primaryBg: '#e6f2ff',
     primaryHover: '#0052a3',
     primaryDark: '#004d99',
     success: '#16a34a',
+    successBg: '#e6f7f0',
     warning: '#eab308',
+    warningBg: '#fffbeb',
     error: '#dc2626',
+    errorBg: '#fff0f0',
     info: '#0284c7',
+    infoBg: '#f0f9ff',
     shadow: 'rgba(0,0,0,0.1)',
     shadowLight: 'rgba(0,0,0,0.05)',
     inputBackground: '#ffffff',
@@ -26,18 +35,27 @@ export const themes = {
   dark: {
     background: '#1a1a1a',
     cardBackground: '#2d2d2d',
+    surface: '#2d2d2d',
     text: '#e5e5e5',
+    textPrimary: '#ffffff',
     textSecondary: '#b0b0b0',
     textTertiary: '#808080',
+    secondaryText: '#b0b0b0',
+    mutedText: '#808080',
     border: '#404040',
     borderLight: '#353535',
     primary: '#3b82f6',
+    primaryBg: 'rgba(59,130,246,0.12)',
     primaryHover: '#2563eb',
     primaryDark: '#1d4ed8',
     success: '#22c55e',
+    successBg: 'rgba(34,197,94,0.15)',
     warning: '#fbbf24',
+    warningBg: 'rgba(251,191,36,0.12)',
     error: '#ef4444',
+    errorBg: 'rgba(239,68,68,0.12)',
     info: '#3b82f6',
+    infoBg: 'rgba(59,130,246,0.12)',
     shadow: 'rgba(0,0,0,0.3)',
     shadowLight: 'rgba(0,0,0,0.2)',
     inputBackground: '#1f1f1f',
@@ -54,6 +72,20 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('admin_theme', theme)
   }, [theme])
+
+  // Apply CSS variables to document root for easy theming
+  useEffect(() => {
+    const root = document.documentElement
+    const t = currentTheme
+    root.style.setProperty('--bg', t.background)
+    root.style.setProperty('--card-bg', t.cardBackground)
+    root.style.setProperty('--text', t.text)
+    root.style.setProperty('--text-secondary', t.textSecondary)
+    root.style.setProperty('--border', t.border)
+    root.style.setProperty('--primary', t.primary)
+    root.style.setProperty('--input-bg', t.inputBackground)
+    root.style.setProperty('--hover-bg', t.hoverBackground)
+  }, [currentTheme])
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')

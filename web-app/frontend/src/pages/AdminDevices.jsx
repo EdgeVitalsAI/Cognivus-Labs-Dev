@@ -197,24 +197,24 @@ export default function AdminDevices() {
 
     const colors = {
       available: {
-        bg: isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7',
-        text: isDark ? '#4ade80' : '#16a34a',
-        border: isDark ? '#4ade80' : '#22c55e'
+        bg: currentTheme.successBg,
+        text: currentTheme.success,
+        border: currentTheme.success
       },
       assigned: {
-        bg: isDark ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe',
-        text: isDark ? '#60a5fa' : '#0284c7',
-        border: isDark ? '#60a5fa' : '#3b82f6'
+        bg: currentTheme.primaryBg,
+        text: currentTheme.primary,
+        border: currentTheme.primary
       },
       in_use: {
-        bg: isDark ? 'rgba(168, 85, 247, 0.15)' : '#f3e8ff',
-        text: isDark ? '#c084fc' : '#9333ea',
-        border: isDark ? '#c084fc' : '#a855f7'
+        bg: currentTheme.infoBg,
+        text: currentTheme.primary,
+        border: currentTheme.primary
       },
       maintenance: {
-        bg: isDark ? 'rgba(245, 158, 11, 0.15)' : '#fef3c7',
-        text: isDark ? '#fbbf24' : '#d97706',
-        border: isDark ? '#fbbf24' : '#f59e0b'
+        bg: currentTheme.warningBg,
+        text: currentTheme.warning,
+        border: currentTheme.warning
       }
     }
 
@@ -226,24 +226,24 @@ export default function AdminDevices() {
 
     const colors = {
       online: {
-        bg: isDark ? 'rgba(22, 163, 74, 0.15)' : '#e6f4ea',
-        text: isDark ? '#4ade80' : '#16a34a',
-        border: isDark ? '#4ade80' : '#16a34a'
+        bg: currentTheme.successBg,
+        text: currentTheme.success,
+        border: currentTheme.success
       },
       offline: {
-        bg: isDark ? 'rgba(115, 115, 115, 0.15)' : '#f5f5f5',
-        text: isDark ? '#a3a3a3' : '#666666',
-        border: isDark ? '#737373' : '#999999'
+        bg: currentTheme.hoverBackground,
+        text: currentTheme.textSecondary,
+        border: currentTheme.border
       },
       error: {
-        bg: isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
-        text: isDark ? '#f87171' : '#dc2626',
-        border: isDark ? '#f87171' : '#dc2626'
+        bg: currentTheme.errorBg,
+        text: currentTheme.error,
+        border: currentTheme.error
       },
       maintenance: {
-        bg: isDark ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe',
-        text: isDark ? '#60a5fa' : '#0284c7',
-        border: isDark ? '#60a5fa' : '#0284c7'
+        bg: currentTheme.primaryBg,
+        text: currentTheme.primary,
+        border: currentTheme.primary
       }
     }
     return colors[status] || colors.offline
@@ -572,7 +572,7 @@ export default function AdminDevices() {
                             width: '8px',
                             height: '8px',
                             borderRadius: '50%',
-                            backgroundColor: device.status === 'online' ? '#16a34a' : '#999999',
+                            backgroundColor: device.status === 'online' ? currentTheme.success : currentTheme.textTertiary,
                             flexShrink: 0
                           }} />
                           <div>
@@ -668,19 +668,19 @@ export default function AdminDevices() {
                           }}>
                             {device.heart_rate && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Heart style={{ width: '14px', height: '14px', color: '#dc2626' }} />
+                                <Heart style={{ width: '14px', height: '14px', color: currentTheme.error }} />
                                 <span>{device.heart_rate}</span>
                               </div>
                             )}
                             {device.spo2 && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Wind style={{ width: '14px', height: '14px', color: '#0284c7' }} />
+                                <Wind style={{ width: '14px', height: '14px', color: currentTheme.info }} />
                                 <span>{device.spo2}%</span>
                               </div>
                             )}
                             {device.temperature && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Thermometer style={{ width: '14px', height: '14px', color: '#ea580c' }} />
+                                <Thermometer style={{ width: '14px', height: '14px', color: currentTheme.warning }} />
                                 <span>{device.temperature}°F</span>
                               </div>
                             )}
@@ -697,7 +697,7 @@ export default function AdminDevices() {
                             justifyContent: 'center',
                             gap: '6px',
                             fontSize: '13px',
-                            color: device.battery_level > 20 ? currentTheme.textSecondary : '#dc2626'
+                            color: device.battery_level > 20 ? currentTheme.textSecondary : currentTheme.error
                           }}>
                             {device.battery_level > 20 ? (
                               <Battery style={{ width: '16px', height: '16px' }} />
@@ -719,14 +719,14 @@ export default function AdminDevices() {
                               fontSize: '12px',
                               fontWeight: '500',
                               color: '#ffffff',
-                              backgroundColor: '#0284c7',
+                              backgroundColor: currentTheme.info,
                               border: 'none',
                               borderRadius: '4px',
                               cursor: 'pointer',
                               transition: 'background-color 0.2s'
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.info}
                           >
                             Assign
                           </button>
@@ -738,14 +738,14 @@ export default function AdminDevices() {
                               fontSize: '12px',
                               fontWeight: '500',
                               color: '#ffffff',
-                              backgroundColor: '#dc2626',
+                              backgroundColor: currentTheme.error,
                               border: 'none',
                               borderRadius: '4px',
                               cursor: 'pointer',
                               transition: 'background-color 0.2s'
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b91c1c'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.error}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.error}
                           >
                             Unassign
                           </button>
@@ -980,10 +980,10 @@ export default function AdminDevices() {
                     <span style={{ color: currentTheme.accent }}>$ {output.content}</span>
                   )}
                   {output.type === 'response' && (
-                    <span style={{ color: theme === 'dark' ? '#4ade80' : '#16a34a' }}>{output.content}</span>
+                    <span style={{ color: currentTheme.success }}>{output.content}</span>
                   )}
                   {output.type === 'error' && (
-                    <span style={{ color: theme === 'dark' ? '#f87171' : '#dc2626' }}>Error: {output.content}</span>
+                    <span style={{ color: currentTheme.error }}>Error: {output.content}</span>
                   )}
                 </div>
               ))}
@@ -1078,9 +1078,9 @@ export default function AdminDevices() {
                     </span>
                     {' '}
                     <span style={{
-                      color: log.log_type === 'error' ? (theme === 'dark' ? '#f87171' : '#dc2626') :
-                             log.log_type === 'warning' ? '#eab308' :
-                             log.log_type === 'debug' ? currentTheme.accent : currentTheme.textSecondary
+                      color: log.log_type === 'error' ? currentTheme.error :
+                             log.log_type === 'warning' ? currentTheme.warning :
+                             log.log_type === 'debug' ? currentTheme.primary : currentTheme.textSecondary
                     }}>
                       {log.message}
                     </span>
@@ -1214,7 +1214,7 @@ export default function AdminDevices() {
                   fontSize: '14px',
                   fontWeight: '500',
                   color: '#ffffff',
-                  backgroundColor: selectedPatientId ? '#0284c7' : '#64748b',
+                  backgroundColor: selectedPatientId ? currentTheme.primary : currentTheme.textTertiary,
                   border: 'none',
                   borderRadius: '4px',
                   cursor: selectedPatientId ? 'pointer' : 'not-allowed',
