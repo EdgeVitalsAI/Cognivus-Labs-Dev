@@ -70,13 +70,13 @@ export default function AdminDashboard() {
   const getStatusColor = (status) => {
     const isDark = theme === 'dark'
     const colors = {
-      healthy: { color: currentTheme.success, background: currentTheme.successBg, border: currentTheme.success },
-      degraded: { color: currentTheme.warning, background: currentTheme.warningBg, border: currentTheme.warning },
-      down: { color: currentTheme.error, background: currentTheme.errorBg, border: currentTheme.error },
-      online: { color: currentTheme.success, background: currentTheme.successBg, border: currentTheme.success },
+      healthy: { color: '#16a34a', background: isDark ? '#1a2e1a' : '#f0fdf4', border: isDark ? '#16a34a' : '#bbf7d0' },
+      degraded: { color: '#eab308', background: isDark ? '#2e2a1a' : '#fefce8', border: isDark ? '#eab308' : '#fef08a' },
+      down: { color: '#dc2626', background: isDark ? '#2e1a1a' : '#fef2f2', border: isDark ? '#dc2626' : '#fecaca' },
+      online: { color: '#16a34a', background: isDark ? '#1a2e1a' : '#f0fdf4', border: isDark ? '#16a34a' : '#bbf7d0' },
       offline: { color: currentTheme.textTertiary, background: currentTheme.hoverBackground, border: currentTheme.border },
-      error: { color: currentTheme.error, background: currentTheme.errorBg, border: currentTheme.error },
-      maintenance: { color: currentTheme.info, background: currentTheme.infoBg, border: currentTheme.info }
+      error: { color: '#dc2626', background: isDark ? '#2e1a1a' : '#fef2f2', border: isDark ? '#dc2626' : '#fecaca' },
+      maintenance: { color: '#0284c7', background: isDark ? '#1a252e' : '#f0f9ff', border: isDark ? '#0284c7' : '#bae6fd' }
     }
     return colors[status] || colors.offline
   }
@@ -84,18 +84,18 @@ export default function AdminDashboard() {
   const getLogLevelColor = (level) => {
     const isDark = theme === 'dark'
     const colors = {
-      info: currentTheme.info,
-      warning: currentTheme.warning,
-      error: currentTheme.error,
-      critical: currentTheme.primary || '#7c3aed',
-      debug: currentTheme.info
+      info: '#0284c7',
+      warning: '#eab308',
+      error: '#dc2626',
+      critical: '#7c3aed',
+      debug: '#06b6d4'
     }
-    return colors[level] || currentTheme.textSecondary
+    return colors[level] || (isDark ? currentTheme.textSecondary : '#666')
   }
 
   if (loading) {
     return (
-          <div style={{
+      <div style={{
         minHeight: '100vh',
         backgroundColor: currentTheme.background,
         display: 'flex',
@@ -103,11 +103,11 @@ export default function AdminDashboard() {
         justifyContent: 'center'
       }}>
         <div style={{ textAlign: 'center' }}>
-            <div style={{
+          <div style={{
             width: '60px',
             height: '60px',
             border: `4px solid ${currentTheme.border}`,
-            borderTop: `4px solid ${currentTheme.primary}`,
+            borderTop: '4px solid #0066cc',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 16px'
@@ -284,20 +284,20 @@ export default function AdminDashboard() {
                   gap: '8px',
                   padding: '8px 16px',
                   backgroundColor: currentTheme.surface,
-                  border: `1px solid ${currentTheme.error}`,
+                  border: '1px solid #dc2626',
                   borderRadius: '4px',
-                  color: currentTheme.error,
+                  color: '#dc2626',
                   fontSize: '14px',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = currentTheme.error
-                  e.target.style.color = currentTheme.surface
+                  e.target.style.backgroundColor = '#dc2626'
+                  e.target.style.color = '#ffffff'
                 }}
                 onMouseOut={(e) => {
                   e.target.style.backgroundColor = currentTheme.surface
-                  e.target.style.color = currentTheme.error
+                  e.target.style.color = '#dc2626'
                 }}
               >
                 <LogOut style={{ width: '16px', height: '16px' }} />
@@ -327,12 +327,12 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: currentTheme.primaryBg,
+                backgroundColor: theme === 'dark' ? '#1a2633' : '#e6f2ff',
                 borderRadius: '4px'
               }}>
                 <Package style={{ width: '24px', height: '24px', color: currentTheme.primary }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: currentTheme.success, fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
                 <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+12%</span>
               </div>
@@ -353,19 +353,19 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: currentTheme.successBg,
+                backgroundColor: theme === 'dark' ? '#1a2e1a' : '#f0fdf4',
                 borderRadius: '4px'
               }}>
-                <Users style={{ width: '24px', height: '24px', color: currentTheme.success }} />
+                <Users style={{ width: '24px', height: '24px', color: '#16a34a' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: currentTheme.success, fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
                 <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+8%</span>
               </div>
             </div>
             <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Active Patients</p>
             <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.total_patients || 0}</p>
-            <p style={{ fontSize: '12px', color: currentTheme.success, marginTop: '8px' }}>Monitored 24/7</p>
+            <p style={{ fontSize: '12px', color: '#16a34a', marginTop: '8px' }}>Monitored 24/7</p>
           </div>
 
           {/* Alerts Today Card */}
@@ -379,19 +379,19 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: currentTheme.warningBg,
+                backgroundColor: theme === 'dark' ? '#2e2a1a' : '#fefce8',
                 borderRadius: '4px'
               }}>
-                <AlertTriangle style={{ width: '24px', height: '24px', color: currentTheme.warning }} />
+                <AlertTriangle style={{ width: '24px', height: '24px', color: '#eab308' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: currentTheme.error, fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '12px' }}>
                 <TrendingUp style={{ width: '12px', height: '12px' }} />
                 <span>+3</span>
               </div>
             </div>
             <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Alerts Today</p>
             <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.alerts_today || 0}</p>
-            <p style={{ fontSize: '12px', color: currentTheme.warning, marginTop: '8px' }}>2 critical</p>
+            <p style={{ fontSize: '12px', color: '#eab308', marginTop: '8px' }}>2 critical</p>
           </div>
 
           {/* System Health Card */}
@@ -405,19 +405,19 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{
                 padding: '8px',
-                backgroundColor: currentTheme.infoBg,
+                backgroundColor: theme === 'dark' ? '#1a252e' : '#f0f9ff',
                 borderRadius: '4px'
               }}>
-                <Shield style={{ width: '24px', height: '24px', color: currentTheme.info }} />
+                <Shield style={{ width: '24px', height: '24px', color: '#0284c7' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: currentTheme.success, fontSize: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
                 <CheckCircle style={{ width: '12px', height: '12px' }} />
                 <span>100%</span>
               </div>
             </div>
             <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>System Health</p>
             <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>99.9%</p>
-            <p style={{ fontSize: '12px', color: currentTheme.info, marginTop: '8px' }}>All systems operational</p>
+            <p style={{ fontSize: '12px', color: '#0284c7', marginTop: '8px' }}>All systems operational</p>
           </div>
         </div>
 
@@ -489,7 +489,7 @@ export default function AdminDashboard() {
                         padding: '16px',
                         transition: 'all 0.2s'
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = currentTheme.hoverBackground}
+                      onMouseOver={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
                       onMouseOut={(e) => e.target.style.backgroundColor = currentTheme.hoverBackground}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -634,7 +634,7 @@ export default function AdminDashboard() {
                   }}>
                     <div
                       style={{
-                        backgroundColor: currentTheme.primary,
+                        backgroundColor: '#7c3aed',
                         height: '8px',
                         borderRadius: '4px',
                         width: `${metrics?.disk.percent}%`,
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
                       transition: 'all 0.2s',
                       cursor: 'pointer'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.hoverBackground}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -716,7 +716,7 @@ export default function AdminDashboard() {
                           width: '8px',
                           height: '8px',
                           borderRadius: '50%',
-                          backgroundColor: device.status === 'online' ? currentTheme.success : currentTheme.textTertiary
+                          backgroundColor: device.status === 'online' ? '#16a34a' : currentTheme.textTertiary
                         }} />
                         <div>
                           <p style={{ fontSize: '13px', fontWeight: '500', color: currentTheme.textPrimary, margin: 0 }}>{device.device_name}</p>
@@ -790,7 +790,7 @@ export default function AdminDashboard() {
                     borderRadius: '2px',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = currentTheme.hoverBackground}
+                  onMouseOver={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#2a2a2a' : '#f5f5f5'}
                   onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
                 >
                   <span style={{ color: currentTheme.textTertiary }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>

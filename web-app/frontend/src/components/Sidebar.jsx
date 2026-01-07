@@ -1,15 +1,13 @@
 import { Brain, Cpu, FileText, LayoutDashboard, LogOut, Pill, Users, Video } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext'
 
-const Item = ({ icon: Icon, label, to, active, theme }) => (
+const Item = ({ icon: Icon, label, to, active }) => (
     <Link
         to={to}
-        className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm`}
-        style={{
-            backgroundColor: active ? theme.borderLight || theme.cardBackground : 'transparent',
-            color: active ? theme.text : theme.textSecondary
-        }}
+        className={
+            `flex items-center gap-3 px-4 py-2 rounded-lg text-sm ` +
+            (active ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-700/60')
+        }
     >
         <Icon className="w-4 h-4" />
         <span>{label}</span>
@@ -18,22 +16,19 @@ const Item = ({ icon: Icon, label, to, active, theme }) => (
 
 const Sidebar = ({ onLogout }) => {
     const { pathname } = useLocation();
-    const { currentTheme } = useTheme()
     return (
-        <aside className="w-[260px] h-screen sticky top-0 p-4 flex flex-col gap-2" style={{ backgroundColor: currentTheme.cardBackground, borderRight: `1px solid ${currentTheme.border}` }}>
+        <aside className="w-[260px] bg-slate-900 border-r border-slate-800 h-screen sticky top-0 p-4 flex flex-col gap-2">
             <Item
                 icon={LayoutDashboard}
                 label="Dashboard"
                 to="/doctor/dashboard"
                 active={pathname.includes('/doctor/dashboard')}
-                theme={currentTheme}
             />
             <Item
                 icon={Users}
                 label="Patients"
                 to="/doctor/patients"
                 active={pathname.includes('/doctor/patients')}
-                theme={currentTheme}
             />
             <Item
                 icon={Pill}
@@ -68,8 +63,7 @@ const Sidebar = ({ onLogout }) => {
             <div className="mt-auto" />
             <button
                 onClick={onLogout}
-                className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm"
-                style={{ color: currentTheme.textSecondary }}
+                className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-700/60"
             >
                 <LogOut className="w-4 h-4" />
                 Logout

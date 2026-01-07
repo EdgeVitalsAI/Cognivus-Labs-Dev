@@ -300,7 +300,7 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: currentTheme.primaryBg,
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -332,7 +332,7 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: currentTheme.primaryBg,
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -364,7 +364,7 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: currentTheme.primaryBg,
+                backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -396,13 +396,13 @@ export default function AdminUsers() {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: currentTheme.successBg,
+                backgroundColor: theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0',
                 borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <CheckCircle style={{ width: '20px', height: '20px', color: currentTheme.success }} />
+                <CheckCircle style={{ width: '20px', height: '20px', color: '#16a34a' }} />
               </div>
             </div>
             <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -612,12 +612,14 @@ export default function AdminUsers() {
                       alignItems: 'center',
                       gap: '6px',
                       padding: '4px 10px',
-                      backgroundColor: user.role === 'doctor' ? currentTheme.primaryBg : currentTheme.successBg,
-                      border: `1px solid ${user.role === 'doctor' ? currentTheme.primary : currentTheme.success}`,
+                      backgroundColor: user.role === 'doctor'
+                        ? (theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff')
+                        : (theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0'),
+                      border: `1px solid ${user.role === 'doctor' ? currentTheme.primary : '#16a34a'}`,
                       borderRadius: '4px',
                       fontSize: '12px',
                       fontWeight: '500',
-                      color: user.role === 'doctor' ? currentTheme.primary : currentTheme.success
+                      color: user.role === 'doctor' ? currentTheme.primary : '#16a34a'
                     }}>
                       {user.role === 'doctor' ? (
                         <Stethoscope style={{ width: '12px', height: '12px' }} />
@@ -661,12 +663,12 @@ export default function AdminUsers() {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '4px 10px',
-                          backgroundColor: currentTheme.successBg,
-                          border: `1px solid ${currentTheme.success}`,
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          color: currentTheme.success
+                        backgroundColor: theme === 'dark' ? 'rgba(22, 163, 74, 0.15)' : '#e6f7f0',
+                        border: '1px solid #16a34a',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        color: '#16a34a'
                       }}>
                         <CheckCircle style={{ width: '12px', height: '12px' }} />
                         Active
@@ -677,12 +679,12 @@ export default function AdminUsers() {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '4px 10px',
-                        backgroundColor: currentTheme.errorBg,
-                        border: `1px solid ${currentTheme.error}`,
+                        backgroundColor: theme === 'dark' ? 'rgba(220, 38, 38, 0.15)' : '#fff0f0',
+                        border: '1px solid #dc2626',
                         borderRadius: '4px',
                         fontSize: '12px',
                         fontWeight: '500',
-                        color: currentTheme.error
+                        color: '#dc2626'
                       }}>
                         <XCircle style={{ width: '12px', height: '12px' }} />
                         Inactive
@@ -717,8 +719,8 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = currentTheme.warningBg
-                          e.currentTarget.style.borderColor = currentTheme.warning
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(234, 179, 8, 0.15)' : '#fffbeb'
+                          e.currentTarget.style.borderColor = '#eab308'
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
@@ -726,7 +728,7 @@ export default function AdminUsers() {
                         }}
                         title="Reset Password"
                       >
-                        <Key style={{ width: '16px', height: '16px', color: currentTheme.warning }} />
+                        <Key style={{ width: '16px', height: '16px', color: '#eab308' }} />
                       </button>
                       <button
                         onClick={() => {
@@ -745,7 +747,7 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = currentTheme.primaryBg
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(0, 102, 204, 0.15)' : '#e6f2ff'
                           e.currentTarget.style.borderColor = currentTheme.primary
                         }}
                         onMouseOut={(e) => {
@@ -770,8 +772,8 @@ export default function AdminUsers() {
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = currentTheme.errorBg
-                          e.currentTarget.style.borderColor = currentTheme.error
+                          e.currentTarget.style.backgroundColor = theme === 'dark' ? 'rgba(220, 38, 38, 0.15)' : '#fff0f0'
+                          e.currentTarget.style.borderColor = '#dc2626'
                         }}
                         onMouseOut={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent'
@@ -779,7 +781,7 @@ export default function AdminUsers() {
                         }}
                         title="Deactivate User"
                       >
-                        <Trash2 style={{ width: '16px', height: '16px', color: currentTheme.error }} />
+                        <Trash2 style={{ width: '16px', height: '16px', color: '#dc2626' }} />
                       </button>
                     </div>
                   </td>
@@ -868,7 +870,7 @@ export default function AdminUsers() {
                     color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
-                    Role <span style={{ color: currentTheme.error }}>*</span>
+                    Role <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <select
                     value={newUser.role}
@@ -899,7 +901,7 @@ export default function AdminUsers() {
                     color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
-                    Full Name <span style={{ color: currentTheme.error }}>*</span>
+                    Full Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -927,7 +929,7 @@ export default function AdminUsers() {
                     color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
-                    Email <span style={{ color: currentTheme.error }}>*</span>
+                    Email <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="email"
@@ -955,7 +957,7 @@ export default function AdminUsers() {
                     color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
-                    Password <span style={{ color: currentTheme.error }}>*</span>
+                    Password <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="password"
@@ -1217,7 +1219,7 @@ export default function AdminUsers() {
                     color: currentTheme.text,
                     marginBottom: '6px'
                   }}>
-                    Full Name <span style={{ color: currentTheme.error }}>*</span>
+                    Full Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -1530,8 +1532,8 @@ export default function AdminUsers() {
             <form onSubmit={handleResetPassword} style={{ padding: '24px' }}>
               <div style={{
                 padding: '12px 16px',
-                backgroundColor: currentTheme.warningBg,
-                border: `1px solid ${currentTheme.warning}`,
+                backgroundColor: theme === 'dark' ? 'rgba(234, 179, 8, 0.15)' : '#fffbeb',
+                border: '1px solid #eab308',
                 borderRadius: '4px',
                 marginBottom: '20px'
               }}>
@@ -1539,7 +1541,7 @@ export default function AdminUsers() {
                   <AlertTriangle style={{
                     width: '20px',
                     height: '20px',
-                    color: currentTheme.warning,
+                    color: '#eab308',
                     flexShrink: 0,
                     marginTop: '2px'
                   }} />
@@ -1547,14 +1549,14 @@ export default function AdminUsers() {
                     <p style={{
                       fontSize: '13px',
                       fontWeight: '600',
-                      color: currentTheme.warning,
+                      color: theme === 'dark' ? '#fde047' : '#854d0e',
                       margin: '0 0 4px 0'
                     }}>
                       Warning
                     </p>
                     <p style={{
                       fontSize: '13px',
-                      color: currentTheme.warning,
+                      color: theme === 'dark' ? '#fde047' : '#854d0e',
                       margin: 0,
                       lineHeight: '1.5'
                     }}>
@@ -1572,7 +1574,7 @@ export default function AdminUsers() {
                   color: currentTheme.text,
                   marginBottom: '6px'
                 }}>
-                  New Password <span style={{ color: currentTheme.error }}>*</span>
+                  New Password <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <input
                   type="password"
@@ -1631,7 +1633,7 @@ export default function AdminUsers() {
                   style={{
                     flex: 1,
                     padding: '10px 20px',
-                    backgroundColor: currentTheme.warning,
+                    backgroundColor: '#eab308',
                     border: 'none',
                     borderRadius: '4px',
                     color: '#ffffff',
@@ -1640,8 +1642,8 @@ export default function AdminUsers() {
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.warning}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.warning}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ca8a04'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#eab308'}
                 >
                   Reset Password
                 </button>

@@ -131,7 +131,7 @@ export default function AdminSettings() {
     width: '80px',
     height: '80px',
     borderRadius: '50%',
-    backgroundColor: currentTheme.primaryBg,
+    backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.2)' : '#e3f2fd',
     border: `2px solid ${currentTheme.primary}`,
     display: 'flex',
     alignItems: 'center',
@@ -163,8 +163,8 @@ export default function AdminSettings() {
     alignItems: 'center',
     gap: '6px',
     fontSize: '12px',
-    color: currentTheme.primary,
-    backgroundColor: currentTheme.infoBg,
+    color: '#7c3aed',
+    backgroundColor: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : '#f3e8ff',
     padding: '4px 12px',
     borderRadius: '12px',
     fontWeight: '500'
@@ -178,7 +178,7 @@ export default function AdminSettings() {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    color: currentTheme.success,
+    color: '#16a34a',
     fontSize: '14px',
     fontWeight: '500',
     marginBottom: '4px',
@@ -189,7 +189,7 @@ export default function AdminSettings() {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: currentTheme.success
+    backgroundColor: '#16a34a'
   }
 
   const usernameStyle = {
@@ -288,37 +288,37 @@ export default function AdminSettings() {
 
   const infoBannerStyle = {
     padding: '12px 16px',
-    backgroundColor: currentTheme.infoBg,
-    border: `1px solid ${currentTheme.info}`,
+    backgroundColor: theme === 'dark' ? 'rgba(0, 102, 204, 0.2)' : '#e3f2fd',
+    border: theme === 'dark' ? '1px solid rgba(0, 102, 204, 0.3)' : '1px solid #90caf9',
     borderRadius: '4px',
     marginTop: '24px'
   }
 
   const infoBannerTextStyle = {
     fontSize: '13px',
-    color: currentTheme.info,
+    color: theme === 'dark' ? '#90caf9' : '#0284c7',
     margin: 0
   }
 
   const warningBannerStyle = {
     padding: '12px 16px',
-    backgroundColor: currentTheme.warningBg,
-    border: `1px solid ${currentTheme.warning}`,
+    backgroundColor: theme === 'dark' ? 'rgba(251, 191, 36, 0.2)' : '#fef3c7',
+    border: theme === 'dark' ? '1px solid rgba(251, 191, 36, 0.3)' : '1px solid #fbbf24',
     borderRadius: '4px',
     marginBottom: '20px'
   }
 
   const warningBannerTextStyle = {
     fontSize: '13px',
-    color: currentTheme.warning,
+    color: theme === 'dark' ? '#fbbf24' : '#92400e',
     margin: 0
   }
 
   const successMessageStyle = {
     marginBottom: '24px',
     padding: '16px',
-    backgroundColor: currentTheme.successBg,
-    border: `1px solid ${currentTheme.success}`,
+    backgroundColor: theme === 'dark' ? '#1a2e1a' : '#f0fdf4',
+    border: theme === 'dark' ? '1px solid #16a34a' : '1px solid #86efac',
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'flex-start',
@@ -328,8 +328,8 @@ export default function AdminSettings() {
   const errorMessageStyle = {
     marginBottom: '24px',
     padding: '16px',
-    backgroundColor: currentTheme.errorBg,
-    border: `1px solid ${currentTheme.error}`,
+    backgroundColor: theme === 'dark' ? '#3d1a1a' : '#fef2f2',
+    border: theme === 'dark' ? '1px solid #dc2626' : '1px solid #fca5a5',
     borderRadius: '4px',
     display: 'flex',
     alignItems: 'flex-start',
@@ -532,10 +532,10 @@ export default function AdminSettings() {
               {/* Success Message */}
               {showSuccess && (
                 <div style={successMessageStyle}>
-                  <CheckCircle style={{ width: '20px', height: '20px', color: currentTheme.success, flexShrink: 0 }} />
+                  <CheckCircle style={{ width: '20px', height: '20px', color: '#16a34a', flexShrink: 0 }} />
                   <div style={messageContentStyle}>
-                    <p style={{ ...messageTitleStyle, color: currentTheme.success }}>Password Changed Successfully</p>
-                    <p style={{ ...messageTextStyle, color: currentTheme.success }}>
+                    <p style={{ ...messageTitleStyle, color: '#16a34a' }}>Password Changed Successfully</p>
+                    <p style={{ ...messageTextStyle, color: '#15803d' }}>
                       Your password has been updated. Please use the new password for future logins.
                     </p>
                   </div>
@@ -545,10 +545,10 @@ export default function AdminSettings() {
               {/* Error Message */}
               {error && (
                 <div style={errorMessageStyle}>
-                  <AlertTriangle style={{ width: '20px', height: '20px', color: currentTheme.error, flexShrink: 0 }} />
+                  <AlertTriangle style={{ width: '20px', height: '20px', color: '#dc2626', flexShrink: 0 }} />
                   <div style={messageContentStyle}>
-                    <p style={{ ...messageTitleStyle, color: currentTheme.error }}>Error</p>
-                    <p style={{ ...messageTextStyle, color: currentTheme.error }}>{error}</p>
+                    <p style={{ ...messageTitleStyle, color: '#dc2626' }}>Error</p>
+                    <p style={{ ...messageTextStyle, color: '#b91c1c' }}>{error}</p>
                   </div>
                 </div>
               )}
