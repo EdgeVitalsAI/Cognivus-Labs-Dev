@@ -20,7 +20,8 @@ from .api.routes import (
     clinical_notes,
     ai_insights,
     staff_tasks,
-    devices  # Device auto-registration (public endpoint)
+    devices,  # Device auto-registration (public endpoint)
+    vitals_websocket  # Real-time vitals WebSocket streaming
 )
 
 Base.metadata.create_all(bind=engine)
@@ -91,6 +92,9 @@ app.include_router(telemedicine.router, prefix="/api", tags=["Telemedicine"])
 app.include_router(clinical_notes.router, prefix="/api", tags=["Clinical Notes"])
 app.include_router(ai_insights.router, prefix="/api", tags=["AI Insights"])
 app.include_router(staff_tasks.router, prefix="/api", tags=["Staff Tasks"])
+
+# Real-time WebSocket for live vital signs monitoring
+app.include_router(vitals_websocket.router, tags=["Real-Time Vitals"])
 
 
 @app.get("/")

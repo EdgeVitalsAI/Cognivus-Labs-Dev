@@ -92,18 +92,10 @@ const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDele
                 </div>
 
                 {/* Additional Vitals */}
-                <div className="grid grid-cols-3 gap-3 py-3 border-t border-slate-700">
+                <div className="flex justify-center py-3 border-t border-slate-700">
                     <div className="text-center">
                         <p className="text-xs text-slate-400 mb-1">Temperature</p>
-                        <p className="text-sm font-semibold text-white">{patient.temperature}°F</p>
-                    </div>
-                    <div className="text-center border-x border-slate-700">
-                        <p className="text-xs text-slate-400 mb-1">Resp. Rate</p>
-                        <p className="text-sm font-semibold text-white">{patient.respiratoryRate}</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-xs text-slate-400 mb-1">Glucose</p>
-                        <p className="text-sm font-semibold text-white">{patient.glucose || 'N/A'}</p>
+                        <p className="text-sm font-semibold text-white">{patient.temperature}°C</p>
                     </div>
                 </div>
 

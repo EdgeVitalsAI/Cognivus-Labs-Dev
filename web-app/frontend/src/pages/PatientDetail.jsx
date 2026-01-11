@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity } from 'lucide-react'
+import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
+import ECGChart from '../components/vitals/ECGChart'
+import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
 import axios from 'axios'
 
@@ -238,6 +240,20 @@ const PatientDetail = () => {
 
 // Profile Tab Component
 const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, editMode, setEditMode, handleSave }) => {
+  // Real-time vitals WebSocket connection (ONLY active when profile tab is open)
+  const { vitals: liveVitals, ecgData, connectionStatus, error: wsError } = useVitalsWebSocket(
+    patientData.id, 
+    true // Enable WebSocket
+  )
+
+  // Merge live vitals with static vitals (live takes precedence)
+  const displayVitals = {
+    heartRate: liveVitals.heartRate ?? patientData.vitals.heartRate,
+    temperature: liveVitals.temperature ?? patientData.vitals.temperature,
+    bloodPressure: patientData.vitals.bloodPressure, // BP not from live stream yet
+    o2Saturation: liveVitals.spo2 ?? patientData.vitals.o2Saturation
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Section - Patient Info */}
@@ -309,29 +325,90 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
             <h3 className="text-xl font-bold text-white">Live Vital Signs Monitor</h3>
             <p className="text-sm text-slate-400 mt-1">Real-time patient vitals from ESP32 wearable device</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-xs text-slate-400">Live • Updated 2 mins ago</span>
+          <div className="flex items-center gap-3">
+            {/* WebSocket Connection Status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+              connectionStatus === 'connected' 
+                ? 'bg-emerald-900/30 border border-emerald-700' 
+                : connectionStatus === 'connecting'
+                ? 'bg-yellow-900/30 border border-yellow-700'
+                : 'bg-red-900/30 border border-red-700'
+            }`}>
+              {connectionStatus === 'connected' ? (
+                <Wifi className="w-3 h-3 text-emerald-400" />
+              ) : (
+                <WifiOff className="w-3 h-3 text-red-400" />
+              )}
+              <span className={`text-xs font-semibold ${
+                connectionStatus === 'connected' 
+                  ? 'text-emerald-400' 
+                  : connectionStatus === 'connecting'
+                  ? 'text-yellow-400'
+                  : 'text-red-400'
+              }`}>
+                {connectionStatus === 'connected' ? 'Streaming' : connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
+              </span>
+            </div>
+            {wsError && (
+              <span className="text-xs text-red-400">{wsError}</span>
+            )}
           </div>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Heart Rate */}
-          <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 rounded-lg p-5 border border-red-800/30">
+          <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 rounded-lg p-5 border border-red-800/30 relative">
+            {liveVitals.heartRate && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
             <div className="flex items-center gap-2 mb-3">
               <Heart className="w-5 h-5 text-red-400" />
               <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">Heart Rate</span>
             </div>
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.heartRate}</p>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.heartRate || '--'}</p>
             <p className="text-xs text-slate-400">bpm</p>
           </div>
 
           {/* Temperature */}
-          <div className="bg-gradient-to-br from-orange-900/20 to-orange-800/10 rounded-lg p-5 border border-orange-800/30">
+          <div className="bg-gradient-to-br from-orange-900/20 to-orange-800/10 rounded-lg p-5 border border-orange-800/30 relative">
+            {liveVitals.temperature && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
             <div className="flex items-center gap-2 mb-3">
               <Activity className="w-5 h-5 text-orange-400" />
               <span className="text-xs font-semibold text-orange-400 uppercase tracking-wide">Temperature</span>
             </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.temperature || '--'}</p>
+            <p className="text-xs text-slate-400">°C</p>
+          </div>
+
+          {/* Blood Pressure */}
+          <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 rounded-lg p-5 border border-blue-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Droplet className="w-5 h-5 text-blue-400" />
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">Blood Pressure</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.bloodPressure || 'N/A'}</p>
+            <p className="text-xs text-slate-400">mmHg</p>
+          </div>
+
+          {/* O2 Saturation */}
+          <div className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 rounded-lg p-5 border border-cyan-800/30 relative">
+            {liveVitals.spo2 && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <Wind className="w-5 h-5 text-cyan-400" />
+              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Oxygen</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.o2Saturation || '--'}</p>
+            <p className="text-xs text-slate-400">% SpO2</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ECG Live Chart */}
+      <ECGChart ecgData={ecgData} leadsConnected={ecgData?.leads ?? true} />
             <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.temperature}</p>
             <p className="text-xs text-slate-400">°C</p>
           </div>
@@ -354,26 +431,6 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
             </div>
             <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.o2Saturation}</p>
             <p className="text-xs text-slate-400">% SpO2</p>
-          </div>
-
-          {/* Respiratory Rate */}
-          <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/10 rounded-lg p-5 border border-purple-800/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Wind className="w-5 h-5 text-purple-400" />
-              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wide">Resp. Rate</span>
-            </div>
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.respiratoryRate}</p>
-            <p className="text-xs text-slate-400">breaths/min</p>
-          </div>
-
-          {/* pH Level */}
-          <div className="bg-gradient-to-br from-pink-900/20 to-pink-800/10 rounded-lg p-5 border border-pink-800/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-5 h-5 text-pink-400" />
-              <span className="text-xs font-semibold text-pink-400 uppercase tracking-wide">pH Level</span>
-            </div>
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.pH}</p>
-            <p className="text-xs text-slate-400">pH</p>
           </div>
         </div>
       </div>

@@ -13,6 +13,15 @@ export default function StaffPatients() {
 
   useEffect(() => {
     fetchPatients()
+
+    // Set up periodic refresh every 90 seconds (1.5 minutes)
+    const refreshInterval = setInterval(() => {
+      console.log('🔄 Refreshing staff patient list vitals...')
+      fetchPatients()
+    }, 90000) // 90 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const fetchPatients = async () => {
