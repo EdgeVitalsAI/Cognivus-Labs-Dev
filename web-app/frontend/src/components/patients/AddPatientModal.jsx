@@ -174,7 +174,7 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
     // If device is assigned, call the assignment API
     if (formData.assignedDeviceId) {
       try {
-        await api.post(`/devices/${formData.assignedDeviceId}/assign`, {
+        await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
           patient_id: newPatient.id,
           patient_name: newPatient.name
         });
