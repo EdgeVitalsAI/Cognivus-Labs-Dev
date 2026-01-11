@@ -96,6 +96,30 @@ const PatientsPage = () => {
     }
   }
 
+  const handleDeletePatient = async (patientId, patientName) => {
+    if (!confirm(`Are you sure you want to delete ${patientName}? This action cannot be undone and will also unassign any devices.`)) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('access_token')
+      await axios.delete(`${API_BASE_URL}/patients/${patientId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      // Refresh patient list and stats
+      await fetchPatients()
+      await fetchStats()
+      
+      alert(`Patient ${patientName} has been deleted successfully.`)
+    } catch (err) {
+      console.error('Failed to delete patient:', err)
+      alert(err.response?.data?.detail || 'Failed to delete patient. Please try again.')
+    }
+  }
+
 
   // Filter and sort logic
   const getFilteredAndSortedPatients = () => {
@@ -314,6 +338,7 @@ const PatientsPage = () => {
                     onViewProfile={handleViewProfile}
                     onViewVitals={handleViewVitals}
                     onPrescribe={handlePrescribe}
+                    onDelete={handleDeletePatient}
                   />
                 ))
               ) : (
