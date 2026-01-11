@@ -316,7 +316,6 @@ const PrescriptionsTabComponent = ({
             Active: prescriptions.filter((p) => p.status === 'ACTIVE').length,
             Scheduled: prescriptions.filter((p) => p.status === 'SCHEDULED').length,
             Discontinued: prescriptions.filter((p) => p.status === 'DISCONTINUED').length,
-            'AI Suggestions': 1,
             All: prescriptions.length,
         };
     };
@@ -330,7 +329,6 @@ const PrescriptionsTabComponent = ({
             Active: p.status === 'ACTIVE',
             Scheduled: p.status === 'SCHEDULED',
             Discontinued: p.status === 'DISCONTINUED',
-            'AI Suggestions': false,
             All: true,
         };
 

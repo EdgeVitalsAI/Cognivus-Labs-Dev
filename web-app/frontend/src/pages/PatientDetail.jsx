@@ -38,6 +38,10 @@ const PatientDetail = () => {
       const patient = response.data
       const latestVital = patient.vitals?.[0] || {}
       
+      // Set photo with placeholder if none exists
+      const patientPhoto = patient.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name || 'Patient')}&size=400&background=3b82f6&color=ffffff&bold=true`
+      setPhoto(patientPhoto)
+      
       // Transform API data to component format
       const transformedData = {
         id: patient.id,
@@ -448,101 +452,131 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
 const PersonalInformationTab = ({ patientData }) => {
   return (
     <div className="space-y-6">
-      {/* Section 1: Personal Information */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">Personal Information</h2>
-          <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-600">
-            Edit
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h3>
-            <div className="space-y-4">
+      {/* Basic & Contact Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Basic Information */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Basic Information</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-400 text-sm font-bold">{patientData.name.charAt(0)}</span>
+              </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Full Name</p>
+                <p className="text-xs text-slate-400 mb-0.5">Full Name</p>
                 <p className="text-white font-semibold">{patientData.name}</p>
               </div>
-              <div>
-                <p className="text-slate-400 text-sm mb-1">Date of Birth</p>
-                <p className="text-white font-semibold">{patientData.dateOfBirth} (Age {patientData.age})</p>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Gender</p>
+                <p className="text-xs text-slate-400 mb-0.5">Date of Birth</p>
+                <p className="text-white font-semibold">{patientData.dateOfBirth}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Age: {patientData.age} years</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Gender</p>
                 <p className="text-white font-semibold">{patientData.gender}</p>
               </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                <Droplet className="w-5 h-5 text-red-400" />
+              </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Blood Type</p>
+                <p className="text-xs text-slate-400 mb-0.5">Blood Type</p>
                 <p className="text-white font-semibold">{patientData.bloodType}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Contact Information</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Email</p>
-                  <p className="text-white font-semibold break-all">{patientData.email}</p>
-                </div>
+        {/* Contact Information */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Contact Information</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-sky-400" />
               </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Phone</p>
-                  <p className="text-white font-semibold">{patientData.phone}</p>
-                </div>
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 mb-0.5">Email Address</p>
+                <p className="text-white font-semibold break-all">{patientData.email}</p>
               </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Address</p>
-                  <p className="text-white font-semibold">{patientData.address}</p>
-                </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Phone Number</p>
+                <p className="text-white font-semibold">{patientData.phone}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Home Address</p>
+                <p className="text-white font-semibold">{patientData.address}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Section 2: Emergency Contact */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <h2 className="text-xl font-bold text-white mb-6">Emergency Contact</h2>
+      {/* Emergency Contact */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">Emergency Contact</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Name</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Contact Name</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.name}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Relationship</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Relationship</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.relationship}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Phone</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Phone Number</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.phone}</p>
           </div>
         </div>
       </div>
 
-      {/* Section 3: Insurance Information */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <h2 className="text-xl font-bold text-white mb-6">Insurance Information</h2>
+      {/* Insurance Information */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-cyan-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">Insurance Information</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Provider</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Insurance Provider</p>
             <p className="text-white font-semibold text-lg">{patientData.insurance.provider}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Policy Number</p>
-            <p className="text-white font-semibold text-lg">{patientData.insurance.policyNumber}</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Policy Number</p>
+            <p className="text-white font-semibold text-lg font-mono">{patientData.insurance.policy_number}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Group Number</p>
-            <p className="text-white font-semibold text-lg">{patientData.insurance.groupNumber}</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Group Number</p>
+            <p className="text-white font-semibold text-lg font-mono">{patientData.insurance.group_number}</p>
           </div>
         </div>
       </div>
