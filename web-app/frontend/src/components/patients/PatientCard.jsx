@@ -52,7 +52,10 @@ const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDele
 
             {/* Patient Info */}
             <div className="p-4 space-y-4">
-                {/* Vitals Grid */}slate-400" />
+                {/* Vitals Grid */}
+                <div>
+                    <div className="flex items-center gap-2 mb-3">
+                        <Activity className="w-4 h-4 text-slate-400" />
                         <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Vital Signs</h4>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -130,10 +133,7 @@ const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDele
                     {/* Delete Button */}
                     <button
                         onClick={() => onDelete(patient.id, patient.name)}
-                        className="w-full px-3 py-2 bg-slate-700 hover:bg-red-900/50 text-red-400 hover:text-red-300 text-xs font-medium rounded border border-slate-600 hover:border-red-8
-                    <button
-                        onClick={() => onDelete(patient.id, patient.name)}
-                        className="w-full px-3 py-2 bg-white hover:bg-red-50 text-red-600 text-xs font-medium rounded border border-red-200 hover:border-red-300 transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-3 py-2 bg-slate-700 hover:bg-red-900/50 text-red-400 hover:text-red-300 text-xs font-medium rounded border border-slate-600 hover:border-red-800 transition-colors flex items-center justify-center gap-2"
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                         Delete Patient
