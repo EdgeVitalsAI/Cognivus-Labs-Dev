@@ -1,7 +1,7 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AIInsightsPage from './pages/AIInsightsPage';
-import DeviceManagementPage from './pages/DeviceManagementPage';
+import DoctorDevices from './pages/DoctorDevices';
 import DoctorDashboard from './pages/DoctorDashboard';
 import DoctorLogin from './pages/DoctorLogin';
 import NotesReportsPage from './pages/NotesReportsPage';
@@ -18,7 +18,7 @@ import StaffInventory from './pages/Staff/StaffInventory';
 import StaffIncidents from './pages/Staff/StaffIncidents';
 import StaffCommunication from './pages/Staff/StaffCommunication';
 import StaffNotes from './pages/Staff/StaffNotes';
-import StaffSettings from './pages/Staff/StaffSettings';
+import StaffDevices from './pages/Staff/StaffDevices';
 import ProfileSettingsPage from './pages/ProfileSettingsPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -94,7 +94,7 @@ function App() {
                     path="/doctor/devices"
                     element={
                         <ProtectedRoute role="doctor">
-                            <DeviceManagementPage />
+                            <DoctorDevices />
                         </ProtectedRoute>
                     }
                 />
@@ -166,10 +166,10 @@ function App() {
                     }
                 />
                 <Route
-                    path="/staff/settings"
+                    path="/staff/devices"
                     element={
                         <ProtectedRoute role="staff">
-                            <StaffSettings />
+                            <StaffDevices />
                         </ProtectedRoute>
                     }
                 />

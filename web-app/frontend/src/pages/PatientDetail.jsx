@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin } from 'lucide-react'
+import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
 import { authService } from '../services/api'
+import axios from 'axios'
+
+const API_BASE_URL = 'http://localhost:8000/api'
 
 const PatientDetail = () => {
   const { patientId } = useParams()
@@ -14,149 +17,81 @@ const PatientDetail = () => {
   const [photo, setPhoto] = useState('https://via.placeholder.com/300x400/4a5568/ffffff?text=Patient')
   const [activeTab, setActiveTab] = useState('profile')
   const [expandedPrescription, setExpandedPrescription] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Mock patient details
-  const [patientData] = useState({
-    id: patientId,
-    name: 'Wathsala Dewmina',
-    dateOfBirth: 'Jan 09, 2005',
-    room: 'Room No. 302A',
-    age: 20,
-    gender: 'Male',
-    bloodType: 'O+',
-    email: 'wathsaladeJwmina@gmail.com',
-    phone: '+94 76 589 3931',
-    address: '123 Main St, City, State',
-    status: 'CRITICAL',
-    admissionDate: '2025-12-15',
-    department: 'Cardiology',
-    condition: 'Low O2 Levels',
-    doctor: 'Dr. Sarah Smith',
-    nurse: 'Jane Johnson',
-    emergencyContact: {
-      name: 'Kasun Madushan',
-      relationship: 'Father',
-      phone: '+94 76 635 2356'
-    },
-    insurance: {
-      provider: 'Blue Cross Blue Shield',
-      policyNumber: 'ABC123456789',
-      groupNumber: 'GRP98765'
-    },
-    medicalHistory: ['Asthma', 'Allergies', 'Hypertension'],
-    vitals: {
-      heartRate: 110,
-      temperature: 38.5,
-      bloodPressure: '140/90',
-      o2Saturation: 92,
-      respiratoryRate: 22,
-      pH: 7.35,
-    },
-    prescriptions: [
-      {
-        id: 1,
-        name: 'Aspirin 100mg',
-        dosage: '1 tablet once daily (after breakfast)',
-        duration: 'Oct 25 - Nov 25 (7/31 days)',
-        status: 'ACTIVE',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Today at 14:30',
-        adherence: '100% (7/7 doses)',
-        notes: 'Antiplatelet Agent',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 2,
-        name: 'Metoprolol 50mg',
-        dosage: '1 tablet twice daily',
-        duration: 'Oct 20 - Dec 20 (ongoing)',
-        status: 'ACTIVE',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Yesterday at 10:15',
-        adherence: '95% (19/20 doses)',
-        notes: 'Beta Blocker - Heart Rate Control',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 3,
-        name: 'Lisinopril 10mg',
-        dosage: '1 tablet once daily',
-        duration: 'Oct 18 - Dec 18 (ongoing)',
-        status: 'SCHEDULED',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Pending',
-        adherence: 'N/A',
-        notes: 'ACE Inhibitor - Blood Pressure',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 4,
-        name: 'Albuterol Inhaler',
-        dosage: '2 puffs as needed',
-        duration: 'Ongoing',
-        status: 'DISCONTINUED',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Oct 15',
-        adherence: 'N/A',
-        notes: 'Discontinued - Patient improved',
-        category: 'Respiratory'
+  // Patient data state
+  const [patientData, setPatientData] = useState(null)
+  // Patient data state
+  const [patientData, setPatientData] = useState(null)
+
+  // Fetch patient data from API
+  useEffect(() => {
+    fetchPatientData()
+  }, [patientId])
+
+  const fetchPatientData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('access_token')
+      
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      const patient = response.data
+      const latestVital = patient.vitals?.[0] || {}
+      
+      // Transform API data to component format
+      const transformedData = {
+        id: patient.id,
+        name: patient.name || 'Unknown Patient',
+        dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }) : 'N/A',
+        room: patient.room_number || 'Not Assigned',
+        age: patient.age || 0,
+        gender: patient.gender || 'Unknown',
+        bloodType: patient.blood_type || 'Unknown',
+        email: patient.email || 'N/A',
+        phone: patient.phone_number || 'N/A',
+        address: patient.address || 'N/A',
+        status: patient.status || 'STABLE',
+        admissionDate: patient.admission_date ? new Date(patient.admission_date).toLocaleDateString() : 'N/A',
+        department: patient.department || 'General',
+        condition: patient.primary_diagnosis || 'N/A',
+        doctor: patient.doctor_name ? `Dr. ${patient.doctor_name}` : 'Not Assigned',
+        nurse: 'Not Assigned',
+        emergencyContact: {
+          name: patient.emergency_contact_name || 'N/A',
+          relationship: patient.emergency_contact_relationship || 'N/A',
+          phone: patient.emergency_contact_phone || 'N/A'
+        },
+        insurance: {
+          provider: patient.insurance_provider || 'N/A',
+          policyNumber: patient.insurance_id || 'N/A',
+          groupNumber: 'N/A'
+        },
+        medicalHistory: patient.medical_history ? patient.medical_history.split(',').map(s => s.trim()) : [],
+        vitals: {
+          heartRate: latestVital.heart_rate || 0,
+          temperature: latestVital.temperature || 0,
+          bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          o2Saturation: latestVital.oxygen_saturation || 0,
+          respiratoryRate: latestVital.respiratory_rate || 0,
+          pH: latestVital.ph || 0,
+        },
+        prescriptions: patient.prescriptions || [],
+        aiSuggestions: null // AI suggestions would come from separate endpoint
       }
-    ],
-    aiSuggestions: {
-      confidence: 92,
-      medication: 'Clopidogrel (Plavix) 75mg',
-      reason: 'Antiplatelet Therapy',
-      indication: 'Patient with confirmed Acute Coronary Syndrome requires dual antiplatelet therapy (DAPT). Currently only on Aspirin. Adding Clopidogrel is strongly recommended per ACC/AHA guidelines for ACS management.',
-      evidence: [
-        'Elevated troponin levels (0.8 → 0.4 ng/mL)',
-        'ECG changes consistent with NSTEMI',
-        'Scheduled for cardiac catheterization'
-      ],
-      dosage: {
-        loading: 'Loading Dose: 600mg once (immediately)',
-        maintenance: 'Maintenance: 75mg once daily',
-        duration: 'At least 12 months post-ACS'
-      },
-      benefits: [
-        '20-30% reduction in cardiovascular events',
-        'Reduced risk of stent thrombosis',
-        'Improved outcomes post-catheterization'
-      ],
-      safetyAnalysis: [
-        { checked: true, text: 'No known allergies to this medication' },
-        { checked: true, text: 'No contraindications with conditions' },
-        { checked: true, text: 'Increased bleeding risk (monitor closely)' },
-        { checked: true, text: 'Compatible with current medications' },
-        { checked: true, text: 'Kidney function adequate (eGFR: 85)' },
-        { checked: false, text: 'No recent surgeries/bleeding events' }
-      ],
-      drugInteractions: [
-        'Aspirin: Additive antiplatelet effect (Expected - part of DAPT regimen)',
-        'Monitor for bleeding'
-      ],
-      clinicalGuidelines: [
-        'ACC/AHA NSTEMI Guidelines 2023',
-        'Class I Recommendation (Strong Evidence)',
-        'ESC Acute Coronary Syndromes 2023',
-        'CURE Trial: 20% relative risk reduction'
-      ],
-      similarCases: {
-        total: 847,
-        prescribed: 847,
-        outcomes: 89
-      },
-      monitoringPlan: [
-        'CBC: Baseline, then weekly for 1 month',
-        'Watch for: Bruising, bleeding, black stools',
-        'Hold 5-7 days before any surgery',
-        'Platelet function testing (if available)'
-      ],
-      costConsideration: {
-        generic: '-$15/month',
-        coverage: 'Yes'
-      }
+
+      setPatientData(transformedData)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to fetch patient:', err)
+      setError('Failed to load patient data')
+    } finally {
+      setLoading(false)
     }
-  })
+  }
 
   const [notes, setNotes] = useState('')
   const [editMode, setEditMode] = useState(false)
@@ -173,6 +108,48 @@ const PatientDetail = () => {
   const handleLogout = () => {
     authService.logout()
     navigate('/doctor/login')
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200">
+        <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
+        <div className="flex">
+          <Sidebar onLogout={handleLogout} />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
+              <p className="text-slate-400">Loading patient data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error || !patientData) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200">
+        <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
+        <div className="flex">
+          <Sidebar onLogout={handleLogout} />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <p className="text-slate-400 mb-4">{error || 'Patient not found'}</p>
+              <button
+                onClick={() => navigate('/doctor/patients')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                Back to Patients
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (

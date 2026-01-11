@@ -193,3 +193,146 @@ async def device_heartbeat(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Heartbeat update failed: {str(e)}"
         )
+
+
+class DeviceAssignmentRequest(BaseModel):
+    """Request payload for assigning a device to a patient"""
+    patient_id: str
+    patient_name: str
+
+
+@router.post("/devices/{device_id}/assign")
+async def assign_device_to_patient(
+    device_id: str,
+    assignment: DeviceAssignmentRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Assign a device to a patient
+    Updates device status from AVAILABLE to ASSIGNED
+    """
+    
+    print(f"\n{'='*60}")
+    print(f"📱 Device Assignment Request")
+    print(f"{'='*60}")
+    print(f"Device ID: {device_id}")
+    print(f"Patient ID: {assignment.patient_id}")
+    print(f"Patient Name: {assignment.patient_name}")
+    print(f"{'='*60}\n")
+
+    device = db.query(Device).filter(Device.device_id == device_id).first()
+
+    if not device:
+        print(f"❌ Assignment failed: Device {device_id} not found")
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    if device.assignment_status != AssignmentStatus.AVAILABLE:
+        print(f"❌ Assignment failed: Device {device_id} is not available (status: {device.assignment_status})")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Device is not available for assignment (current status: {device.assignment_status})"
+        )
+
+    try:
+        # Update device assignment
+        device.assignment_status = AssignmentStatus.ASSIGNED
+        device.assigned_patient_id = assignment.patient_id
+        device.assigned_patient_name = assignment.patient_name
+        device.assigned_at = datetime.utcnow()
+        device.updated_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(device)
+
+        # Log the assignment
+        log = DeviceLog(
+            device_id=device_id,
+            log_type="info",
+            message=f"Device assigned to patient: {assignment.patient_name}",
+            data={
+                "patient_id": assignment.patient_id,
+                "patient_name": assignment.patient_name,
+                "assigned_at": datetime.utcnow().isoformat()
+            }
+        )
+        db.add(log)
+        db.commit()
+
+        print(f"✅ Device {device.device_name} successfully assigned to {assignment.patient_name}")
+        print(f"   Assignment Status: {device.assignment_status}")
+        print(f"   Patient ID: {device.assigned_patient_id}\n")
+
+        return {
+            "status": "success",
+            "message": "Device assigned successfully",
+            "device_id": device.device_id,
+            "device_name": device.device_name,
+            "assignment_status": device.assignment_status,
+            "patient_id": device.assigned_patient_id,
+            "patient_name": device.assigned_patient_name
+        }
+
+    except Exception as e:
+        print(f"❌ Device assignment failed: {str(e)}\n")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Device assignment failed: {str(e)}"
+        )
+
+
+@router.post("/devices/{device_id}/unassign")
+async def unassign_device(
+    device_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Unassign a device from a patient
+    Updates device status back to AVAILABLE
+    """
+    
+    device = db.query(Device).filter(Device.device_id == device_id).first()
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    try:
+        old_patient_name = device.assigned_patient_name
+        
+        # Clear assignment
+        device.assignment_status = AssignmentStatus.AVAILABLE
+        device.assigned_patient_id = None
+        device.assigned_patient_name = None
+        device.assigned_at = None
+        device.updated_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(device)
+
+        # Log the unassignment
+        log = DeviceLog(
+            device_id=device_id,
+            log_type="info",
+            message=f"Device unassigned from patient: {old_patient_name}",
+            data={
+                "previous_patient_name": old_patient_name,
+                "unassigned_at": datetime.utcnow().isoformat()
+            }
+        )
+        db.add(log)
+        db.commit()
+
+        print(f"✅ Device {device.device_name} unassigned from {old_patient_name}")
+
+        return {
+            "status": "success",
+            "message": "Device unassigned successfully",
+            "device_id": device.device_id
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Device unassignment failed: {str(e)}"
+        )
