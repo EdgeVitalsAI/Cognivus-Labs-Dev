@@ -44,8 +44,8 @@ async def get_all_devices(
                 "firmware_version": device.firmware_version,
                 "status": device.status,
                 "assignment_status": device.assignment_status,
-                "assigned_patient_id": device.assigned_patient_id,
-                "assigned_patient_name": device.assigned_patient_name,
+                "assigned_patient_id": device.patient_id,
+                "assigned_patient_name": device.patient_name,
                 "assigned_at": device.assigned_at.isoformat() if device.assigned_at else None,
                 "last_ping": device.last_ping.isoformat() if device.last_ping else None,
                 "activated_at": device.activated_at.isoformat() if device.activated_at else None,
@@ -58,6 +58,8 @@ async def get_all_devices(
         
     except Exception as e:
         print(f"❌ Error fetching devices: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch devices: {str(e)}"
@@ -280,8 +282,8 @@ async def assign_device_to_patient(
     try:
         # Update device assignment
         device.assignment_status = AssignmentStatus.ASSIGNED
-        device.assigned_patient_id = assignment.patient_id
-        device.assigned_patient_name = assignment.patient_name
+        device.patient_id = assignment.patient_id
+        device.patient_name = assignment.patient_name
         device.assigned_at = datetime.utcnow()
         device.updated_at = datetime.utcnow()
 
@@ -304,7 +306,7 @@ async def assign_device_to_patient(
 
         print(f"✅ Device {device.device_name} successfully assigned to {assignment.patient_name}")
         print(f"   Assignment Status: {device.assignment_status}")
-        print(f"   Patient ID: {device.assigned_patient_id}\n")
+        print(f"   Patient ID: {device.patient_id}\n")
 
         return {
             "status": "success",
@@ -312,8 +314,8 @@ async def assign_device_to_patient(
             "device_id": device.device_id,
             "device_name": device.device_name,
             "assignment_status": device.assignment_status,
-            "patient_id": device.assigned_patient_id,
-            "patient_name": device.assigned_patient_name
+            "patient_id": device.patient_id,
+            "patient_name": device.patient_name
         }
 
     except Exception as e:
@@ -341,12 +343,12 @@ async def unassign_device(
         raise HTTPException(status_code=404, detail="Device not found")
 
     try:
-        old_patient_name = device.assigned_patient_name
+        old_patient_name = device.patient_name
         
         # Clear assignment
         device.assignment_status = AssignmentStatus.AVAILABLE
-        device.assigned_patient_id = None
-        device.assigned_patient_name = None
+        device.patient_id = None
+        device.patient_name = None
         device.assigned_at = None
         device.updated_at = datetime.utcnow()
 
