@@ -16,8 +16,8 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
     temperature: null,
     spo2: null,
     bloodPressure: null,
-    spo2Status: null, // For sensor status: finger detected, valid, etc.
-    ecgStatus: null   // For ECG leads status
+    spo2Status: { valid: false, fingerDetected: false, ir: 0, red: 0, active: false },
+    ecgStatus: { leadsOff: true, active: false }
   })
   
   const [ecgData, setEcgData] = useState(null)
@@ -91,13 +91,13 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
               // Update SpO2 vital with full sensor status
               setVitals(prev => ({ 
                 ...prev, 
-                spo2: (data.valid === 1 && data.spo2 > 0 && data.fingerDetected) ? data.spo2 : prev.spo2,
+                spo2: (data.valid === 1 && data.spo2 > 0) ? data.spo2 : prev.spo2,
                 spo2Status: {
                   valid: data.valid === 1,
-                  fingerDetected: data.fingerDetected || false,
-                  ir: data.ir,
-                  red: data.red,
-                  active: data.active || false
+                  fingerDetected: data.fingerDetected === true,
+                  ir: data.ir || 0,
+                  red: data.red || 0,
+                  active: data.active === true
                 }
               }))
               break

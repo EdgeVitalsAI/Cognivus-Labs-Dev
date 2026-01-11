@@ -432,8 +432,8 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
         </div>
       </div>
 
-      {/* Sensor Status Debug Panel */}
-      {(liveVitals.spo2Status || liveVitals.ecgStatus) && (
+      {/* Sensor Status Debug Panel - Always visible when monitoring */}
+      {connectionStatus === 'connected' && (
         <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertCircle className="w-4 h-4 text-slate-400" />
