@@ -409,25 +409,6 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
 
       {/* ECG Live Chart */}
       <ECGChart ecgData={ecgData} leadsConnected={ecgData?.leads ?? true} />
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.temperature}</p>
-            <p className="text-xs text-slate-400">°C</p>
-          </div>
-
-          {/* Blood Pressure */}
-          <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 rounded-lg p-5 border border-blue-800/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Droplet className="w-5 h-5 text-blue-400" />
-              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">Blood Pressure</span>
-            </div>
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.bloodPressure}</p>
-            <p className="text-xs text-slate-400">mmHg</p>
-          </div>
-
-          {/* O2 Saturation */}
-          <div className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 rounded-lg p-5 border border-cyan-800/30">
-            <div className="flex items-center gap-2 mb-3">
-              <Wind className="w-5 h-5 text-cyan-400" />
-              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Oxygen</span>
             </div>
             <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.o2Saturation}</p>
             <p className="text-xs text-slate-400">% SpO2</p>
