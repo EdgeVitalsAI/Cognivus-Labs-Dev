@@ -216,125 +216,166 @@ const PatientDetail = () => {
 // Profile Tab Component
 const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, editMode, setEditMode, handleSave }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column - Photo and Basic Info */}
-      <div className="lg:col-span-1 space-y-6">
+    <div className="space-y-6">
+      {/* Top Section - Patient Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Photo Section */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Patient Photo</h3>
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Patient Photo</h3>
           <PhotoUpload onPhotoSelected={handlePhotoSelected} currentPhoto={photo} />
         </div>
 
-        {/* Patient Info Card */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6">
+        {/* Basic Info */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Basic Information</h3>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Age</span>
-              <span className="text-white font-semibold">{patientData.age} years</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Age</p>
+              <p className="text-white font-semibold">{patientData.age} years</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Gender</span>
-              <span className="text-white font-semibold">{patientData.gender}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Gender</p>
+              <p className="text-white font-semibold">{patientData.gender}</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Blood Type</span>
-              <span className="text-white font-semibold">{patientData.bloodType}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Blood Type</p>
+              <p className="text-white font-semibold">{patientData.bloodType}</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Department</span>
-              <span className="text-white font-semibold">{patientData.department}</span>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Location</h3>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Room</p>
+              <p className="text-white font-semibold">{patientData.room}</p>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Admission</span>
-              <span className="text-white font-semibold">{patientData.admissionDate}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Department</p>
+              <p className="text-white font-semibold">{patientData.department}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Admission Date</p>
+              <p className="text-white font-semibold">{patientData.admissionDate}</p>
             </div>
           </div>
         </div>
 
         {/* Care Team */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Care Team</h3>
-          <div className="space-y-4">
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Care Team</h3>
+          <div className="space-y-3 text-sm">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Primary Doctor</p>
+              <p className="text-slate-400 text-xs mb-1">Primary Doctor</p>
               <p className="text-white font-semibold">{patientData.doctor}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Nurse</p>
+              <p className="text-slate-400 text-xs mb-1">Assigned Nurse</p>
               <p className="text-white font-semibold">{patientData.nurse}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Column - Vitals and Details */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Current Vitals */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Current Vitals</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-red-400 text-sm font-semibold mb-2">
-                <Heart className="w-4 h-4" />
-                Heart Rate
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.heartRate}</p>
-              <p className="text-xs text-slate-400">bpm</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-orange-400 text-sm font-semibold mb-2">Temperature</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.temperature}</p>
-              <p className="text-xs text-slate-400">°C</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-blue-400 text-sm font-semibold mb-2">
-                <Droplet className="w-4 h-4" />
-                Blood Pressure
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.bloodPressure}</p>
-              <p className="text-xs text-slate-400">mmHg</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-emerald-400 text-sm font-semibold mb-2">O2 Saturation</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.o2Saturation}%</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-purple-400 text-sm font-semibold mb-2">
-                <Wind className="w-4 h-4" />
-                RR
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.respiratoryRate}</p>
-              <p className="text-xs text-slate-400">breaths/min</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-pink-400 text-sm font-semibold mb-2">pH Level</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.pH}</p>
-            </div>
+      {/* Current Vitals - Full Width Large Section */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-white">Live Vital Signs Monitor</h3>
+            <p className="text-sm text-slate-400 mt-1">Real-time patient vitals from ESP32 wearable device</p>
           </div>
-          <p className="text-xs text-slate-400 mt-4">Last updated: 2 mins ago</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-xs text-slate-400">Live • Updated 2 mins ago</span>
+          </div>
         </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Heart Rate */}
+          <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 rounded-lg p-5 border border-red-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="w-5 h-5 text-red-400" />
+              <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">Heart Rate</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.heartRate}</p>
+            <p className="text-xs text-slate-400">bpm</p>
+          </div>
 
-        {/* Medical History */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Medical History</h3>
+          {/* Temperature */}
+          <div className="bg-gradient-to-br from-orange-900/20 to-orange-800/10 rounded-lg p-5 border border-orange-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-5 h-5 text-orange-400" />
+              <span className="text-xs font-semibold text-orange-400 uppercase tracking-wide">Temperature</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.temperature}</p>
+            <p className="text-xs text-slate-400">°C</p>
+          </div>
+
+          {/* Blood Pressure */}
+          <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 rounded-lg p-5 border border-blue-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Droplet className="w-5 h-5 text-blue-400" />
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">Blood Pressure</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.bloodPressure}</p>
+            <p className="text-xs text-slate-400">mmHg</p>
+          </div>
+
+          {/* O2 Saturation */}
+          <div className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 rounded-lg p-5 border border-cyan-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Wind className="w-5 h-5 text-cyan-400" />
+              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Oxygen</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.o2Saturation}</p>
+            <p className="text-xs text-slate-400">% SpO2</p>
+          </div>
+
+          {/* Respiratory Rate */}
+          <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/10 rounded-lg p-5 border border-purple-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Wind className="w-5 h-5 text-purple-400" />
+              <span className="text-xs font-semibold text-purple-400 uppercase tracking-wide">Resp. Rate</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.respiratoryRate}</p>
+            <p className="text-xs text-slate-400">breaths/min</p>
+          </div>
+
+          {/* pH Level */}
+          <div className="bg-gradient-to-br from-pink-900/20 to-pink-800/10 rounded-lg p-5 border border-pink-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-5 h-5 text-pink-400" />
+              <span className="text-xs font-semibold text-pink-400 uppercase tracking-wide">pH Level</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.pH}</p>
+            <p className="text-xs text-slate-400">pH</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Medical History and Medications */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Medical History</h3>
+          {patientData.medicalHistory.length > 0 ? (
             <div className="space-y-2">
               {patientData.medicalHistory.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-slate-300">
-                  <span className="w-2 h-2 bg-sky-500 rounded-full"></span>
+                <div key={idx} className="flex items-start gap-3 text-slate-300 text-sm">
+                  <span className="w-1.5 h-1.5 bg-sky-500 rounded-full mt-2"></span>
                   {item}
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-slate-400 text-sm">No medical history recorded</p>
+          )}
+        </div>
 
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Active Medications</h3>
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Active Medications</h3>
+          {patientData.prescriptions.filter(p => p.status === 'ACTIVE').length > 0 ? (
             <div className="space-y-2">
               {patientData.prescriptions.filter(p => p.status === 'ACTIVE').map((med, idx) => (
                 <div key={idx} className="flex items-center gap-3 text-slate-300 text-sm">
@@ -343,35 +384,42 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-slate-400 text-sm">No active medications</p>
+          )}
         </div>
+      </div>
 
-        {/* Clinical Notes */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Clinical Notes</h3>
-            <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm rounded-lg transition-colors border border-slate-600">
-              Add Note
-            </button>
-          </div>
-          <p className="text-slate-400 text-sm mb-4">Patient showing signs of improvement. Continue current treatment plan.</p>
+      {/* Clinical Notes */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Clinical Notes</h3>
+          <button className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm rounded transition-colors">
+            + Add Note
+          </button>
         </div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Enter clinical notes here..."
+          className="w-full bg-slate-800 border border-slate-700 rounded-lg p-4 text-slate-200 text-sm min-h-32 focus:outline-none focus:border-sky-500"
+        />
+      </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Add Note
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Prescribe
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Call
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Print
-          </button>
-        </div>
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <button className="px-4 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors text-sm font-semibold">
+          Save Changes
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Prescribe Medication
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Schedule Appointment
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Print Report
+        </button>
       </div>
     </div>
   )
@@ -514,7 +562,6 @@ const PrescriptionsTab = ({ patientData, expandedPrescription, setExpandedPrescr
           { label: 'Active', count: activePrescriptions.length },
           { label: 'Scheduled', count: scheduledPrescriptions.length },
           { label: 'Discontinued', count: discontinuedPrescriptions.length },
-          { label: 'AI Suggestions', count: 1 },
           { label: 'All', count: patientData.prescriptions.length }
         ].map(tab => (
           <button key={tab.label} className="px-4 py-3 font-semibold text-sm border-b-2 border-sky-500 text-sky-400">
@@ -549,174 +596,17 @@ const PrescriptionsTab = ({ patientData, expandedPrescription, setExpandedPrescr
       {/* Discontinued Prescriptions */}
       <div>
         <h3 className="text-lg font-bold text-white mb-4">Discontinued Prescriptions ({discontinuedPrescriptions.length})</h3>
-        <div className="space-y-4">
-          {discontinuedPrescriptions.map(prescription => (
-            <PrescriptionCard key={prescription.id} prescription={prescription} isExpanded={expandedPrescription === prescription.id} onToggle={() => setExpandedPrescription(expandedPrescription === prescription.id ? null : prescription.id)} />
-          ))}
-        </div>
-      </div>
-
-      {/* AI Medication Suggestions */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-sky-500 rounded-xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Zap className="w-6 h-6 text-sky-400" />
-          <h2 className="text-2xl font-bold text-white">AI Medication Suggestions</h2>
-          <span className="ml-auto px-3 py-1 bg-sky-500 text-white rounded-full text-sm font-semibold">
-            Confidence: {patientData.aiSuggestions.confidence}%
-          </span>
-        </div>
-
-        <div className="space-y-6">
-          {/* Suggested Medication */}
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-sky-400/30">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-white">{patientData.aiSuggestions.medication}</h3>
-                <p className="text-slate-400 text-sm">{patientData.aiSuggestions.reason}</p>
-              </div>
-              <button className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-semibold">
-                Approve & Prescribe
-              </button>
-            </div>
+        {discontinuedPrescriptions.length > 0 ? (
+          <div className="space-y-4">
+            {discontinuedPrescriptions.map(prescription => (
+              <PrescriptionCard key={prescription.id} prescription={prescription} isExpanded={expandedPrescription === prescription.id} onToggle={() => setExpandedPrescription(expandedPrescription === prescription.id ? null : prescription.id)} />
+            ))}
           </div>
-
-          {/* Clinical Indication */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-3">Clinical Indication</h4>
-            <p className="text-slate-300 leading-relaxed">{patientData.aiSuggestions.indication}</p>
+        ) : (
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-8 text-center">
+            <p className="text-slate-400">No discontinued prescriptions</p>
           </div>
-
-          {/* Supporting Evidence */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-              Supporting Evidence
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.evidence.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-slate-300">
-                  <span className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Dosage Information */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Suggested Dosage</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-700/50 rounded p-4 border border-slate-600">
-                <p className="text-slate-400 text-sm mb-2">Loading Dose</p>
-                <p className="text-white font-semibold">{patientData.aiSuggestions.dosage.loading}</p>
-              </div>
-              <div className="bg-slate-700/50 rounded p-4 border border-slate-600">
-                <p className="text-slate-400 text-sm mb-2">Maintenance & Duration</p>
-                <p className="text-white font-semibold">{patientData.aiSuggestions.dosage.maintenance}</p>
-                <p className="text-white font-semibold text-sm">{patientData.aiSuggestions.dosage.duration}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Expected Benefits */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              Expected Benefits
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-slate-300">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></span>
-                  {benefit}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Safety Analysis */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Safety Analysis</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.safetyAnalysis.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-slate-300">
-                  <input type="checkbox" checked={item.checked} readOnly className="w-5 h-5 cursor-pointer" />
-                  {item.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Drug Interactions */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Drug Interactions</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.drugInteractions.map((item, idx) => (
-                <li key={idx} className="text-slate-300">• {item}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Clinical Guidelines */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Clinical Guidelines</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.clinicalGuidelines.map((guideline, idx) => (
-                <li key={idx} className="text-slate-300">• {guideline}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Monitoring Plan */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-400" />
-              Monitoring Plan if Approved
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.monitoringPlan.map((plan, idx) => (
-                <li key={idx} className="text-slate-300">• {plan}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Similar Cases */}
-          <div className="bg-slate-700/50 rounded-lg p-6 border border-slate-600">
-            <p className="text-slate-300">
-              <span className="font-semibold">{patientData.aiSuggestions.similarCases.prescribed}</span> out of{' '}
-              <span className="font-semibold">{patientData.aiSuggestions.similarCases.total}</span> similar cases prescribed this medication with{' '}
-              <span className="font-semibold text-emerald-400">{patientData.aiSuggestions.similarCases.outcomes}% positive outcomes</span>
-            </p>
-          </div>
-
-          {/* Cost Consideration */}
-          <div className="bg-slate-700/50 rounded-lg p-6 border border-slate-600">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-300">Cost Consideration</span>
-              <span className="text-emerald-400 font-semibold">{patientData.aiSuggestions.costConsideration.generic}</span>
-            </div>
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-slate-300">Coverage</span>
-              <span className="text-emerald-400 font-semibold">{patientData.aiSuggestions.costConsideration.coverage}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t border-slate-700">
-            <button className="flex-1 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-bold">
-              Approve & Prescribe
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              Reject
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              Discuss
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              View Full Analysis
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
