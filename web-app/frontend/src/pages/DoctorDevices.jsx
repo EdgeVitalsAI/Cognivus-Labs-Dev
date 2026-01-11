@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Cpu, Activity, Users, Search, Filter, RefreshCw, AlertCircle, CheckCircle, Clock, Wifi, WifiOff } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import TopBar from '../components/TopBar'
-import { api } from '../services/api'
+import api from '../services/api'
 
 export default function DoctorDevices() {
   const [devices, setDevices] = useState([])

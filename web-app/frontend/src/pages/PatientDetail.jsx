@@ -19,10 +19,6 @@ const PatientDetail = () => {
   const [expandedPrescription, setExpandedPrescription] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Patient data state
-  const [patientData, setPatientData] = useState(null)
-  // Patient data state
   const [patientData, setPatientData] = useState(null)
 
   // Fetch patient data from API
