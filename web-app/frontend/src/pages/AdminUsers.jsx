@@ -215,7 +215,7 @@ export default function AdminUsers() {
               backgroundColor: currentTheme.cardBackground,
               border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               fontSize: '14px',
               cursor: 'pointer',
               transition: 'all 0.2s'
@@ -236,7 +236,7 @@ export default function AdminUsers() {
             <h1 style={{
               fontSize: '24px',
               fontWeight: '600',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               margin: '0 0 4px 0',
               display: 'flex',
               alignItems: 'center',
@@ -312,7 +312,7 @@ export default function AdminUsers() {
             <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Total Users
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0 }}>
               {statistics.total_users}
             </p>
           </div>
@@ -344,7 +344,7 @@ export default function AdminUsers() {
             <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Doctors
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0 }}>
               {statistics.total_doctors}
             </p>
           </div>
@@ -376,7 +376,7 @@ export default function AdminUsers() {
             <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Staff
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0 }}>
               {statistics.total_staff}
             </p>
           </div>
@@ -408,7 +408,7 @@ export default function AdminUsers() {
             <p style={{ fontSize: '12px', color: currentTheme.secondaryText, margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Active Users
             </p>
-            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.text, margin: 0 }}>
+            <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0 }}>
               {statistics.active_users}
             </p>
           </div>
@@ -450,7 +450,7 @@ export default function AdminUsers() {
                 border: `1px solid ${currentTheme.border}`,
                 borderRadius: '4px',
                 fontSize: '14px',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 backgroundColor: currentTheme.inputBackground,
                 outline: 'none',
                 transition: 'border-color 0.2s'
@@ -468,7 +468,7 @@ export default function AdminUsers() {
               border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               backgroundColor: currentTheme.inputBackground,
               cursor: 'pointer',
               outline: 'none',
@@ -490,7 +490,7 @@ export default function AdminUsers() {
               border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               backgroundColor: currentTheme.inputBackground,
               cursor: 'pointer',
               outline: 'none',
@@ -598,7 +598,7 @@ export default function AdminUsers() {
                 >
                   <td style={{ padding: '16px' }}>
                     <div>
-                      <p style={{ fontSize: '14px', fontWeight: '500', color: currentTheme.text, margin: '0 0 4px 0' }}>
+                      <p style={{ fontSize: '14px', fontWeight: '500', color: currentTheme.textPrimary, margin: '0 0 4px 0' }}>
                         {user.full_name}
                       </p>
                       <p style={{ fontSize: '13px', color: currentTheme.secondaryText, margin: 0 }}>
@@ -835,7 +835,7 @@ export default function AdminUsers() {
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 margin: 0
               }}>
                 Create New User
@@ -867,7 +867,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Role <span style={{ color: '#dc2626' }}>*</span>
@@ -882,7 +882,7 @@ export default function AdminUsers() {
                       border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: currentTheme.text,
+                      color: currentTheme.textPrimary,
                       backgroundColor: currentTheme.inputBackground,
                       cursor: 'pointer',
                       outline: 'none'
@@ -898,7 +898,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Full Name <span style={{ color: '#dc2626' }}>*</span>
@@ -914,7 +914,7 @@ export default function AdminUsers() {
                       border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: currentTheme.text,
+                      color: currentTheme.textPrimary,
                       backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
@@ -926,7 +926,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Email <span style={{ color: '#dc2626' }}>*</span>
@@ -942,7 +942,7 @@ export default function AdminUsers() {
                       border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: currentTheme.text,
+                      color: currentTheme.textPrimary,
                       backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
@@ -954,7 +954,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Password <span style={{ color: '#dc2626' }}>*</span>
@@ -970,7 +970,7 @@ export default function AdminUsers() {
                       border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: currentTheme.text,
+                      color: currentTheme.textPrimary,
                       backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
@@ -985,7 +985,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Specialty
@@ -1000,7 +1000,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1011,7 +1011,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           License Number
@@ -1026,7 +1026,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1044,7 +1044,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Department
@@ -1059,7 +1059,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1070,7 +1070,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Employee ID
@@ -1085,7 +1085,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1112,7 +1112,7 @@ export default function AdminUsers() {
                     backgroundColor: currentTheme.cardBackground,
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',
@@ -1181,7 +1181,7 @@ export default function AdminUsers() {
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 margin: 0
               }}>
                 Edit User
@@ -1216,7 +1216,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Full Name <span style={{ color: '#dc2626' }}>*</span>
@@ -1232,7 +1232,7 @@ export default function AdminUsers() {
                       border: `1px solid ${currentTheme.border}`,
                       borderRadius: '4px',
                       fontSize: '14px',
-                      color: currentTheme.text,
+                      color: currentTheme.textPrimary,
                       backgroundColor: currentTheme.inputBackground,
                       outline: 'none'
                     }}
@@ -1244,7 +1244,7 @@ export default function AdminUsers() {
                     display: 'block',
                     fontSize: '13px',
                     fontWeight: '500',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     marginBottom: '6px'
                   }}>
                     Email
@@ -1277,7 +1277,7 @@ export default function AdminUsers() {
                     gap: '8px',
                     cursor: 'pointer',
                     fontSize: '14px',
-                    color: currentTheme.text
+                    color: currentTheme.textPrimary
                   }}>
                     <input
                       type="checkbox"
@@ -1304,7 +1304,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Specialty
@@ -1319,7 +1319,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1330,7 +1330,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           License Number
@@ -1345,7 +1345,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1363,7 +1363,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Department
@@ -1378,7 +1378,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1389,7 +1389,7 @@ export default function AdminUsers() {
                           display: 'block',
                           fontSize: '13px',
                           fontWeight: '500',
-                          color: currentTheme.text,
+                          color: currentTheme.textPrimary,
                           marginBottom: '6px'
                         }}>
                           Employee ID
@@ -1404,7 +1404,7 @@ export default function AdminUsers() {
                             border: `1px solid ${currentTheme.border}`,
                             borderRadius: '4px',
                             fontSize: '14px',
-                            color: currentTheme.text,
+                            color: currentTheme.textPrimary,
                             backgroundColor: currentTheme.inputBackground,
                             outline: 'none'
                           }}
@@ -1434,7 +1434,7 @@ export default function AdminUsers() {
                     backgroundColor: currentTheme.cardBackground,
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',
@@ -1501,7 +1501,7 @@ export default function AdminUsers() {
               <h2 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 margin: 0
               }}>
                 Reset User Password
@@ -1571,7 +1571,7 @@ export default function AdminUsers() {
                   display: 'block',
                   fontSize: '13px',
                   fontWeight: '500',
-                  color: currentTheme.text,
+                  color: currentTheme.textPrimary,
                   marginBottom: '6px'
                 }}>
                   New Password <span style={{ color: '#dc2626' }}>*</span>
@@ -1588,7 +1588,7 @@ export default function AdminUsers() {
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     fontSize: '14px',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     backgroundColor: currentTheme.inputBackground,
                     outline: 'none'
                   }}
@@ -1617,7 +1617,7 @@ export default function AdminUsers() {
                     backgroundColor: currentTheme.cardBackground,
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontSize: '14px',
                     fontWeight: '500',
                     cursor: 'pointer',

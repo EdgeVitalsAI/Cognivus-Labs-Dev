@@ -53,7 +53,7 @@ export default function AdminLogin() {
           borderRadius: '8px',
           border: `1px solid ${currentTheme.border}`,
           backgroundColor: currentTheme.cardBackground,
-          color: currentTheme.text,
+          color: currentTheme.textPrimary,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -145,7 +145,7 @@ export default function AdminLogin() {
               <h2 style={{
                 fontSize: '1.5rem',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 marginBottom: '0.5rem'
               }}>
                 Administrator Sign In
@@ -195,7 +195,7 @@ export default function AdminLogin() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: currentTheme.text,
+                  color: currentTheme.textPrimary,
                   marginBottom: '0.5rem'
                 }}>
                   Username
@@ -211,7 +211,7 @@ export default function AdminLogin() {
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     backgroundColor: currentTheme.inputBackground,
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     outline: 'none',
                     transition: 'border-color 0.15s',
                     fontFamily: 'inherit'
@@ -228,7 +228,7 @@ export default function AdminLogin() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: currentTheme.text,
+                  color: currentTheme.textPrimary,
                   marginBottom: '0.5rem'
                 }}>
                   Password
@@ -244,7 +244,7 @@ export default function AdminLogin() {
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     backgroundColor: currentTheme.inputBackground,
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     outline: 'none',
                     transition: 'border-color 0.15s',
                     fontFamily: 'inherit'

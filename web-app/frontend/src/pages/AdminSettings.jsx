@@ -94,7 +94,7 @@ export default function AdminSettings() {
   const titleStyle = {
     fontSize: '28px',
     fontWeight: '600',
-    color: currentTheme.text,
+    color: currentTheme.textPrimary,
     margin: '0 0 4px 0',
     display: 'flex',
     alignItems: 'center',
@@ -145,7 +145,7 @@ export default function AdminSettings() {
   const profileNameStyle = {
     fontSize: '20px',
     fontWeight: '600',
-    color: currentTheme.text,
+    color: currentTheme.textPrimary,
     margin: '0 0 8px 0'
   }
 
@@ -241,7 +241,7 @@ export default function AdminSettings() {
   const cardHeaderStyle = {
     fontSize: '18px',
     fontWeight: '600',
-    color: currentTheme.text,
+    color: currentTheme.textPrimary,
     margin: '0 0 24px 0',
     display: 'flex',
     alignItems: 'center',
@@ -258,7 +258,7 @@ export default function AdminSettings() {
     display: 'block',
     fontSize: '13px',
     fontWeight: '500',
-    color: currentTheme.text,
+    color: currentTheme.textPrimary,
     marginBottom: '6px'
   }
 
@@ -269,7 +269,7 @@ export default function AdminSettings() {
     border: `1px solid ${currentTheme.border}`,
     borderRadius: '4px',
     backgroundColor: currentTheme.cardBackground,
-    color: currentTheme.text,
+    color: currentTheme.textPrimary,
     outline: 'none',
     transition: 'border-color 0.2s',
     boxSizing: 'border-box'

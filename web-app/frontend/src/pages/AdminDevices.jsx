@@ -267,7 +267,7 @@ export default function AdminDevices() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/sys/dashboard')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -276,14 +276,14 @@ export default function AdminDevices() {
                 backgroundColor: currentTheme.cardBackground,
                 border: `1px solid ${currentTheme.border}`,
                 borderRadius: '4px',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 fontSize: '14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = currentTheme.hover
-                e.currentTarget.style.borderColor = currentTheme.accent
+                e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
+                e.currentTarget.style.borderColor = currentTheme.primary
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.backgroundColor = currentTheme.cardBackground
@@ -303,7 +303,7 @@ export default function AdminDevices() {
               alignItems: 'center',
               gap: '8px',
               padding: '10px 20px',
-              backgroundColor: currentTheme.accent,
+              backgroundColor: currentTheme.primary,
               border: 'none',
               borderRadius: '4px',
               color: '#ffffff',
@@ -323,13 +323,13 @@ export default function AdminDevices() {
         <h1 style={{
           fontSize: '28px',
           fontWeight: '600',
-          color: currentTheme.text,
+          color: currentTheme.textPrimary,
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           marginBottom: '8px'
         }}>
-          <Package style={{ width: '32px', height: '32px', color: currentTheme.accent }} />
+          <Package style={{ width: '32px', height: '32px', color: currentTheme.primary }} />
           Device Management
         </h1>
         <p style={{ fontSize: '14px', color: currentTheme.textSecondary }}>
@@ -374,7 +374,7 @@ export default function AdminDevices() {
               outline: 'none',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+            onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
             onBlur={(e) => e.target.style.borderColor = currentTheme.border}
           />
         </div>
@@ -391,12 +391,12 @@ export default function AdminDevices() {
               border: `1px solid ${currentTheme.border}`,
               borderRadius: '4px',
               fontSize: '14px',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               outline: 'none',
               cursor: 'pointer',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+            onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
             onBlur={(e) => e.target.style.borderColor = currentTheme.border}
           >
             <option value="all">All Status</option>
@@ -418,7 +418,7 @@ export default function AdminDevices() {
               justifyContent: 'center',
               gap: '8px',
               padding: '10px 16px',
-              backgroundColor: currentTheme.accent,
+              backgroundColor: currentTheme.primary,
               border: 'none',
               borderRadius: '4px',
               color: '#ffffff',
@@ -427,8 +427,8 @@ export default function AdminDevices() {
               cursor: 'pointer',
               transition: 'background-color 0.2s'
             }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.accentHover}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.accent}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
           >
             <RefreshCw style={{ width: '16px', height: '16px' }} />
             Refresh
@@ -459,7 +459,7 @@ export default function AdminDevices() {
             <h2 style={{
               fontSize: '16px',
               fontWeight: '600',
-              color: currentTheme.text,
+              color: currentTheme.textPrimary,
               margin: 0
             }}>
               Devices ({filteredDevices.length})
@@ -579,7 +579,7 @@ export default function AdminDevices() {
                             <div style={{
                               fontSize: '14px',
                               fontWeight: '500',
-                              color: currentTheme.text,
+                              color: currentTheme.textPrimary,
                               marginBottom: '4px'
                             }}>
                               {device.device_name}
@@ -601,7 +601,7 @@ export default function AdminDevices() {
                           <div>
                             <div style={{
                               fontSize: '14px',
-                              color: currentTheme.text,
+                              color: currentTheme.textPrimary,
                               marginBottom: '2px'
                             }}>
                               {device.patient_name}
@@ -806,13 +806,13 @@ export default function AdminDevices() {
               <h2 style={{
                 fontSize: '16px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 margin: 0,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Terminal style={{ width: '18px', height: '18px', color: currentTheme.accent }} />
+                <Terminal style={{ width: '18px', height: '18px', color: currentTheme.primary }} />
                 Debug Console
                 <span style={{
                   marginLeft: '8px',
@@ -837,8 +837,8 @@ export default function AdminDevices() {
                   transition: 'all 0.2s'
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = currentTheme.hover
-                  e.currentTarget.style.color = currentTheme.text
+                  e.currentTarget.style.backgroundColor = currentTheme.hoverBackground
+                  e.currentTarget.style.color = currentTheme.textPrimary
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent'
@@ -858,7 +858,7 @@ export default function AdminDevices() {
               <h3 style={{
                 fontSize: '15px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 marginBottom: '12px',
                 marginTop: 0
               }}>
@@ -874,7 +874,7 @@ export default function AdminDevices() {
                 <div>
                   <span style={{ color: currentTheme.textSecondary }}>ID: </span>
                   <span style={{
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.device_id}
@@ -882,14 +882,14 @@ export default function AdminDevices() {
                 </div>
                 <div>
                   <span style={{ color: currentTheme.textSecondary }}>Firmware: </span>
-                  <span style={{ color: currentTheme.text }}>
+                  <span style={{ color: currentTheme.textPrimary }}>
                     {deviceDetails.device.firmware_version || 'N/A'}
                   </span>
                 </div>
                 <div>
                   <span style={{ color: currentTheme.textSecondary }}>IP: </span>
                   <span style={{
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.ip_address || 'N/A'}
@@ -898,7 +898,7 @@ export default function AdminDevices() {
                 <div>
                   <span style={{ color: currentTheme.textSecondary }}>MAC: </span>
                   <span style={{
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace'
                   }}>
                     {deviceDetails.device.mac_address || 'N/A'}
@@ -968,7 +968,7 @@ export default function AdminDevices() {
               overflowY: 'auto',
               minHeight: '200px',
               maxHeight: '300px',
-              color: currentTheme.text
+              color: currentTheme.textPrimary
             }}>
               {debugOutput.map((output, idx) => (
                 <div key={idx} style={{ marginBottom: '8px' }}>
@@ -977,7 +977,7 @@ export default function AdminDevices() {
                   </span>
                   {' '}
                   {output.type === 'command' && (
-                    <span style={{ color: currentTheme.accent }}>$ {output.content}</span>
+                    <span style={{ color: currentTheme.primary }}>$ {output.content}</span>
                   )}
                   {output.type === 'response' && (
                     <span style={{ color: theme === 'dark' ? '#4ade80' : '#16a34a' }}>{output.content}</span>
@@ -1014,27 +1014,27 @@ export default function AdminDevices() {
                     border: `1px solid ${currentTheme.border}`,
                     borderRadius: '4px',
                     fontSize: '13px',
-                    color: currentTheme.text,
+                    color: currentTheme.textPrimary,
                     fontFamily: 'Consolas, Monaco, "Courier New", monospace',
                     outline: 'none',
                     transition: 'border-color 0.2s'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = currentTheme.accent}
+                  onFocus={(e) => e.target.style.borderColor = currentTheme.primary}
                   onBlur={(e) => e.target.style.borderColor = currentTheme.border}
                 />
                 <button
                   onClick={sendDebugCommand}
                   style={{
                     padding: '8px 16px',
-                    backgroundColor: currentTheme.accent,
+                    backgroundColor: currentTheme.primary,
                     border: 'none',
                     borderRadius: '4px',
                     color: '#ffffff',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.accentHover}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.accent}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = currentTheme.primaryHover}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = currentTheme.primary}
                 >
                   <Send style={{ width: '16px', height: '16px' }} />
                 </button>
@@ -1058,7 +1058,7 @@ export default function AdminDevices() {
               <h3 style={{
                 fontSize: '14px',
                 fontWeight: '600',
-                color: currentTheme.text,
+                color: currentTheme.textPrimary,
                 marginBottom: '12px',
                 marginTop: 0
               }}>
@@ -1080,7 +1080,7 @@ export default function AdminDevices() {
                     <span style={{
                       color: log.log_type === 'error' ? (theme === 'dark' ? '#f87171' : '#dc2626') :
                              log.log_type === 'warning' ? '#eab308' :
-                             log.log_type === 'debug' ? currentTheme.accent : currentTheme.textSecondary
+                             log.log_type === 'debug' ? currentTheme.primary : currentTheme.textSecondary
                     }}>
                       {log.message}
                     </span>
@@ -1148,7 +1148,7 @@ export default function AdminDevices() {
               margin: '0 0 16px 0',
               fontSize: '18px',
               fontWeight: '600',
-              color: currentTheme.text
+              color: currentTheme.textPrimary
             }}>
               Assign Device: {deviceToAssign?.device_name}
             </h3>
@@ -1159,7 +1159,7 @@ export default function AdminDevices() {
                 marginBottom: '8px',
                 fontSize: '14px',
                 fontWeight: '500',
-                color: currentTheme.text
+                color: currentTheme.textPrimary
               }}>
                 Select Patient:
               </label>
@@ -1170,7 +1170,7 @@ export default function AdminDevices() {
                   width: '100%',
                   padding: '8px 12px',
                   fontSize: '14px',
-                  color: currentTheme.text,
+                  color: currentTheme.textPrimary,
                   backgroundColor: currentTheme.inputBackground,
                   border: `1px solid ${currentTheme.border}`,
                   borderRadius: '4px',
@@ -1197,7 +1197,7 @@ export default function AdminDevices() {
                   padding: '8px 16px',
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: currentTheme.text,
+                  color: currentTheme.textPrimary,
                   backgroundColor: currentTheme.inputBackground,
                   border: `1px solid ${currentTheme.border}`,
                   borderRadius: '4px',
