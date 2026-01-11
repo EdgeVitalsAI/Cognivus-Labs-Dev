@@ -46,10 +46,15 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
   const fetchAvailableDevices = async () => {
     try {
       const response = await api.get('/api/devices');
-      // Filter only AVAILABLE devices
-      const available = (response.data || []).filter(
-        device => device.assignment_status === 'AVAILABLE' && device.status === 'ONLINE'
-      );
+      console.log('📱 All devices:', response.data);
+      
+      // Filter only AVAILABLE devices that are ONLINE
+      const available = (response.data || []).filter(device => {
+        console.log(`Device ${device.device_name}: status=${device.status}, assignment=${device.assignment_status}`);
+        return device.assignment_status === 'available' && device.status === 'online';
+      });
+      
+      console.log('✅ Available devices for assignment:', available);
       setAvailableDevices(available);
     } catch (error) {
       console.error('Failed to fetch devices:', error);
