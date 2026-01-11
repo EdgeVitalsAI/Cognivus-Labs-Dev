@@ -167,7 +167,7 @@ const PatientsPage = () => {
   const handleAddPatient = async (newPatient) => {
     try {
       const token = localStorage.getItem('access_token')
-      await axios.post(`${API_BASE_URL}/patients`, newPatient, {
+      const response = await axios.post(`${API_BASE_URL}/patients`, newPatient, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -178,6 +178,9 @@ const PatientsPage = () => {
       await fetchPatients()
       await fetchStats()
       setIsAddPatientModalOpen(false)
+      
+      // Return the created patient data
+      return response.data
     } catch (err) {
       console.error('Failed to add patient:', err)
       alert('Failed to add patient. Please try again.')

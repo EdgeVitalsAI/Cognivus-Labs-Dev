@@ -142,75 +142,77 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
 
     const age = calculateAge(formData.dateOfBirth);
     
-    const newPatient = {
-      id: Math.random().toString(36).substr(2, 9),
+    // Format data for backend API
+    const patientPayload = {
       name: `${formData.firstName} ${formData.lastName}`,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      age: age,
-      room: formData.room || `Room ${Math.floor(Math.random() * 400) + 100}`,
-      status: 'Active',
-      gender: formData.gender,
-      dateOfBirth: formData.dateOfBirth,
-      phoneNumber: formData.phoneNumber,
+      date_of_birth: formData.dateOfBirth,
+      gender: formData.gender.toUpperCase(),
+      blood_type: formData.bloodType,
       email: formData.email,
-      bloodType: formData.bloodType,
-      allergies: formData.allergies,
-      medicalHistory: formData.medicalHistory,
-      currentMedications: formData.currentMedications,
-      insuranceProvider: formData.insuranceProvider,
-      insuranceId: formData.insuranceId,
-      emergencyContact: {
+      phone: formData.phoneNumber,
+      emergency_contact: {
         name: formData.emergencyContactName,
         phone: formData.emergencyContactPhone,
         relationship: formData.relationship,
       },
-      photo: photoPreview,
-      clinicalNotes: formData.notes,
-      assignedDeviceId: formData.assignedDeviceId || null,
-      addedDate: new Date().toISOString(),
+      insurance_info: formData.insuranceProvider ? {
+        provider: formData.insuranceProvider,
+        policy_number: formData.insuranceId || 'N/A'
+      } : null,
+      room_number: formData.room || null,
+      status: 'STABLE',
+      medical_history: formData.medicalHistory ? formData.medicalHistory.split(',').map(s => s.trim()) : [],
+      allergies: formData.allergies ? formData.allergies.split(',').map(s => s.trim()) : [],
+      current_medications: formData.currentMedications ? formData.currentMedications.split(',').map(s => s.trim()) : []
     };
 
-    // If device is assigned, call the assignment API
-    if (formData.assignedDeviceId) {
-      try {
-        await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
-          patient_id: newPatient.id,
-          patient_name: newPatient.name
-        });
-        console.log(`✅ Device ${formData.assignedDeviceId} assigned to ${newPatient.name}`);
-      } catch (error) {
-        console.error('Failed to assign device:', error);
-        alert('Patient registered but device assignment failed. Please assign manually.');
+    try {
+      // First, create the patient via the parent callback (which calls the API)
+      const result = await onAddPatient(patientPayload);
+      
+      // If device is assigned and patient was created successfully, assign the device
+      if (formData.assignedDeviceId && result) {
+        try {
+          await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
+            patient_id: result.id || result.patient?.id,
+            patient_name: patientPayload.name
+          });
+          console.log(`✅ Device ${formData.assignedDeviceId} assigned to ${patientPayload.name}`);
+        } catch (error) {
+          console.error('Failed to assign device:', error);
+          alert('Patient registered successfully but device assignment failed. Please assign manually from Device Management.');
+        }
       }
-    }
 
-    onAddPatient(newPatient);
-    
-    // Reset form
-    setFormData({
-      firstName: '',
-      lastName: '',
-      dateOfBirth: '',
-      gender: 'Male',
-      phoneNumber: '',
-      email: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      relationship: 'Spouse',
-      room: '',
-      bloodType: 'O+',
-      allergies: '',
-      medicalHistory: '',
-      currentMedications: '',
-      insuranceProvider: '',
-      insuranceId: '',
-      notes: '',
-      assignedDeviceId: '',
-    });
-    setPhotoPreview(null);
-    setActiveTab('basic');
-    onClose();
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        gender: 'Male',
+        phoneNumber: '',
+        email: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        relationship: 'Spouse',
+        room: '',
+        bloodType: 'O+',
+        allergies: '',
+        medicalHistory: '',
+        currentMedications: '',
+        insuranceProvider: '',
+        insuranceId: '',
+        notes: '',
+        assignedDeviceId: '',
+      });
+      setPhotoPreview(null);
+      setActiveTab('basic');
+      onClose();
+      
+    } catch (error) {
+      console.error('Failed to add patient:', error);
+      alert('Failed to add patient. Please try again.');
+    }
   };
 
   if (!isOpen) return null;
