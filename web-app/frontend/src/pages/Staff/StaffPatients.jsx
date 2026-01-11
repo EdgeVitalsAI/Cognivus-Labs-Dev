@@ -21,7 +21,7 @@ export default function StaffPatients() {
       const token = localStorage.getItem('access_token')
       const response = await axios.get(`${API_BASE_URL}/patients`, {
         headers: { 'Authorization': `Bearer ${token}` },
-        params: { limit: 100, status: 'ADMITTED' }
+        params: { limit: 500 }
       })
 
       const transformed = response.data.patients.map(p => {
