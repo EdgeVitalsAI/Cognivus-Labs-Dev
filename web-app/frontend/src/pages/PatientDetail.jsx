@@ -48,7 +48,7 @@ const PatientDetail = () => {
         gender: patient.gender || 'Unknown',
         bloodType: patient.blood_type || 'Unknown',
         email: patient.email || 'N/A',
-        phone: patient.phone_number || 'N/A',
+        phone: patient.phone || 'N/A',
         address: patient.address || 'N/A',
         status: patient.status || 'STABLE',
         admissionDate: patient.admission_date ? new Date(patient.admission_date).toLocaleDateString() : 'N/A',
@@ -56,17 +56,17 @@ const PatientDetail = () => {
         condition: patient.primary_diagnosis || 'N/A',
         doctor: patient.doctor_name ? `Dr. ${patient.doctor_name}` : 'Not Assigned',
         nurse: 'Not Assigned',
-        emergencyContact: {
-          name: patient.emergency_contact_name || 'N/A',
-          relationship: patient.emergency_contact_relationship || 'N/A',
-          phone: patient.emergency_contact_phone || 'N/A'
+        emergencyContact: patient.emergency_contact || {
+          name: 'N/A',
+          relationship: 'N/A',
+          phone: 'N/A'
         },
-        insurance: {
-          provider: patient.insurance_provider || 'N/A',
-          policyNumber: patient.insurance_id || 'N/A',
-          groupNumber: 'N/A'
+        insurance: patient.insurance_info || {
+          provider: 'N/A',
+          policy_number: 'N/A',
+          group_number: 'N/A'
         },
-        medicalHistory: patient.medical_history ? patient.medical_history.split(',').map(s => s.trim()) : [],
+        medicalHistory: Array.isArray(patient.medical_history) ? patient.medical_history : [],
         vitals: {
           heartRate: latestVital.heart_rate || 0,
           temperature: latestVital.temperature || 0,

@@ -173,13 +173,18 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
       // If device is assigned and patient was created successfully, assign the device
       if (formData.assignedDeviceId && result) {
         try {
-          await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
-            patient_id: result.id || result.patient?.id,
+          const patientId = parseInt(result.id || result.patient?.id);
+          console.log(`🔧 Assigning device ${formData.assignedDeviceId} to patient ID: ${patientId}`);
+          
+          const deviceResponse = await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
+            patient_id: patientId.toString(),
             patient_name: patientPayload.name
           });
+          console.log(`✅ Device assignment response:`, deviceResponse.data);
           console.log(`✅ Device ${formData.assignedDeviceId} assigned to ${patientPayload.name}`);
         } catch (error) {
           console.error('Failed to assign device:', error);
+          console.error('Error details:', error.response?.data);
           alert('Patient registered successfully but device assignment failed. Please assign manually from Device Management.');
         }
       }
