@@ -46,7 +46,7 @@ class Device(Base):
 
     # Network info
     ip_address = Column(String, nullable=True)
-    mac_address = Column(String, nullable=True)
+    mac_address = Column(String, unique=True, index=True, nullable=True)  # Each ESP32 has unique MAC
 
     # Sensor data (latest readings)
     spo2 = Column(Float, nullable=True)

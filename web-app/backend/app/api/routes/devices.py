@@ -31,14 +31,38 @@ async def register_device(
     NO AUTHENTICATION REQUIRED - Devices register themselves
     """
 
+    print(f"\n{'='*60}")
+    print(f"📱 Device Registration Request")
+    print(f"{'='*60}")
+    print(f"Device ID: {registration.device_id}")
+    print(f"Device Name: {registration.device_name}")
+    print(f"MAC Address: {registration.mac_address}")
+    print(f"IP Address: {registration.ip_address}")
+    print(f"Firmware: {registration.firmware_version}")
+    print(f"Type: {registration.device_type}")
+    print(f"{'='*60}\n")
+
     try:
         # Check if device already exists
         existing_device = db.query(Device).filter(
             Device.device_id == registration.device_id
         ).first()
 
+        # Also check if this MAC address is already registered under a different ID
+        mac_conflict = db.query(Device).filter(
+            Device.mac_address == registration.mac_address,
+            Device.device_id != registration.device_id
+        ).first()
+
+        if mac_conflict:
+            print(f"⚠️  WARNING: MAC address {registration.mac_address} already registered")
+            print(f"   Existing Device ID: {mac_conflict.device_id}")
+            print(f"   New Device ID: {registration.device_id}")
+            print(f"   This may indicate a device ID generation issue!")
+
         if existing_device:
             # Update existing device
+            print(f"♻️  Updating existing device: {existing_device.device_name}")
             existing_device.device_name = registration.device_name
             existing_device.mac_address = registration.mac_address
             existing_device.ip_address = registration.ip_address
@@ -64,6 +88,8 @@ async def register_device(
             db.add(log)
             db.commit()
 
+            print(f"✅ Device updated successfully\n")
+
             return {
                 "status": "success",
                 "message": "Device updated successfully",
@@ -73,6 +99,7 @@ async def register_device(
 
         else:
             # Create new device
+            print(f"🆕 Registering NEW device: {registration.device_name}")
             new_device = Device(
                 device_id=registration.device_id,
                 device_name=registration.device_name,
@@ -104,6 +131,12 @@ async def register_device(
             db.add(log)
             db.commit()
 
+            print(f"✅ New device registered successfully")
+            print(f"   Database ID: {new_device.id}")
+            print(f"   Device ID: {new_device.device_id}")
+            print(f"   Status: {new_device.status}")
+            print(f"   Assignment Status: {new_device.assignment_status}\n")
+
             return {
                 "status": "success",
                 "message": "Device registered successfully",
@@ -112,6 +145,9 @@ async def register_device(
             }
 
     except Exception as e:
+        print(f"❌ Device registration FAILED: {str(e)}\n")
+        import traceback
+        traceback.print_exc()
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

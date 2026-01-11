@@ -1,10 +1,8 @@
 #include "WiFiManager.h"
 
 WiFiManager::WiFiManager()
-  : connected(false), registered(false) {
-  // Generate unique device ID on construction
-  deviceID = generateDeviceID();
-  deviceName = generateDeviceName();
+  : connected(false), registered(false), deviceID(""), deviceName("") {
+  // Device ID will be generated after WiFi initialization
 }
 
 bool WiFiManager::connect() {
@@ -17,6 +15,13 @@ bool WiFiManager::connect() {
   // Set WiFi mode
   WiFi.mode(WIFI_STA);
   delay(100);
+
+  // Generate device ID AFTER WiFi mode is set (MAC address is now available)
+  if (deviceID.isEmpty()) {
+    deviceID = generateDeviceID();
+    deviceName = generateDeviceName();
+    Serial.println("📱 Device ID generated from MAC address");
+  }
 
   // Start connection
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
