@@ -403,12 +403,104 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
             </div>
             <p className="text-4xl font-bold text-white mb-1">{displayVitals.o2Saturation || '--'}</p>
             <p className="text-xs text-slate-400">% SpO2</p>
+            
+            {/* SpO2 Sensor Debug Status */}
+            {liveVitals.spo2Status && (
+              <div className="mt-3 pt-3 border-t border-cyan-800/30">
+                <div className="flex items-center gap-2 text-xs">
+                  {liveVitals.spo2Status.fingerDetected ? (
+                    <>
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                      <span className="text-emerald-400">Finger Detected</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
+                      <span className="text-amber-400">No Finger</span>
+                    </>
+                  )}
+                  {!liveVitals.spo2Status.valid && (
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="text-red-400">Invalid Reading</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Sensor Status Debug Panel */}
+      {(liveVitals.spo2Status || liveVitals.ecgStatus) && (
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-4 h-4 text-slate-400" />
+            <h3 className="text-sm font-semibold text-slate-300">Sensor Status (Debug)</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            {/* ECG Sensor Status */}
+            {liveVitals.ecgStatus && (
+              <div className="bg-slate-800/50 rounded p-3 border border-slate-700">
+                <p className="text-slate-400 mb-2 font-semibold">ECG Sensor</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Leads:</span>
+                    <span className={liveVitals.ecgStatus.leadsOff ? 'text-red-400' : 'text-emerald-400'}>
+                      {liveVitals.ecgStatus.leadsOff ? 'Disconnected' : 'Connected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Active:</span>
+                    <span className={liveVitals.ecgStatus.active ? 'text-emerald-400' : 'text-slate-500'}>
+                      {liveVitals.ecgStatus.active ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  {liveVitals.ecgStatus.leadsOff && (
+                    <p className="text-amber-400 mt-2 text-xs">⚠️ Patient not wearing leads</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* SpO2 Sensor Status */}
+            {liveVitals.spo2Status && (
+              <div className="bg-slate-800/50 rounded p-3 border border-slate-700">
+                <p className="text-slate-400 mb-2 font-semibold">SpO2 Sensor</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Finger:</span>
+                    <span className={liveVitals.spo2Status.fingerDetected ? 'text-emerald-400' : 'text-amber-400'}>
+                      {liveVitals.spo2Status.fingerDetected ? 'Detected' : 'Not Detected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Valid:</span>
+                    <span className={liveVitals.spo2Status.valid ? 'text-emerald-400' : 'text-red-400'}>
+                      {liveVitals.spo2Status.valid ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">IR Signal:</span>
+                    <span className="text-slate-300">{liveVitals.spo2Status.ir || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">RED Signal:</span>
+                    <span className="text-slate-300">{liveVitals.spo2Status.red || 0}</span>
+                  </div>
+                  {!liveVitals.spo2Status.fingerDetected && (
+                    <p className="text-amber-400 mt-2 text-xs">⚠️ Patient not using sensor</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ECG Live Chart */}
-      <ECGChart ecgData={ecgData} leadsConnected={ecgData?.leads ?? true} />
+      <ECGChart ecgData={ecgData} />
 
       {/* Medical History and Medications */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

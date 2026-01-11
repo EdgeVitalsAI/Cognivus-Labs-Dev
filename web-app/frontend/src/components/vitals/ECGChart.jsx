@@ -10,6 +10,9 @@ const ECGChart = ({ ecgData, leadsConnected = true }) => {
   const [dataBuffer, setDataBuffer] = useState([])
   const MAX_DATA_POINTS = 500 // Show last 500 points (20 seconds at 25Hz)
 
+  // Determine if leads are actually connected based on ecgData
+  const actualLeadsConnected = ecgData ? !ecgData.leadsOff : leadsConnected
+
   useEffect(() => {
     if (ecgData?.val !== undefined) {
       setDataBuffer(prev => {
@@ -67,7 +70,7 @@ const ECGChart = ({ ecgData, leadsConnected = true }) => {
     }
 
     // Draw ECG waveform
-    ctx.strokeStyle = leadsConnected ? '#10b981' : '#ef4444' // green-500 : red-500
+    ctx.strokeStyle = actualLeadsConnected ? '#10b981' : '#ef4444' // green-500 : red-500
     ctx.lineWidth = 2
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -111,17 +114,17 @@ const ECGChart = ({ ecgData, leadsConnected = true }) => {
         </div>
         <div className="flex items-center gap-3">
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
-            leadsConnected 
+            actualLeadsConnected 
               ? 'bg-emerald-900/30 border border-emerald-700' 
               : 'bg-red-900/30 border border-red-700'
           }`}>
             <div className={`w-2 h-2 rounded-full ${
-              leadsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
+              actualLeadsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'
             }`}></div>
             <span className={`text-xs font-semibold ${
-              leadsConnected ? 'text-emerald-400' : 'text-red-400'
+              actualLeadsConnected ? 'text-emerald-400' : 'text-red-400'
             }`}>
-              {leadsConnected ? 'Leads Connected' : 'Leads Off'}
+              {actualLeadsConnected ? 'Leads Connected' : 'Leads Off'}
             </span>
           </div>
           <span className="text-xs text-slate-400">25 Hz • {dataBuffer.length} samples</span>

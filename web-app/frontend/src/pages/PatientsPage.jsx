@@ -57,23 +57,25 @@ const PatientsPage = () => {
       })
 
       // Transform API data to match component expectations
-      const transformedPatients = response.data.patients.map(p => ({
-        id: p.id,
-        name: p.name,
-        room: p.room_number || 'Not Assigned',
-        age: p.age,
-        status: p.status,
-        department: p.department || 'General',
-        photo: p.photo_url || `https://via.placeholder.com/300x400/4a5568/ffffff?text=${p.name.split(' ')[0]}`,
-        heartRate: 0, // Will be fetched from latest vitals if needed
-        bpm: 0,
-        temperature: 0,
-        bloodPressure: 'N/A',
-        o2Saturation: 0,
-        respiratoryRate: 0,
-        pH: 7.40,
-        addedDate: new Date(p.admission_date || p.created_at),
-      }))
+      const transformedPatients = response.data.patients.map(p => {
+        const latestVital = p.vitals?.[0] || {}
+        return {
+          id: p.id,
+          name: p.name,
+          room: p.room_number || 'Not Assigned',
+          age: p.age,
+          status: p.status,
+          department: p.department || 'General',
+          photo: p.photo_url || `https://via.placeholder.com/300x400/4a5568/ffffff?text=${p.name.split(' ')[0]}`,
+          heartRate: latestVital.heart_rate || 0,
+          bpm: latestVital.heart_rate || 0,
+          temperature: latestVital.temperature || 0,
+          bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          spo2: latestVital.oxygen_saturation || 0,
+          o2Saturation: latestVital.oxygen_saturation || 0,
+          addedDate: new Date(p.admission_date || p.created_at),
+        }
+      })
 
       setPatients(transformedPatients)
       setError(null)

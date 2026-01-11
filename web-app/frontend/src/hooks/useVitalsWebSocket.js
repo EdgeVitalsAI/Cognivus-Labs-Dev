@@ -15,7 +15,9 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
     heartRate: null,
     temperature: null,
     spo2: null,
-    bloodPressure: null
+    bloodPressure: null,
+    spo2Status: null, // For sensor status: finger detected, valid, etc.
+    ecgStatus: null   // For ECG leads status
   })
   
   const [ecgData, setEcgData] = useState(null)
@@ -61,12 +63,21 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
           // Route data based on type
           switch (data.type) {
             case 'ecg':
-              // Update ECG chart data
+              // Update ECG chart data with proper leads status
               setEcgData({
-                val: data.val,
-                ts: data.ts,
-                leads: data.leads === 'connected'
+                val: data.value || data.val,
+                ts: data.timestamp || data.ts,
+                leadsOff: data.leadsOff || false,
+                active: data.active
               })
+              // Update ECG status for debug info
+              setVitals(prev => ({ 
+                ...prev, 
+                ecgStatus: {
+                  leadsOff: data.leadsOff || false,
+                  active: data.active || false
+                }
+              }))
               break
 
             case 'heart_rate':
@@ -77,10 +88,18 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
               break
 
             case 'spo2':
-              // Update SpO2 vital
-              if (data.valid === 1 && data.spo2 > 0 && data.finger === true) {
-                setVitals(prev => ({ ...prev, spo2: data.spo2 }))
-              }
+              // Update SpO2 vital with full sensor status
+              setVitals(prev => ({ 
+                ...prev, 
+                spo2: (data.valid === 1 && data.spo2 > 0 && data.fingerDetected) ? data.spo2 : prev.spo2,
+                spo2Status: {
+                  valid: data.valid === 1,
+                  fingerDetected: data.fingerDetected || false,
+                  ir: data.ir,
+                  red: data.red,
+                  active: data.active || false
+                }
+              }))
               break
 
             case 'temperature':
