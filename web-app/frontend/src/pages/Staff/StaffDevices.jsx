@@ -76,6 +76,22 @@ export default function StaffDevices() {
     }
   }
 
+  const handleUnassign = async (deviceId, deviceName) => {
+    if (!confirm(`Are you sure you want to unassign ${deviceName}? This will make it available for other patients.`)) {
+      return;
+    }
+
+    try {
+      await api.post(`/api/devices/${deviceId}/unassign`);
+      console.log(`✅ Device ${deviceName} unassigned successfully`);
+      // Refresh devices list
+      fetchDevices();
+    } catch (error) {
+      console.error('Failed to unassign device:', error);
+      alert('Failed to unassign device. Please try again.');
+    }
+  }
+
   return (
     <div className="flex h-screen bg-slate-950">
       <StaffSidebar />
@@ -206,6 +222,7 @@ export default function StaffDevices() {
                         <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">IP Address</th>
                         <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Last Seen</th>
                         <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Firmware</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
@@ -246,6 +263,16 @@ export default function StaffDevices() {
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-slate-400 text-sm">{device.firmware_version || 'N/A'}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {device.assigned_patient_id && (
+                              <button
+                                onClick={() => handleUnassign(device.device_id, device.device_name)}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg transition-colors"
+                              >
+                                Unassign
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

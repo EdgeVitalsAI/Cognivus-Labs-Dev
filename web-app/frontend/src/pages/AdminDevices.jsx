@@ -171,7 +171,7 @@ export default function AdminDevices() {
       const token = localStorage.getItem('admin_token')
 
       await axios.post(
-        `http://localhost:8000/api/sys/devices/${device.device_id}/unassign`,
+        `http://localhost:8001/api/sys/devices/${device.device_id}/unassign`,
         {
           unassigned_by: localStorage.getItem('admin_user') || 'admin'
         },
