@@ -409,12 +409,6 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
 
       {/* ECG Live Chart */}
       <ECGChart ecgData={ecgData} leadsConnected={ecgData?.leads ?? true} />
-            </div>
-            <p className="text-4xl font-bold text-white mb-1">{patientData.vitals.o2Saturation}</p>
-            <p className="text-xs text-slate-400">% SpO2</p>
-          </div>
-        </div>
-      </div>
 
       {/* Medical History and Medications */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
