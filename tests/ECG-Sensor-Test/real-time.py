@@ -21,9 +21,9 @@ from collections import deque
 from datetime import datetime
 
 # ============= CONFIGURATION =============
-ESP32_IP = "172.23.15.254"
+ESP32_IP = "192.168.1.10"
 WEBSOCKET_PORT = 81
-MODEL_PATH = "Models\Trained\ecg_lstm_model.h5"
+MODEL_PATH = "E:\Projects\Cognivus-Labs-Dev\ml-models\ecg-analysis\models\ecg_lstm_model.h5"
 
 FS_SENSOR = 250   # Your ECG sensor sampling rate
 FS_TARGET = 360   # Model's expected sampling rate
