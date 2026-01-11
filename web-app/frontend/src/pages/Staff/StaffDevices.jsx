@@ -14,7 +14,7 @@ export default function StaffDevices() {
   const fetchDevices = async () => {
     setLoading(true)
     try {
-      const response = await api.get('/devices/register')
+      const response = await api.get('/api/devices')
       setDevices(response.data || [])
     } catch (error) {
       console.error('Failed to fetch devices:', error)

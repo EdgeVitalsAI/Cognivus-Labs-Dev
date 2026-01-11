@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 from ...core.database import get_db
 from ...models.device import Device, DeviceLog, DeviceStatus, AssignmentStatus
@@ -18,6 +18,50 @@ class DeviceRegistrationRequest(BaseModel):
     ip_address: str
     firmware_version: Optional[str] = None
     device_type: Optional[str] = "ESP32_MEDICAL_PATCH"
+
+
+@router.get("/devices")
+async def get_all_devices(
+    db: Session = Depends(get_db)
+):
+    """
+    Get all registered devices
+    Used by doctor and staff to view device list
+    """
+    try:
+        devices = db.query(Device).all()
+        
+        # Convert to dict format
+        device_list = []
+        for device in devices:
+            device_list.append({
+                "id": device.id,
+                "device_id": device.device_id,
+                "device_name": device.device_name,
+                "device_type": device.device_type,
+                "mac_address": device.mac_address,
+                "ip_address": device.ip_address,
+                "firmware_version": device.firmware_version,
+                "status": device.status,
+                "assignment_status": device.assignment_status,
+                "assigned_patient_id": device.assigned_patient_id,
+                "assigned_patient_name": device.assigned_patient_name,
+                "assigned_at": device.assigned_at.isoformat() if device.assigned_at else None,
+                "last_ping": device.last_ping.isoformat() if device.last_ping else None,
+                "activated_at": device.activated_at.isoformat() if device.activated_at else None,
+                "created_at": device.created_at.isoformat() if device.created_at else None,
+                "updated_at": device.updated_at.isoformat() if device.updated_at else None
+            })
+        
+        print(f"📋 Fetched {len(device_list)} devices")
+        return device_list
+        
+    except Exception as e:
+        print(f"❌ Error fetching devices: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch devices: {str(e)}"
+        )
 
 
 @router.post("/devices/register")

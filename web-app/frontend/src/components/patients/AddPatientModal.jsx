@@ -45,7 +45,7 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
 
   const fetchAvailableDevices = async () => {
     try {
-      const response = await api.get('/devices/register');
+      const response = await api.get('/api/devices');
       // Filter only AVAILABLE devices
       const available = (response.data || []).filter(
         device => device.assignment_status === 'AVAILABLE' && device.status === 'ONLINE'
