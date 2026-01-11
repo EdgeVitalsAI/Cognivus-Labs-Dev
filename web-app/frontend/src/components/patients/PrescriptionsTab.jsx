@@ -385,31 +385,7 @@ const PrescriptionsTabComponent = ({
 
             {/* Prescriptions List */}
             <div className="space-y-3">
-                {activeStatus === 'AI Suggestions' ? (
-                    <div className="bg-slate-800 border-2 border-amber-500 rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                            <div>
-                                <h4 className="text-lg font-bold text-white">
-                                    Clopidogrel (Plavix) 75mg
-                                </h4>
-                                <p className="text-slate-400 text-sm">AI-Suggested Treatment</p>
-                            </div>
-                            <span className="px-3 py-1 bg-amber-500/20 border border-amber-500 text-amber-400 rounded-full text-xs font-bold">
-                                SUGGESTED
-                            </span>
-                        </div>
-                        <p className="text-slate-300 text-sm mb-4">
-                            Antiplatelet therapy recommended for dual antiplatelet therapy (DAPT) -
-                            92% confidence
-                        </p>
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-semibold text-sm"
-                        >
-                            Approve & Prescribe
-                        </button>
-                    </div>
-                ) : filteredPrescriptions.length > 0 ? (
+                {filteredPrescriptions.length > 0 ? (
                     filteredPrescriptions.map((prescription) => (
                         <div
                             key={prescription.id}

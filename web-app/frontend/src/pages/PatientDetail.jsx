@@ -156,28 +156,47 @@ const PatientDetail = () => {
         <Sidebar onLogout={handleLogout} />
 
         <main className="flex-1 p-6">
-          {/* Header with Back Button and Status */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/doctor/patients')}
-                className="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
+          {/* Header with Back Button */}
+          <button
+            onClick={() => navigate('/doctor/patients')}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium">Back to Patients</span>
+          </button>
+
+          {/* Patient Header Card */}
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 mb-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white">{patientData.name}</h1>
-                <p className="text-slate-400">Patient ID: {patientData.id}</p>
+                <h1 className="text-2xl font-bold text-white mb-2">{patientData.name}</h1>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">ID</span>
+                    <span className="text-slate-300 font-mono">{patientData.id}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Room</span>
+                    <span className="text-slate-300 font-semibold">{patientData.room}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Age</span>
+                    <span className="text-slate-300 font-semibold">{patientData.age} years</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-4 py-2 rounded-lg font-semibold text-sm ${
+                  patientData.status === 'CRITICAL'
+                    ? 'bg-red-900/30 text-red-400 border border-red-700'
+                    : patientData.status === 'WARNING'
+                    ? 'bg-amber-900/30 text-amber-400 border border-amber-700'
+                    : 'bg-emerald-900/30 text-emerald-400 border border-emerald-700'
+                }`}>
+                  {patientData.status}
+                </span>
               </div>
             </div>
-            <span className={`px-4 py-2 rounded-lg font-semibold border-2 ${
-              patientData.status === 'CRITICAL'
-                ? 'border-red-500 text-red-400 bg-red-500/10'
-                : 'border-amber-400 text-amber-300 bg-amber-400/10'
-            }`}>
-              {patientData.status}
-            </span>
           </div>
 
           {/* Tab Navigation */}
