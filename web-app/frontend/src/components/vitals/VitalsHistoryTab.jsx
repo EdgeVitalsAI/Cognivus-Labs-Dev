@@ -6,6 +6,8 @@ import { HeartRateChart, SpO2Chart, CombinedVitalsChart, VitalsSummaryCards } fr
 const API_BASE_URL = 'http://localhost:8000/api'
 
 const TIME_RANGES = [
+  { value: '15m', label: '15 Min' },
+  { value: '30m', label: '30 Min' },
   { value: '1h', label: '1 Hour' },
   { value: '6h', label: '6 Hours' },
   { value: '12h', label: '12 Hours' },
@@ -36,7 +38,7 @@ export default function VitalsHistoryTab({ patientId }) {
       const headers = { 'Authorization': `Bearer ${token}` }
 
       // Determine interval based on time range
-      const interval = ['1h', '6h'].includes(timeRange) ? '1min' : '5min'
+      const interval = ['15m', '30m', '1h'].includes(timeRange) ? '1min' : ['6h'].includes(timeRange) ? '5min' : '15min'
 
       // Fetch aggregated data for charts
       const [aggregatedRes, summaryRes, abnormalitiesRes] = await Promise.all([

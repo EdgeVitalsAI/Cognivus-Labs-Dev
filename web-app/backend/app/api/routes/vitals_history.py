@@ -31,6 +31,8 @@ class TimeRange(str):
 def get_time_delta(time_range: str) -> timedelta:
     """Convert time range string to timedelta"""
     mapping = {
+        "15m": timedelta(minutes=15),
+        "30m": timedelta(minutes=30),
         "1h": timedelta(hours=1),
         "6h": timedelta(hours=6),
         "12h": timedelta(hours=12),
@@ -45,7 +47,7 @@ def get_time_delta(time_range: str) -> timedelta:
 @router.get("/patients/{patient_id}/vitals/history")
 async def get_vitals_history(
     patient_id: int,
-    time_range: str = Query(default="24h", description="Time range: 1h, 6h, 12h, 24h, 3d, 7d, 30d"),
+    time_range: str = Query(default="24h", description="Time range: 15m, 30m, 1h, 6h, 12h, 24h, 3d, 7d, 30d"),
     data_type: Optional[str] = Query(default=None, description="Filter by type: ecg, spo2, heart_rate"),
     limit: int = Query(default=1000, le=10000, description="Maximum number of records"),
     db: Session = Depends(get_db),
