@@ -23,6 +23,29 @@ services:
       timeout: 5s
       retries: 5
 
+  # TimescaleDB - Time-Series Database for Vitals
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: cognivus_timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${TIMESCALE_USER:-timescale_user}
+      POSTGRES_PASSWORD: ${TIMESCALE_PASSWORD:-timescale_secure_password_123}
+      POSTGRES_DB: ${TIMESCALE_DB:-cognivus_vitals_timeseries}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./init_timescaledb.sql:/docker-entrypoint-initdb.d/init_timescaledb.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - cognivus_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TIMESCALE_USER:-timescale_user} -d ${TIMESCALE_DB:-cognivus_vitals_timeseries}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # FastAPI Backend Service
   backend:
     build:
@@ -35,6 +58,8 @@ services:
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
+      TIMESCALE_HOST: timescaledb
+      TIMESCALE_PORT: 5432
     ports:
       - "8000:8000"
     volumes:
@@ -42,6 +67,8 @@ services:
       - ./init_db.py:/app/init_db.py
     depends_on:
       postgres:
+        condition: service_healthy
+      timescaledb:
         condition: service_healthy
     networks:
       - cognivus_network
@@ -79,6 +106,8 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  timescale_data:
     driver: local
   pgadmin_data:
     driver: local

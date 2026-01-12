@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff } from 'lucide-react'
+import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff, BarChart3 } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
 import ECGChart from '../components/vitals/ECGChart'
+import VitalsHistoryTab from '../components/vitals/VitalsHistoryTab'
 import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
 import axios from 'axios'
@@ -210,17 +211,19 @@ const PatientDetail = () => {
             {[
               { id: 'profile', label: 'Patient Profile' },
               { id: 'personal', label: 'Personal Information' },
+              { id: 'vitals-history', label: 'Vitals History', icon: BarChart3 },
               { id: 'prescriptions', label: 'Prescriptions Management' }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-sky-400 border-sky-400'
                     : 'text-slate-400 border-transparent hover:text-slate-300'
                 }`}
               >
+                {tab.icon && <tab.icon className="w-4 h-4" />}
                 {tab.label}
               </button>
             ))}
@@ -230,6 +233,8 @@ const PatientDetail = () => {
           {activeTab === 'profile' && <ProfileTab patientData={patientData} photo={photo} setPhoto={setPhoto} handlePhotoSelected={handlePhotoSelected} notes={notes} setNotes={setNotes} editMode={editMode} setEditMode={setEditMode} handleSave={handleSave} />}
           
           {activeTab === 'personal' && <PersonalInformationTab patientData={patientData} />}
+          
+          {activeTab === 'vitals-history' && <VitalsHistoryTab patientId={patientData.id} />}
           
           {activeTab === 'prescriptions' && <PrescriptionsTabComponent patientData={patientData} expandedPrescription={expandedPrescription} setExpandedPrescription={setExpandedPrescription} />}
         </main>

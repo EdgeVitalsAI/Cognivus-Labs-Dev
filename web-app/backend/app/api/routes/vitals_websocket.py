@@ -1,6 +1,7 @@
 """
 Real-Time Vital Signs WebSocket Streaming
 Connects frontend to ESP32 devices for live patient monitoring
+Stores all data points to TimescaleDB for historical analysis
 """
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.orm import Session
@@ -11,8 +12,10 @@ import json
 from datetime import datetime
 
 from ...core.database import get_db
+from ...core.timescale_database import get_timescale_db, TimescaleSessionLocal
 from ...models.device import Device, DeviceStatus
 from ...models.patient import Patient
+from ...models.vital_timeseries import VitalTimeseries
 
 router = APIRouter()
 
@@ -93,6 +96,9 @@ class VitalsWebSocketManager:
                             data["patient_id"] = patient_id
                             data["server_timestamp"] = datetime.now().isoformat()
                             
+                            # Store data to TimescaleDB in background
+                            asyncio.create_task(self._store_to_timescale(patient_id, data, device_ip))
+                            
                             # Broadcast to all connected frontend WebSockets
                             await self._broadcast_to_patient(patient_id, data)
                         
@@ -111,6 +117,54 @@ class VitalsWebSocketManager:
                 "patient_id": patient_id
             }
             await self._broadcast_to_patient(patient_id, error_msg)
+    
+    async def _store_to_timescale(self, patient_id: str, data: dict, device_ip: str):
+        """Store vital signs data to TimescaleDB for historical analysis"""
+        try:
+            # Create new TimescaleDB session
+            ts_db = TimescaleSessionLocal()
+            
+            try:
+                data_type = data.get("type", "unknown")
+                
+                # Prepare vital record
+                vital_record = VitalTimeseries(
+                    time=datetime.now(),
+                    patient_id=int(patient_id),
+                    device_id=data.get("device_id", f"esp32_{device_ip}"),
+                    data_type=data_type,
+                    source="esp32_device"
+                )
+                
+                # Parse ECG data
+                if data_type == "ecg":
+                    vital_record.ecg_value = data.get("val", data.get("value"))
+                    vital_record.ecg_leads_off = data.get("leadsOff", data.get("leads") == "off")
+                    vital_record.ecg_active = True
+                
+                # Parse SpO2 data
+                elif data_type == "spo2":
+                    vital_record.spo2_value = data.get("spo2")
+                    vital_record.spo2_valid = data.get("valid") == 1 or data.get("valid") == True
+                    vital_record.finger_detected = data.get("finger", False)
+                    vital_record.spo2_ir_signal = data.get("ir")
+                    vital_record.spo2_red_signal = data.get("red")
+                    vital_record.spo2_active = data.get("active", True)
+                
+                # Parse heart rate data
+                elif data_type == "heart_rate":
+                    vital_record.heart_rate = data.get("hr", data.get("heart_rate"))
+                    vital_record.heart_rate_valid = data.get("valid") == 1 or data.get("valid") == True
+                
+                # Add to session and commit
+                ts_db.add(vital_record)
+                ts_db.commit()
+                
+            finally:
+                ts_db.close()
+                
+        except Exception as e:
+            print(f"⚠️ Failed to store vital data to TimescaleDB: {e}")
     
     async def _broadcast_to_patient(self, patient_id: str, data: dict):
         """Broadcast data to all frontend WebSocket connections for a patient"""
