@@ -62,9 +62,7 @@ class VitalsWebSocketManager:
         self.streaming_tasks: Dict[str, asyncio.Task] = {}
     
     async def connect(self, patient_id: str, websocket: WebSocket):
-        """Accept new WebSocket connection from frontend"""
-        await websocket.accept()
-        
+        """Track new WebSocket connection from frontend (already accepted)"""
         if patient_id not in self.active_connections:
             self.active_connections[patient_id] = []
         
