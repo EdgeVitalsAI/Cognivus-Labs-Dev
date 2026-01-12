@@ -64,18 +64,20 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
           switch (data.type) {
             case 'ecg':
               // Update ECG chart data with proper leads status
+              // ESP32 sends leads as string: 'connected' or 'off'
+              const leadsOff = data.leads === 'off' || data.leadsOff === true
               setEcgData({
                 val: data.value || data.val,
                 ts: data.timestamp || data.ts,
-                leadsOff: data.leadsOff || false,
+                leadsOff: leadsOff,
                 active: data.active
               })
               // Update ECG status for debug info
               setVitals(prev => ({ 
                 ...prev, 
                 ecgStatus: {
-                  leadsOff: data.leadsOff || false,
-                  active: data.active || false
+                  leadsOff: leadsOff,
+                  active: data.active !== false
                 }
               }))
               break

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus } from 'lucide-react'
+import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus, Wifi, WifiOff, Clock, AlertCircle } from 'lucide-react'
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
+import ECGChart from '../../components/vitals/ECGChart'
+import useVitalsWebSocket from '../../hooks/useVitalsWebSocket'
 import axios from 'axios'
 
 const API_BASE_URL = 'http://localhost:8000/api'
@@ -63,6 +65,8 @@ export default function StaffPatients() {
 
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [showDetail, setShowDetail] = useState(false)
+  const [showLiveVitals, setShowLiveVitals] = useState(false)
+  const [livePatientId, setLivePatientId] = useState(null)
 
   const filteredPatients = patients.filter(
     (p) =>
@@ -185,6 +189,16 @@ export default function StaffPatients() {
                     >
                       View Details
                     </button>
+                    <button
+                      onClick={() => {
+                        setLivePatientId(patient.id)
+                        setShowLiveVitals(true)
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-colors"
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      Live Vitals
+                    </button>
                   </div>
                 </div>
               ))}
@@ -304,6 +318,246 @@ export default function StaffPatients() {
           </div>
         </div>
       )}
+
+      {/* Live Vitals Modal */}
+      {showLiveVitals && livePatientId && <LiveVitalsModal patientId={livePatientId} onClose={() => setShowLiveVitals(false)} />}
+    </div>
+  )
+}
+
+// Live Vitals Modal Component
+function LiveVitalsModal({ patientId, onClose }) {
+  const { vitals: liveVitals, ecgData, connectionStatus, error: wsError } = useVitalsWebSocket(patientId, true)
+  const [patientInfo, setPatientInfo] = useState(null)
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        const token = localStorage.getItem('access_token')
+        const response = await axios.get(`http://localhost:8000/api/patients/${patientId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        setPatientInfo(response.data)
+      } catch (err) {
+        console.error('Failed to fetch patient:', err)
+      }
+    }
+    fetchPatient()
+  }, [patientId])
+
+  const displayVitals = {
+    heartRate: liveVitals.heartRate ?? 0,
+    spo2: liveVitals.spo2 ?? 0,
+    temperature: patientInfo?.vitals?.[0]?.temperature ?? 0
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+              <Activity className="w-6 h-6 text-emerald-500" />
+              Live Patient Monitoring
+              {patientInfo && <span className="text-slate-400 text-base font-normal">• {patientInfo.name}</span>}
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">Real-time vital signs from wearable device</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Connection Status Badge */}
+            {connectionStatus === 'connected' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                <div className="relative flex items-center justify-center">
+                  <Wifi className="w-4 h-4 text-emerald-400" />
+                  <span className="absolute inset-0 animate-ping">
+                    <Wifi className="w-4 h-4 text-emerald-400 opacity-75" />
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-emerald-400">Streaming</span>
+              </div>
+            )}
+            {connectionStatus === 'connecting' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <Clock className="w-4 h-4 text-amber-400 animate-spin" />
+                <span className="text-sm font-medium text-amber-400">Connecting...</span>
+              </div>
+            )}
+            {connectionStatus === 'disconnected' && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 border border-slate-500/30 rounded-lg">
+                <WifiOff className="w-4 h-4 text-slate-400" />
+                <span className="text-sm font-medium text-slate-400">Offline</span>
+              </div>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Live Vitals Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            {/* Heart Rate */}
+            <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 border border-red-500/20 rounded-xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-3 bg-red-500/10 rounded-lg">
+                  <Heart className="w-6 h-6 text-red-400" />
+                </div>
+                {connectionStatus === 'connected' && displayVitals.heartRate > 0 && (
+                  <div className="relative flex items-center justify-center w-2 h-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </div>
+                )}
+              </div>
+              <h3 className="text-sm font-medium text-slate-400 mb-1">Heart Rate</h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-white">{displayVitals.heartRate}</span>
+                <span className="text-sm text-slate-400">bpm</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {displayVitals.heartRate >= 60 && displayVitals.heartRate <= 100 ? 'Normal' : displayVitals.heartRate > 100 ? 'Elevated' : displayVitals.heartRate > 0 ? 'Low' : 'No Data'}
+              </p>
+            </div>
+
+            {/* SpO2 */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <Wind className="w-6 h-6 text-blue-400" />
+                </div>
+                {connectionStatus === 'connected' && displayVitals.spo2 > 0 && (
+                  <div className="relative flex items-center justify-center w-2 h-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                  </div>
+                )}
+              </div>
+              <h3 className="text-sm font-medium text-slate-400 mb-1">Oxygen Saturation</h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-white">{displayVitals.spo2}</span>
+                <span className="text-sm text-slate-400">%</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {displayVitals.spo2 >= 95 ? 'Normal' : displayVitals.spo2 >= 90 ? 'Low' : displayVitals.spo2 > 0 ? 'Critical' : 'No Data'}
+              </p>
+              {liveVitals.spo2Status && (
+                <p className="text-xs text-slate-400 mt-1">
+                  {liveVitals.spo2Status.fingerDetected ? '✓ Finger Detected' : '○ No Finger'}
+                </p>
+              )}
+            </div>
+
+            {/* Temperature */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border border-orange-500/20 rounded-xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className="p-3 bg-orange-500/10 rounded-lg">
+                  <Thermometer className="w-6 h-6 text-orange-400" />
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-slate-400 mb-1">Temperature</h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-white">{displayVitals.temperature.toFixed(1)}</span>
+                <span className="text-sm text-slate-400">°F</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                {displayVitals.temperature >= 97 && displayVitals.temperature <= 99 ? 'Normal' : displayVitals.temperature > 99 ? 'Fever' : displayVitals.temperature > 0 ? 'Low' : 'No Data'}
+              </p>
+            </div>
+          </div>
+
+          {/* Sensor Debug Panel */}
+          {connectionStatus === 'connected' && (
+            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 mb-6">
+              <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-slate-400" />
+                Sensor Status
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* ECG Sensor */}
+                <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4">
+                  <h4 className="text-xs font-medium text-slate-400 mb-3">ECG Sensor</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Leads Status:</span>
+                      <span className={liveVitals.ecgStatus?.leadsOff ? 'text-red-400 font-medium' : 'text-emerald-400 font-medium'}>
+                        {liveVitals.ecgStatus?.leadsOff ? '✕ Disconnected' : '✓ Connected'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Active:</span>
+                      <span className="text-slate-300">{liveVitals.ecgStatus?.active ? 'Yes' : 'No'}</span>
+                    </div>
+                    {liveVitals.ecgStatus?.leadsOff && (
+                      <div className="mt-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-xs">
+                        <AlertCircle className="w-3 h-3 inline mr-1" />
+                        Please connect ECG leads
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SpO2 Sensor */}
+                <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-4">
+                  <h4 className="text-xs font-medium text-slate-400 mb-3">SpO2 Sensor</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Finger Detected:</span>
+                      <span className={liveVitals.spo2Status?.fingerDetected ? 'text-emerald-400 font-medium' : 'text-red-400 font-medium'}>
+                        {liveVitals.spo2Status?.fingerDetected ? '✓ Yes' : '✕ No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Valid Reading:</span>
+                      <span className="text-slate-300">{liveVitals.spo2Status?.valid ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">IR Signal:</span>
+                      <span className="text-slate-300">{liveVitals.spo2Status?.ir || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">RED Signal:</span>
+                      <span className="text-slate-300">{liveVitals.spo2Status?.red || 0}</span>
+                    </div>
+                    {!liveVitals.spo2Status?.fingerDetected && (
+                      <div className="mt-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded text-amber-400 text-xs">
+                        <AlertCircle className="w-3 h-3 inline mr-1" />
+                        Place finger on sensor
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ECG Waveform */}
+          <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-slate-400" />
+              Live ECG Waveform
+            </h3>
+            <ECGChart ecgData={ecgData} />
+          </div>
+
+          {/* WebSocket Error */}
+          {wsError && (
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium text-red-400 mb-1">Connection Error</h4>
+                  <p className="text-sm text-red-300">{wsError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

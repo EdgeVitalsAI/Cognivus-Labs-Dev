@@ -1,6 +1,6 @@
-import { Droplet, Heart, Wind, Trash2, Activity, User, MapPin } from 'lucide-react';
+import { Droplet, Heart, Wind, Trash2, Activity, User, MapPin, RefreshCw } from 'lucide-react';
 
-const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDelete }) => {
+const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDelete, onRefresh }) => {
     // Use actual photo or placeholder
     const photoUrl = patient.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name)}&size=200&background=3b82f6&color=ffffff&bold=true`;
     
@@ -20,7 +20,7 @@ const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDele
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-800 via-transparent to-transparent"></div>
                 
                 {/* Status Badge */}
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 flex items-center gap-2">
                     <span
                         className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                             patient.status === 'CRITICAL'
@@ -54,9 +54,19 @@ const PatientCard = ({ patient, onViewProfile, onViewVitals, onPrescribe, onDele
             <div className="p-4 space-y-4">
                 {/* Vitals Grid */}
                 <div>
-                    <div className="flex items-center gap-2 mb-3">
-                        <Activity className="w-4 h-4 text-slate-400" />
-                        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Vital Signs</h4>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Activity className="w-4 h-4 text-slate-400" />
+                            <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Vital Signs</h4>
+                        </div>
+                        {/* Refresh Button */}
+                        <button
+                            onClick={() => onRefresh && onRefresh(patient.id)}
+                            className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors"
+                            title="Refresh vitals"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         {/* Heart Rate */}

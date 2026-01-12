@@ -11,7 +11,8 @@ const ECGChart = ({ ecgData, leadsConnected = true }) => {
   const MAX_DATA_POINTS = 500 // Show last 500 points (20 seconds at 25Hz)
 
   // Determine if leads are actually connected based on ecgData
-  const actualLeadsConnected = ecgData ? !ecgData.leadsOff : leadsConnected
+  // Default to false (leads off) until we get actual data
+  const actualLeadsConnected = ecgData ? !ecgData.leadsOff : false
 
   useEffect(() => {
     if (ecgData?.val !== undefined) {

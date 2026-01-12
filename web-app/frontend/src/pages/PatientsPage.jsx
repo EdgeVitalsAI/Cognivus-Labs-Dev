@@ -131,6 +131,40 @@ const PatientsPage = () => {
     }
   }
 
+  const handleRefreshVitals = async (patientId) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const patient = response.data
+      const latestVital = patient.vitals?.[0] || {}
+      
+      // Update only this patient's vitals
+      setPatients(prev => prev.map(p => {
+        if (p.id === patientId) {
+          return {
+            ...p,
+            heartRate: latestVital.heart_rate || 0,
+            bpm: latestVital.heart_rate || 0,
+            temperature: latestVital.temperature || 0,
+            bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+            spo2: latestVital.oxygen_saturation || 0,
+            o2Saturation: latestVital.oxygen_saturation || 0,
+          }
+        }
+        return p
+      }))
+      
+      console.log(`✓ Refreshed vitals for patient ${patientId}`)
+    } catch (err) {
+      console.error('Failed to refresh vitals:', err)
+    }
+  }
+
 
   // Filter and sort logic
   const getFilteredAndSortedPatients = () => {
@@ -350,6 +384,7 @@ const PatientsPage = () => {
                     onViewVitals={handleViewVitals}
                     onPrescribe={handlePrescribe}
                     onDelete={handleDeletePatient}
+                    onRefresh={handleRefreshVitals}
                   />
                 ))
               ) : (
