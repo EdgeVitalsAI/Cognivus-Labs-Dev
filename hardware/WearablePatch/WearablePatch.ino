@@ -120,13 +120,27 @@ void loop() {
   ecgSensor.update();
   spo2Sensor.update();
 
-  // Stream ECG data via WebSocket
+  // Stream ECG data via WebSocket AND HTTP POST (continuous recording)
   if (ecgSensor.isActive() && ecgSensor.shouldSendSample()) {
+    // Send via WebSocket for real-time viewing
     webSocketServer.sendECGData(
       ecgSensor.getLastSampleTime(),
       ecgSensor.getLastValue(),
       !ecgSensor.areLeadsOff()
     );
+    
+    // ALSO send via HTTP POST to ensure data is always saved to TimescaleDB
+    if (wifiManager.isConnected()) {
+      String ecgJson = "{";
+      ecgJson += "\"device_id\":\"" + wifiManager.getDeviceID() + "\",";
+      ecgJson += "\"type\":\"ecg\",";
+      ecgJson += "\"val\":" + String(ecgSensor.getLastValue()) + ",";
+      ecgJson += "\"leadsOff\":" + String(ecgSensor.areLeadsOff() ? "true" : "false") + ",";
+      ecgJson += "\"timestamp\":\"" + String(millis()) + "\"";
+      ecgJson += "}";
+      wifiManager.sendVitalData("ecg", ecgJson);
+    }
+    
     ecgSensor.clearNewSampleFlag();
   }
 
@@ -141,6 +155,7 @@ void loop() {
 
     // Send SpO2 updates (rate-limited)
     if (spo2Sensor.shouldSendUpdate()) {
+      // Send via WebSocket for real-time viewing
       webSocketServer.sendSpO2Data(
         spo2Sensor.getSpo2Value(),
         spo2Sensor.isSpo2Valid(),
@@ -149,12 +164,40 @@ void loop() {
         spo2Sensor.isFingerDetected()
       );
 
+      // ALSO send via HTTP POST to ensure data is always saved
+      if (wifiManager.isConnected()) {
+        String spo2Json = "{";
+        spo2Json += "\"device_id\":\"" + wifiManager.getDeviceID() + "\",";
+        spo2Json += "\"type\":\"spo2\",";
+        spo2Json += "\"spo2\":" + String(spo2Sensor.getSpo2Value()) + ",";
+        spo2Json += "\"valid\":" + String(spo2Sensor.isSpo2Valid() ? 1 : 0) + ",";
+        spo2Json += "\"finger\":" + String(spo2Sensor.isFingerDetected() ? "true" : "false") + ",";
+        spo2Json += "\"ir\":" + String(spo2Sensor.getIRValue()) + ",";
+        spo2Json += "\"red\":" + String(spo2Sensor.getRedValue()) + ",";
+        spo2Json += "\"active\":true,";
+        spo2Json += "\"timestamp\":\"" + String(millis()) + "\"";
+        spo2Json += "}";
+        wifiManager.sendVitalData("spo2", spo2Json);
+      }
+
       // Also send heart rate if available
       if (spo2Sensor.isHeartRateValid()) {
         webSocketServer.sendHeartRateData(
           spo2Sensor.getHeartRate(),
           spo2Sensor.isHeartRateValid()
         );
+        
+        // HTTP POST for heart rate
+        if (wifiManager.isConnected()) {
+          String hrJson = "{";
+          hrJson += "\"device_id\":\"" + wifiManager.getDeviceID() + "\",";
+          hrJson += "\"type\":\"heart_rate\",";
+          hrJson += "\"hr\":" + String(spo2Sensor.getHeartRate()) + ",";
+          hrJson += "\"valid\":" + String(spo2Sensor.isHeartRateValid() ? 1 : 0) + ",";
+          hrJson += "\"timestamp\":\"" + String(millis()) + "\"";
+          hrJson += "}";
+          wifiManager.sendVitalData("heart_rate", hrJson);
+        }
       }
     }
   }

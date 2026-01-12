@@ -3,9 +3,10 @@ Real-Time Vital Signs WebSocket Streaming
 Connects frontend to ESP32 devices for live patient monitoring
 Stores all data points to TimescaleDB for historical analysis
 """
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict
+from typing import Dict, Optional
+from pydantic import BaseModel
 import asyncio
 import aiohttp
 import json
@@ -18,6 +19,35 @@ from ...models.patient import Patient
 from ...models.vital_timeseries import VitalTimeseries
 
 router = APIRouter()
+
+
+# Pydantic models for HTTP POST data
+class VitalDataPayload(BaseModel):
+    device_id: str
+    patient_id: Optional[int] = None
+    type: str  # "ecg", "spo2", "heart_rate"
+    timestamp: Optional[str] = None
+    
+    # ECG fields
+    val: Optional[float] = None
+    value: Optional[float] = None
+    leadsOff: Optional[bool] = None
+    leads: Optional[str] = None
+    
+    # SpO2 fields
+    spo2: Optional[float] = None
+    valid: Optional[int] = None
+    finger: Optional[bool] = None
+    ir: Optional[int] = None
+    red: Optional[int] = None
+    active: Optional[bool] = None
+    
+    # Heart rate fields
+    hr: Optional[float] = None
+    heart_rate: Optional[float] = None
+    
+    # Temperature
+    temperature: Optional[float] = None
 
 
 class VitalsWebSocketManager:
@@ -254,3 +284,65 @@ async def vitals_websocket_endpoint(
     finally:
         # Disconnect and cleanup
         await vitals_ws_manager.disconnect(patient_id, websocket)
+
+
+@router.post("/vitals/stream")
+async def receive_vitals_stream(
+    payload: VitalDataPayload,
+    db: Session = Depends(get_db)
+):
+    """
+    HTTP POST endpoint for ESP32 devices to continuously send vital signs data
+    This runs 24/7 regardless of WebSocket connections
+    
+    ESP32 should POST to this endpoint every second with vital data
+    Data is always saved to TimescaleDB and broadcast to active WebSocket viewers
+    
+    Usage from ESP32:
+    POST http://backend:8000/api/vitals/stream
+    {
+        "device_id": "ESP32_001",
+        "patient_id": 1,
+        "type": "ecg",
+        "val": 512,
+        "leadsOff": false,
+        "timestamp": "2026-01-12T12:00:00"
+    }
+    """
+    
+    try:
+        # Find device to get patient assignment
+        device = db.query(Device).filter(Device.device_id == payload.device_id).first()
+        
+        if not device:
+            raise HTTPException(status_code=404, detail=f"Device {payload.device_id} not registered")
+        
+        # Use patient_id from device assignment, fallback to payload
+        patient_id = device.patient_id if device.patient_id else payload.patient_id
+        
+        if not patient_id:
+            raise HTTPException(status_code=400, detail="No patient assigned to this device")
+        
+        # Convert payload to dict
+        data = payload.dict()
+        data["patient_id"] = patient_id
+        data["server_timestamp"] = datetime.now().isoformat()
+        
+        # Store to TimescaleDB (always, regardless of WebSocket connections)
+        asyncio.create_task(vitals_ws_manager._store_to_timescale(str(patient_id), data, device.ip_address or "unknown"))
+        
+        # Broadcast to active WebSocket viewers (if any)
+        asyncio.create_task(vitals_ws_manager._broadcast_to_patient(str(patient_id), data))
+        
+        return {
+            "success": True,
+            "message": "Vital data received and stored",
+            "patient_id": patient_id,
+            "type": payload.type
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"⚠️ Error receiving vital data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

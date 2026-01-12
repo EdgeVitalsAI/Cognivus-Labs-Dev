@@ -32,6 +32,9 @@ public:
   // Heartbeat (keep-alive)
   bool sendHeartbeat();
 
+  // Send vital data to backend (continuous data streaming)
+  bool sendVitalData(const String& dataType, const String& jsonPayload);
+
 private:
   bool connected;
   bool registered;

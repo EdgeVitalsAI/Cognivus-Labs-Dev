@@ -199,3 +199,26 @@ bool WiFiManager::sendHeartbeat() {
   http.end();
   return false;
 }
+
+// Send vital data to backend (continuous streaming)
+bool WiFiManager::sendVitalData(const String& dataType, const String& jsonPayload) {
+  if (!isConnected()) {
+    return false;
+  }
+
+  HTTPClient http;
+  String url = String(BACKEND_SERVER_URL) + "/api/vitals/stream";
+
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  http.setTimeout(1000); // 1 second timeout for quick response
+
+  // Send POST request
+  int httpCode = http.POST(jsonPayload);
+
+  // Success if 200-299 status code
+  bool success = (httpCode >= 200 && httpCode < 300);
+  
+  http.end();
+  return success;
+}
