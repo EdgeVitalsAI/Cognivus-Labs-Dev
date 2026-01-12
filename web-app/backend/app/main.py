@@ -37,6 +37,10 @@ app = FastAPI(
 # Custom CORS middleware that allows all local origins
 class CustomCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Skip CORS for WebSocket connections (they handle their own connection)
+        if "/ws/" in request.url.path:
+            return await call_next(request)
+        
         origin = request.headers.get("origin")
 
         # Allow all localhost and 127.0.0.1 origins

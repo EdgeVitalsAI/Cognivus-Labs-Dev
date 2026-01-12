@@ -41,7 +41,7 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
     }
 
     try {
-      const wsUrl = `ws://localhost:8000/ws/vitals/${patientId}`
+      const wsUrl = `ws://localhost:8000/api/ws/vitals/${patientId}`
       console.log(`🔌 Connecting to WebSocket: ${wsUrl}`)
       setConnectionStatus('connecting')
       setError(null)
