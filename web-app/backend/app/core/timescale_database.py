@@ -5,16 +5,10 @@ Separate connection for time-series vital signs data
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
+from .config import settings
 
-# TimescaleDB connection settings
-TIMESCALE_USER = os.getenv("TIMESCALE_USER", "timescale_user")
-TIMESCALE_PASSWORD = os.getenv("TIMESCALE_PASSWORD", "timescale_secure_password_123")
-TIMESCALE_HOST = os.getenv("TIMESCALE_HOST", "timescaledb")
-TIMESCALE_PORT = os.getenv("TIMESCALE_PORT", "5432")
-TIMESCALE_DB = os.getenv("TIMESCALE_DB", "cognivus_vitals_timeseries")
-
-TIMESCALE_DATABASE_URL = f"postgresql://{TIMESCALE_USER}:{TIMESCALE_PASSWORD}@{TIMESCALE_HOST}:{TIMESCALE_PORT}/{TIMESCALE_DB}"
+# TimescaleDB connection URL from settings
+TIMESCALE_DATABASE_URL = settings.timescale_database_url
 
 # Create engine for TimescaleDB with error handling
 try:
@@ -31,7 +25,7 @@ try:
     with timescale_engine.connect() as conn:
         conn.execute("SELECT 1")
     
-    print(f"✓ TimescaleDB connection successful: {TIMESCALE_HOST}:{TIMESCALE_PORT}/{TIMESCALE_DB}")
+    print(f"✓ TimescaleDB connection successful: {settings.TIMESCALE_HOST}:{settings.TIMESCALE_PORT}/{settings.TIMESCALE_DB}")
 except Exception as e:
     print(f"⚠️ Warning: Could not connect to TimescaleDB: {e}")
     print(f"   TimescaleDB features will be unavailable until connection is established")

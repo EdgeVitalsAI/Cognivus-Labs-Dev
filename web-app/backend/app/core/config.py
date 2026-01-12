@@ -20,9 +20,20 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
 
+    # Database - TimescaleDB
+    TIMESCALE_USER: str = "timescale_user"
+    TIMESCALE_PASSWORD: str = "timescale_secure_password_123"
+    TIMESCALE_DB: str = "cognivus_vitals_timeseries"
+    TIMESCALE_HOST: str = "localhost"
+    TIMESCALE_PORT: int = 5433
+
     @property
     def database_url(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def timescale_database_url(self) -> str:
+        return f"postgresql://{self.TIMESCALE_USER}:{self.TIMESCALE_PASSWORD}@{self.TIMESCALE_HOST}:{self.TIMESCALE_PORT}/{self.TIMESCALE_DB}"
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
