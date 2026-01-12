@@ -47,6 +47,12 @@ CREATE INDEX IF NOT EXISTS idx_vitals_type_time ON vitals_timeseries (data_type,
 CREATE INDEX IF NOT EXISTS idx_vitals_abnormal_hr ON vitals_timeseries (time DESC) WHERE heart_rate IS NOT NULL AND (heart_rate < 60 OR heart_rate > 100);
 CREATE INDEX IF NOT EXISTS idx_vitals_abnormal_spo2 ON vitals_timeseries (time DESC) WHERE spo2_value IS NOT NULL AND spo2_value < 95;
 
+-- Enable compression on hypertable (required before adding compression policy)
+ALTER TABLE vitals_timeseries SET (
+    timescaledb.compress,
+    timescaledb.compress_segmentby = 'patient_id, device_id'
+);
+
 -- Add compression policy (compress data older than 7 days)
 SELECT add_compression_policy('vitals_timeseries', INTERVAL '7 days', if_not_exists => TRUE);
 
