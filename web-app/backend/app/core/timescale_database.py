@@ -2,7 +2,7 @@
 TimescaleDB Database Configuration
 Separate connection for time-series vital signs data
 """
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import settings
@@ -23,7 +23,7 @@ try:
     
     # Test connection
     with timescale_engine.connect() as conn:
-        conn.execute("SELECT 1")
+        conn.execute(text("SELECT 1"))
     
     print(f"✓ TimescaleDB connection successful: {settings.TIMESCALE_HOST}:{settings.TIMESCALE_PORT}/{settings.TIMESCALE_DB}")
 except Exception as e:
@@ -58,4 +58,3 @@ def get_timescale_db():
     finally:
         db.close()
 
-print(f"✓ TimescaleDB connection configured: {TIMESCALE_HOST}:{TIMESCALE_PORT}/{TIMESCALE_DB}")
