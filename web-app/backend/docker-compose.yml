@@ -76,6 +76,8 @@ services:
       sh -c "
         echo 'Waiting for PostgreSQL to be ready...' &&
         sleep 5 &&
+        echo 'Waiting for TimescaleDB to be ready...' &&
+        sleep 3 &&
         echo 'Initializing database...' &&
         python init_db.py &&
         echo 'Starting FastAPI server...' &&
