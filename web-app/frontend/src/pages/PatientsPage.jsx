@@ -33,11 +33,36 @@ const PatientsPage = () => {
     fetchPatients()
     fetchStats()
 
-    // Set up periodic refresh every 90 seconds (1.5 minutes)
-    const refreshInterval = setInterval(() => {
-      console.log('🔄 Refreshing patient list vitals...')
-      fetchPatients()
-    }, 90000) // 90 seconds
+    // Set up periodic refresh every 60 seconds (1 minute) for live vitals
+    const refreshInterval = setInterval(async () => {
+      console.log('🔄 Refreshing live vitals from devices...')
+      try {
+        const token = localStorage.getItem('access_token')
+        const response = await axios.get(`${API_BASE_URL}/patients/live-vitals/bulk`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        
+        if (response.data.success && response.data.vitals.length > 0) {
+          // Update patients with live vitals data
+          setPatients(prev => prev.map(p => {
+            const liveVital = response.data.vitals.find(v => v.patient_id === p.id)
+            if (liveVital) {
+              return {
+                ...p,
+                heartRate: liveVital.heart_rate || p.heartRate,
+                bpm: liveVital.heart_rate || p.bpm,
+                spo2: liveVital.spo2 || p.spo2,
+                o2Saturation: liveVital.spo2 || p.o2Saturation,
+              }
+            }
+            return p
+          }))
+          console.log(`✓ Updated ${response.data.vitals.length} patients with live vitals`)
+        }
+      } catch (err) {
+        console.error('Failed to fetch bulk live vitals:', err)
+      }
+    }, 60000) // 60 seconds (1 minute)
 
     // Cleanup interval on unmount
     return () => clearInterval(refreshInterval)
@@ -134,32 +159,28 @@ const PatientsPage = () => {
   const handleRefreshVitals = async (patientId) => {
     try {
       const token = localStorage.getItem('access_token')
-      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}`, {
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}/live-vitals`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
 
-      const patient = response.data
-      const latestVital = patient.vitals?.[0] || {}
-      
-      // Update only this patient's vitals
-      setPatients(prev => prev.map(p => {
-        if (p.id === patientId) {
-          return {
-            ...p,
-            heartRate: latestVital.heart_rate || 0,
-            bpm: latestVital.heart_rate || 0,
-            temperature: latestVital.temperature || 0,
-            bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
-            spo2: latestVital.oxygen_saturation || 0,
-            o2Saturation: latestVital.oxygen_saturation || 0,
+      if (response.data.success) {
+        // Update only this patient's vitals with live data
+        setPatients(prev => prev.map(p => {
+          if (p.id === patientId) {
+            return {
+              ...p,
+              heartRate: response.data.heart_rate || p.heartRate,
+              bpm: response.data.heart_rate || p.bpm,
+              spo2: response.data.spo2 || p.spo2,
+              o2Saturation: response.data.spo2 || p.o2Saturation,
+            }
           }
-        }
-        return p
-      }))
-      
-      console.log(`✓ Refreshed vitals for patient ${patientId}`)
+          return p
+        }))
+        console.log(`✓ Refreshed live vitals for patient ${patientId}`)
+      }
     } catch (err) {
       console.error('Failed to refresh vitals:', err)
     }

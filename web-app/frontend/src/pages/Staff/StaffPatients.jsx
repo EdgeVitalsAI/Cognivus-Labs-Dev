@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus, Wifi, WifiOff, Clock, AlertCircle } from 'lucide-react'
+import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus, Wifi, WifiOff, Clock, AlertCircle, RefreshCw } from 'lucide-react'
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 import ECGChart from '../../components/vitals/ECGChart'
@@ -16,11 +16,34 @@ export default function StaffPatients() {
   useEffect(() => {
     fetchPatients()
 
-    // Set up periodic refresh every 90 seconds (1.5 minutes)
-    const refreshInterval = setInterval(() => {
-      console.log('🔄 Refreshing staff patient list vitals...')
-      fetchPatients()
-    }, 90000) // 90 seconds
+    // Set up periodic refresh every 60 seconds (1 minute) for live vitals
+    const refreshInterval = setInterval(async () => {
+      console.log('🔄 Refreshing live vitals from devices...')
+      try {
+        const token = localStorage.getItem('access_token')
+        const response = await axios.get(`${API_BASE_URL}/patients/live-vitals/bulk`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        
+        if (response.data.success && response.data.vitals.length > 0) {
+          // Update patients with live vitals data
+          setPatients(prev => prev.map(p => {
+            const liveVital = response.data.vitals.find(v => v.patient_id === p.id)
+            if (liveVital) {
+              return {
+                ...p,
+                hr: liveVital.heart_rate || p.hr,
+                o2: liveVital.spo2 || p.o2,
+              }
+            }
+            return p
+          }))
+          console.log(`✓ Updated ${response.data.vitals.length} staff patients with live vitals`)
+        }
+      } catch (err) {
+        console.error('Failed to fetch bulk live vitals:', err)
+      }
+    }, 60000) // 60 seconds (1 minute)
 
     // Cleanup interval on unmount
     return () => clearInterval(refreshInterval)
@@ -60,6 +83,34 @@ export default function StaffPatients() {
       console.error('Failed to fetch patients:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRefreshVitals = async (patientId) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}/live-vitals`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.data.success) {
+        // Update only this patient's vitals with live data
+        setPatients(prev => prev.map(p => {
+          if (p.id === patientId) {
+            return {
+              ...p,
+              hr: response.data.heart_rate || p.hr,
+              o2: response.data.spo2 || p.o2,
+            }
+          }
+          return p
+        }))
+        console.log(`✓ Refreshed live vitals for staff patient ${patientId}`)
+      }
+    } catch (err) {
+      console.error('Failed to refresh vitals:', err)
     }
   }
 
@@ -198,6 +249,13 @@ export default function StaffPatients() {
                     >
                       <Activity className="w-3.5 h-3.5" />
                       Live Vitals
+                    </button>
+                    <button
+                      onClick={() => handleRefreshVitals(patient.id)}
+                      className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      title="Refresh vitals"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
