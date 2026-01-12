@@ -240,10 +240,17 @@ async def vitals_websocket_endpoint(
     - {"type": "heart_rate", "hr": 72, "valid": 1}
     """
     
+    # Accept connection first
+    await websocket.accept()
+    
     # Verify patient exists
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
-        await websocket.close(code=1008, reason=f"Patient {patient_id} not found")
+        await websocket.send_json({
+            "type": "error",
+            "message": f"Patient {patient_id} not found"
+        })
+        await websocket.close(code=1008)
         return
     
     # Find patient's assigned device
@@ -253,7 +260,6 @@ async def vitals_websocket_endpoint(
     ).first()
     
     if not device or not device.ip_address:
-        await websocket.accept()
         await websocket.send_json({
             "type": "error",
             "message": "No active monitoring device assigned to this patient"
