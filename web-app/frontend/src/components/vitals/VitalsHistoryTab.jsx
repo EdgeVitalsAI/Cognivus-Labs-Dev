@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, RefreshCw, AlertTriangle, TrendingUp, Calendar } from 'lucide-react'
+import { Clock, RefreshCw, AlertTriangle, TrendingUp, Calendar, Zap } from 'lucide-react'
 import axios from 'axios'
 import { HeartRateChart, SpO2Chart, CombinedVitalsChart, VitalsSummaryCards } from './VitalsCharts'
 
@@ -15,10 +15,12 @@ const TIME_RANGES = [
   { value: '3d', label: '3 Days' },
   { value: '7d', label: '7 Days' },
   { value: '30d', label: '30 Days' },
+  { value: 'all', label: 'All (From Beginning)' },
 ]
 
 export default function VitalsHistoryTab({ patientId }) {
   const [timeRange, setTimeRange] = useState('24h')
+  const [exactMode, setExactMode] = useState(false)
   const [loading, setLoading] = useState(false)
   const [aggregatedData, setAggregatedData] = useState([])
   const [summary, setSummary] = useState(null)
@@ -27,7 +29,7 @@ export default function VitalsHistoryTab({ patientId }) {
 
   useEffect(() => {
     fetchVitalsHistory()
-  }, [patientId, timeRange])
+  }, [patientId, timeRange, exactMode])
 
   const fetchVitalsHistory = async () => {
     setLoading(true)
@@ -37,8 +39,13 @@ export default function VitalsHistoryTab({ patientId }) {
       const token = localStorage.getItem('access_token')
       const headers = { 'Authorization': `Bearer ${token}` }
 
-      // Determine interval based on time range
-      const interval = ['15m', '30m', '1h'].includes(timeRange) ? '1min' : ['6h'].includes(timeRange) ? '5min' : '15min'
+      // Determine interval based on time range and exact mode
+      let interval
+      if (exactMode) {
+        interval = 'exact'  // Get every single reading with exact timestamps
+      } else {
+        interval = ['15m', '30m', '1h'].includes(timeRange) ? '1min' : ['6h'].includes(timeRange) ? '5min' : '15min'
+      }
 
       // Fetch aggregated data for charts
       const [aggregatedRes, summaryRes, abnormalitiesRes] = await Promise.all([
@@ -86,7 +93,7 @@ export default function VitalsHistoryTab({ patientId }) {
         </div>
         <div className="flex items-center gap-3">
           {/* Time Range Selector */}
-          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-1">
+          <div className="flex flex-wrap items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-1">
             {TIME_RANGES.map((range) => (
               <button
                 key={range.value}
@@ -101,6 +108,21 @@ export default function VitalsHistoryTab({ patientId }) {
               </button>
             ))}
           </div>
+
+          {/* Exact Mode Toggle */}
+          <button
+            onClick={() => setExactMode(!exactMode)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+              exactMode
+                ? 'bg-amber-600 border-amber-500 text-white'
+                : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white hover:border-slate-600'
+            }`}
+          >
+            <Zap className="w-4 h-4" />
+            <span className="text-sm font-medium">
+              {exactMode ? 'Exact Timestamps' : 'Aggregated'}
+            </span>
+          </button>
           {/* Refresh Button */}
           <button
             onClick={handleRefresh}

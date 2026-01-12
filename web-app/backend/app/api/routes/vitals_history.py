@@ -4,7 +4,7 @@ Provides endpoints for charts, trends, and abnormality detection
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_, or_
+from sqlalchemy import func, and_, or_, text, Integer, cast
 from typing import Optional, List
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -28,8 +28,8 @@ class TimeRange(str):
     DAYS_30 = "30d"
 
 
-def get_time_delta(time_range: str) -> timedelta:
-    """Convert time range string to timedelta"""
+def get_time_delta(time_range: str) -> Optional[timedelta]:
+    """Convert time range string to timedelta. Returns None for 'all'."""
     mapping = {
         "15m": timedelta(minutes=15),
         "30m": timedelta(minutes=30),
@@ -40,6 +40,7 @@ def get_time_delta(time_range: str) -> timedelta:
         "3d": timedelta(days=3),
         "7d": timedelta(days=7),
         "30d": timedelta(days=30),
+        "all": None  # Special case: all data from beginning
     }
     return mapping.get(time_range, timedelta(hours=24))
 
@@ -47,15 +48,17 @@ def get_time_delta(time_range: str) -> timedelta:
 @router.get("/patients/{patient_id}/vitals/history")
 async def get_vitals_history(
     patient_id: int,
-    time_range: str = Query(default="24h", description="Time range: 15m, 30m, 1h, 6h, 12h, 24h, 3d, 7d, 30d"),
+    time_range: str = Query(default="24h", description="Time range: 15m, 30m, 1h, 6h, 12h, 24h, 3d, 7d, 30d, all"),
     data_type: Optional[str] = Query(default=None, description="Filter by type: ecg, spo2, heart_rate"),
     limit: int = Query(default=1000, le=10000, description="Maximum number of records"),
+    exact: bool = Query(default=False, description="Get exact timestamps (no aggregation)"),
     db: Session = Depends(get_db),
     ts_db: Session = Depends(get_timescale_db)
 ):
     """
     Get historical vitals data for a patient
     Returns time-series data for charts and analysis
+    With exact=True, returns every single reading with exact timestamp
     """
     
     # Verify patient exists
@@ -65,16 +68,23 @@ async def get_vitals_history(
     
     # Calculate time range
     end_time = datetime.now()
-    start_time = end_time - get_time_delta(time_range)
+    time_delta = get_time_delta(time_range)
+    start_time = end_time - time_delta if time_delta else None
     
     # Build query
-    query = ts_db.query(VitalTimeseries).filter(
-        and_(
-            VitalTimeseries.patient_id == patient_id,
-            VitalTimeseries.time >= start_time,
-            VitalTimeseries.time <= end_time
+    if start_time:
+        query = ts_db.query(VitalTimeseries).filter(
+            and_(
+                VitalTimeseries.patient_id == patient_id,
+                VitalTimeseries.time >= start_time,
+                VitalTimeseries.time <= end_time
+            )
         )
-    )
+    else:
+        # All data from beginning
+        query = ts_db.query(VitalTimeseries).filter(
+            VitalTimeseries.patient_id == patient_id
+        )
     
     # Apply data type filter
     if data_type:
@@ -90,8 +100,9 @@ async def get_vitals_history(
         "success": True,
         "patient_id": patient_id,
         "time_range": time_range,
-        "start_time": start_time.isoformat(),
+        "start_time": start_time.isoformat() if start_time else None,
         "end_time": end_time.isoformat(),
+        "exact": exact,
         "count": len(vitals_data),
         "data": vitals_data
     }
@@ -116,9 +127,20 @@ async def get_vitals_summary(
     
     # Calculate time range
     end_time = datetime.now()
-    start_time = end_time - get_time_delta(time_range)
+    time_delta = get_time_delta(time_range)
+    start_time = end_time - time_delta if time_delta else None
     
     # Query for statistics
+    base_filter = VitalTimeseries.patient_id == patient_id
+    if start_time:
+        filter_conditions = and_(
+            base_filter,
+            VitalTimeseries.time >= start_time,
+            VitalTimeseries.time <= end_time
+        )
+    else:
+        filter_conditions = base_filter
+    
     stats = ts_db.query(
         func.count(VitalTimeseries.time).label('total_readings'),
         func.avg(VitalTimeseries.heart_rate).label('avg_heart_rate'),
@@ -128,19 +150,13 @@ async def get_vitals_summary(
         func.min(VitalTimeseries.spo2_value).label('min_spo2'),
         func.max(VitalTimeseries.spo2_value).label('max_spo2'),
         func.avg(VitalTimeseries.temperature).label('avg_temperature'),
-        func.sum(func.cast(VitalTimeseries.ecg_leads_off, func.Integer())).label('leads_off_count'),
-        func.sum(func.cast(VitalTimeseries.finger_detected == False, func.Integer())).label('no_finger_count'),
-    ).filter(
-        and_(
-            VitalTimeseries.patient_id == patient_id,
-            VitalTimeseries.time >= start_time,
-            VitalTimeseries.time <= end_time
-        )
-    ).first()
+        func.sum(cast(VitalTimeseries.ecg_leads_off, Integer)).label('leads_off_count'),
+        func.sum(cast(VitalTimeseries.finger_detected == False, Integer)).label('no_finger_count'),
+    ).filter(filter_conditions).first()
     
     # Count abnormalities
-    abnormal_hr = ts_db.query(func.count(VitalTimeseries.time)).filter(
-        and_(
+    if start_time:
+        hr_filter = and_(
             VitalTimeseries.patient_id == patient_id,
             VitalTimeseries.time >= start_time,
             VitalTimeseries.heart_rate.isnot(None),
@@ -149,22 +165,35 @@ async def get_vitals_summary(
                 VitalTimeseries.heart_rate > 100
             )
         )
-    ).scalar()
-    
-    low_spo2 = ts_db.query(func.count(VitalTimeseries.time)).filter(
-        and_(
+        spo2_filter = and_(
             VitalTimeseries.patient_id == patient_id,
             VitalTimeseries.time >= start_time,
             VitalTimeseries.spo2_value.isnot(None),
             VitalTimeseries.spo2_value < 95
         )
-    ).scalar()
+    else:
+        hr_filter = and_(
+            VitalTimeseries.patient_id == patient_id,
+            VitalTimeseries.heart_rate.isnot(None),
+            or_(
+                VitalTimeseries.heart_rate < 60,
+                VitalTimeseries.heart_rate > 100
+            )
+        )
+        spo2_filter = and_(
+            VitalTimeseries.patient_id == patient_id,
+            VitalTimeseries.spo2_value.isnot(None),
+            VitalTimeseries.spo2_value < 95
+        )
+    
+    abnormal_hr = ts_db.query(func.count(VitalTimeseries.time)).filter(hr_filter).scalar()
+    low_spo2 = ts_db.query(func.count(VitalTimeseries.time)).filter(spo2_filter).scalar()
     
     return {
         "success": True,
         "patient_id": patient_id,
         "time_range": time_range,
-        "start_time": start_time.isoformat(),
+        "start_time": start_time.isoformat() if start_time else None,
         "end_time": end_time.isoformat(),
         "statistics": {
             "total_readings": stats.total_readings or 0,
@@ -195,13 +224,14 @@ async def get_vitals_summary(
 async def get_aggregated_vitals(
     patient_id: int,
     time_range: str = Query(default="24h"),
-    interval: str = Query(default="1min", description="Aggregation interval: 1min, 5min, 15min, 1hour"),
+    interval: str = Query(default="1min", description="Aggregation interval: 1min, 5min, 15min, 1hour, exact"),
     db: Session = Depends(get_db),
     ts_db: Session = Depends(get_timescale_db)
 ):
     """
     Get aggregated vitals data (averages over time intervals)
     Perfect for charts with many data points
+    Use interval='exact' to get every single reading with precise timestamps
     """
     
     # Verify patient exists
@@ -211,58 +241,105 @@ async def get_aggregated_vitals(
     
     # Calculate time range
     end_time = datetime.now()
-    start_time = end_time - get_time_delta(time_range)
+    time_delta = get_time_delta(time_range)
+    start_time = end_time - time_delta if time_delta else None
     
-    # Map interval to SQL interval
-    interval_map = {
-        "1min": "1 minute",
-        "5min": "5 minutes",
-        "15min": "15 minutes",
-        "1hour": "1 hour"
-    }
-    sql_interval = interval_map.get(interval, "1 minute")
-    
-    # Use TimescaleDB's time_bucket function for efficient aggregation
-    query = f"""
-        SELECT 
-            time_bucket('{sql_interval}', time) AS bucket,
-            AVG(heart_rate) AS avg_heart_rate,
-            AVG(spo2_value) AS avg_spo2,
-            AVG(temperature) AS avg_temperature,
-            COUNT(*) AS data_points,
-            SUM(CASE WHEN heart_rate < 60 OR heart_rate > 100 THEN 1 ELSE 0 END) AS abnormal_hr,
-            SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2
-        FROM vitals_timeseries
-        WHERE patient_id = :patient_id
-            AND time >= :start_time
-            AND time <= :end_time
-        GROUP BY bucket
-        ORDER BY bucket ASC
-    """
-    
-    result = ts_db.execute(
-        query,
-        {"patient_id": patient_id, "start_time": start_time, "end_time": end_time}
-    )
-    
-    aggregated_data = []
-    for row in result:
-        aggregated_data.append({
-            "time": row[0].isoformat(),
-            "avg_heart_rate": round(row[1], 1) if row[1] else None,
-            "avg_spo2": round(row[2], 1) if row[2] else None,
-            "avg_temperature": round(row[3], 1) if row[3] else None,
-            "data_points": row[4],
-            "abnormal_hr_count": row[5] or 0,
-            "low_spo2_count": row[6] or 0
-        })
+    # Handle exact interval (no aggregation)
+    if interval == "exact":
+        if start_time:
+            vitals = ts_db.query(VitalTimeseries).filter(
+                and_(
+                    VitalTimeseries.patient_id == patient_id,
+                    VitalTimeseries.time >= start_time,
+                    VitalTimeseries.time <= end_time
+                )
+            ).order_by(VitalTimeseries.time.asc()).limit(5000).all()
+        else:
+            vitals = ts_db.query(VitalTimeseries).filter(
+                VitalTimeseries.patient_id == patient_id
+            ).order_by(VitalTimeseries.time.asc()).limit(5000).all()
+        
+        aggregated_data = []
+        for v in vitals:
+            aggregated_data.append({
+                "time": v.time.isoformat(),
+                "avg_heart_rate": v.heart_rate,
+                "avg_spo2": v.spo2_value,
+                "avg_temperature": v.temperature,
+                "data_points": 1,
+                "abnormal_hr_count": 1 if v.heart_rate and (v.heart_rate < 60 or v.heart_rate > 100) else 0,
+                "low_spo2_count": 1 if v.spo2_value and v.spo2_value < 95 else 0
+            })
+    else:
+        # Map interval to SQL interval
+        interval_map = {
+            "1min": "1 minute",
+            "5min": "5 minutes",
+            "15min": "15 minutes",
+            "1hour": "1 hour"
+        }
+        sql_interval = interval_map.get(interval, "1 minute")
+        
+        # Use TimescaleDB's time_bucket function for efficient aggregation
+        if start_time:
+            query_str = f"""
+                SELECT 
+                    time_bucket('{sql_interval}', time) AS bucket,
+                    AVG(heart_rate) AS avg_heart_rate,
+                    AVG(spo2_value) AS avg_spo2,
+                    AVG(temperature) AS avg_temperature,
+                    COUNT(*) AS data_points,
+                    SUM(CASE WHEN heart_rate < 60 OR heart_rate > 100 THEN 1 ELSE 0 END) AS abnormal_hr,
+                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2
+                FROM vitals_timeseries
+                WHERE patient_id = :patient_id
+                    AND time >= :start_time
+                    AND time <= :end_time
+                GROUP BY bucket
+                ORDER BY bucket ASC
+            """
+            result = ts_db.execute(
+                text(query_str),
+                {"patient_id": patient_id, "start_time": start_time, "end_time": end_time}
+            )
+        else:
+            query_str = f"""
+                SELECT 
+                    time_bucket('{sql_interval}', time) AS bucket,
+                    AVG(heart_rate) AS avg_heart_rate,
+                    AVG(spo2_value) AS avg_spo2,
+                    AVG(temperature) AS avg_temperature,
+                    COUNT(*) AS data_points,
+                    SUM(CASE WHEN heart_rate < 60 OR heart_rate > 100 THEN 1 ELSE 0 END) AS abnormal_hr,
+                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2
+                FROM vitals_timeseries
+                WHERE patient_id = :patient_id
+                GROUP BY bucket
+                ORDER BY bucket ASC
+            """
+            result = ts_db.execute(
+                text(query_str),
+                {"patient_id": patient_id}
+            )
+        
+        aggregated_data = []
+        for row in result:
+            aggregated_data.append({
+                "time": row[0].isoformat(),
+                "avg_heart_rate": round(row[1], 1) if row[1] else None,
+                "avg_spo2": round(row[2], 1) if row[2] else None,
+                "avg_temperature": round(row[3], 1) if row[3] else None,
+                "data_points": row[4],
+                "abnormal_hr_count": row[5] or 0,
+                "low_spo2_count": row[6] or 0
+            })
     
     return {
         "success": True,
         "patient_id": patient_id,
         "time_range": time_range,
         "interval": interval,
-        "start_time": start_time.isoformat(),
+        "start_time": start_time.isoformat() if start_time else None,
         "end_time": end_time.isoformat(),
         "count": len(aggregated_data),
         "data": aggregated_data
@@ -288,14 +365,15 @@ async def get_abnormalities(
     
     # Calculate time range
     end_time = datetime.now()
-    start_time = end_time - get_time_delta(time_range)
+    time_delta = get_time_delta(time_range)
+    start_time = end_time - time_delta if time_delta else None
     
     # Find abnormal readings
     abnormalities = []
     
     # Abnormal heart rate (< 60 or > 100)
-    abnormal_hr = ts_db.query(VitalTimeseries).filter(
-        and_(
+    if start_time:
+        hr_filter = and_(
             VitalTimeseries.patient_id == patient_id,
             VitalTimeseries.time >= start_time,
             VitalTimeseries.heart_rate.isnot(None),
@@ -304,7 +382,17 @@ async def get_abnormalities(
                 VitalTimeseries.heart_rate > 100
             )
         )
-    ).order_by(VitalTimeseries.time.desc()).limit(100).all()
+    else:
+        hr_filter = and_(
+            VitalTimeseries.patient_id == patient_id,
+            VitalTimeseries.heart_rate.isnot(None),
+            or_(
+                VitalTimeseries.heart_rate < 60,
+                VitalTimeseries.heart_rate > 100
+            )
+        )
+    
+    abnormal_hr = ts_db.query(VitalTimeseries).filter(hr_filter).order_by(VitalTimeseries.time.desc()).limit(100).all()
     
     for reading in abnormal_hr:
         abnormalities.append({
@@ -316,14 +404,21 @@ async def get_abnormalities(
         })
     
     # Low SpO2 (< 95%)
-    low_spo2 = ts_db.query(VitalTimeseries).filter(
-        and_(
+    if start_time:
+        spo2_filter = and_(
             VitalTimeseries.patient_id == patient_id,
             VitalTimeseries.time >= start_time,
             VitalTimeseries.spo2_value.isnot(None),
             VitalTimeseries.spo2_value < 95
         )
-    ).order_by(VitalTimeseries.time.desc()).limit(100).all()
+    else:
+        spo2_filter = and_(
+            VitalTimeseries.patient_id == patient_id,
+            VitalTimeseries.spo2_value.isnot(None),
+            VitalTimeseries.spo2_value < 95
+        )
+    
+    low_spo2 = ts_db.query(VitalTimeseries).filter(spo2_filter).order_by(VitalTimeseries.time.desc()).limit(100).all()
     
     for reading in low_spo2:
         severity = "critical" if reading.spo2_value < 90 else "warning"
