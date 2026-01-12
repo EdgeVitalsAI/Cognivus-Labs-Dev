@@ -94,7 +94,7 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
                 spo2: (data.valid === 1 && data.spo2 > 0) ? data.spo2 : prev.spo2,
                 spo2Status: {
                   valid: data.valid === 1,
-                  fingerDetected: data.fingerDetected === true,
+                  fingerDetected: data.finger === true,  // ESP32 sends "finger" not "fingerDetected"
                   ir: data.ir || 0,
                   red: data.red || 0,
                   active: data.active === true
