@@ -98,7 +98,7 @@ app.include_router(live_vitals.router, prefix="/api", tags=["Live Vitals"])
 app.include_router(vitals_history.router, prefix="/api", tags=["Vitals History"])
 
 # Real-time WebSocket for live vital signs monitoring
-app.include_router(vitals_websocket.router, tags=["Real-Time Vitals"])
+app.include_router(vitals_websocket.router, prefix="/api", tags=["Real-Time Vitals"])
 
 
 @app.get("/")

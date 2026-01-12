@@ -1,5 +1,54 @@
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts'
-import { Heart, Wind, Thermometer, Activity, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
+import { Heart, Wind, Thermometer, Activity, AlertTriangle, TrendingUp, TrendingDown, CheckCircle, XCircle } from 'lucide-react'
+
+// Custom Tooltip with Data Quality Info
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload
+    const quality = data.dataQuality
+    const hrValid = data.hrValid
+    const spo2Valid = data.spo2Valid
+    const fingerDetected = data.fingerDetected
+
+    return (
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-3 shadow-xl">
+        <p className="text-sm text-slate-400 mb-2">{data.fullTime}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
+            {entry.name}: {entry.value !== null && entry.value !== undefined ? entry.value.toFixed(1) : 'N/A'}
+          </p>
+        ))}
+        
+        {/* Data Quality Indicators */}
+        <div className="mt-2 pt-2 border-t border-slate-700 space-y-1">
+          <p className="text-xs text-slate-400">Data Quality:</p>
+          {quality !== 'unknown' && (
+            <div className="flex items-center gap-2">
+              {quality === 'good' ? (
+                <CheckCircle className="w-3 h-3 text-emerald-400" />
+              ) : (
+                <XCircle className="w-3 h-3 text-red-400" />
+              )}
+              <span className={`text-xs ${quality === 'good' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {quality === 'good' ? 'Good Quality' : 'Poor Quality'}
+              </span>
+            </div>
+          )}
+          {hrValid !== undefined && (
+            <p className="text-xs text-slate-400">HR Valid: <span className="text-white">{hrValid.toFixed(0)}%</span></p>
+          )}
+          {spo2Valid !== undefined && (
+            <p className="text-xs text-slate-400">SpO2 Valid: <span className="text-white">{spo2Valid.toFixed(0)}%</span></p>
+          )}
+          {fingerDetected !== undefined && (
+            <p className="text-xs text-slate-400">Finger: <span className="text-white">{fingerDetected.toFixed(0)}%</span></p>
+          )}
+        </div>
+      </div>
+    )
+  }
+  return null
+}
 
 export function HeartRateChart({ data, timeRange }) {
   if (!data || data.length === 0) {
@@ -15,7 +64,9 @@ export function HeartRateChart({ data, timeRange }) {
     time: new Date(item.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     fullTime: new Date(item.time).toLocaleString(),
     hr: item.avg_heart_rate,
-    abnormal: item.abnormal_hr_count > 0
+    abnormal: item.abnormal_hr_count > 0,
+    hrValid: item.hr_valid_pct !== undefined ? item.hr_valid_pct : (item.heart_rate_valid ? 100 : 0),
+    dataQuality: item.data_quality_good !== undefined ? (item.data_quality_good ? 'good' : 'poor') : 'unknown'
   }))
 
   const avgHr = (data.reduce((sum, item) => sum + (item.avg_heart_rate || 0), 0) / data.length).toFixed(1)
@@ -64,13 +115,7 @@ export function HeartRateChart({ data, timeRange }) {
             domain={[40, 120]}
           />
           <Tooltip 
-            contentStyle={{ 
-              backgroundColor: '#1e293b', 
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              color: '#fff'
-            }}
-            labelFormatter={(value) => chartData.find(d => d.time === value)?.fullTime || value}
+            content={<CustomTooltip />}
           />
           <Legend />
           <ReferenceLine y={60} stroke="#10b981" strokeDasharray="3 3" label={{ value: 'Min Normal', position: 'left', fill: '#10b981', fontSize: 10 }} />
@@ -102,7 +147,10 @@ export function SpO2Chart({ data, timeRange }) {
     time: new Date(item.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     fullTime: new Date(item.time).toLocaleString(),
     spo2: item.avg_spo2,
-    low: item.low_spo2_count > 0
+    low: item.low_spo2_count > 0,
+    fingerDetected: item.finger_detected_pct !== undefined ? item.finger_detected_pct : (item.finger_detected ? 100 : 0),
+    spo2Valid: item.spo2_valid_pct !== undefined ? item.spo2_valid_pct : (item.spo2_valid ? 100 : 0),
+    dataQuality: item.data_quality_good !== undefined ? (item.data_quality_good ? 'good' : 'poor') : 'unknown'
   }))
 
   const avgSpo2 = (data.reduce((sum, item) => sum + (item.avg_spo2 || 0), 0) / data.length).toFixed(1)
@@ -151,13 +199,7 @@ export function SpO2Chart({ data, timeRange }) {
             domain={[85, 100]}
           />
           <Tooltip 
-            contentStyle={{ 
-              backgroundColor: '#1e293b', 
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              color: '#fff'
-            }}
-            labelFormatter={(value) => chartData.find(d => d.time === value)?.fullTime || value}
+            content={<CustomTooltip />}
           />
           <Legend />
           <ReferenceLine y={95} stroke="#10b981" strokeDasharray="3 3" label={{ value: 'Normal Threshold', position: 'left', fill: '#10b981', fontSize: 10 }} />

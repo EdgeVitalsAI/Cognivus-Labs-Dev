@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Clock, RefreshCw, AlertTriangle, TrendingUp, Calendar, Zap } from 'lucide-react'
 import axios from 'axios'
 import { HeartRateChart, SpO2Chart, CombinedVitalsChart, VitalsSummaryCards } from './VitalsCharts'
+import { SensorStatusChart } from './SensorStatusChart'
 
 const API_BASE_URL = 'http://localhost:8000/api'
 
@@ -166,6 +167,9 @@ export default function VitalsHistoryTab({ patientId }) {
       {/* Charts */}
       {!loading && aggregatedData.length > 0 && (
         <div className="space-y-6">
+          {/* Sensor Status and Data Quality Chart */}
+          <SensorStatusChart data={aggregatedData} timeRange={TIME_RANGES.find(r => r.value === timeRange)?.label} />
+
           {/* Heart Rate Chart */}
           <HeartRateChart data={aggregatedData} timeRange={TIME_RANGES.find(r => r.value === timeRange)?.label} />
 

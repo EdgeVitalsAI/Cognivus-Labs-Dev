@@ -268,7 +268,14 @@ async def get_aggregated_vitals(
                 "avg_temperature": v.temperature,
                 "data_points": 1,
                 "abnormal_hr_count": 1 if v.heart_rate and (v.heart_rate < 60 or v.heart_rate > 100) else 0,
-                "low_spo2_count": 1 if v.spo2_value and v.spo2_value < 95 else 0
+                "low_spo2_count": 1 if v.spo2_value and v.spo2_value < 95 else 0,
+                # Sensor status fields
+                "finger_detected": v.finger_detected,
+                "spo2_valid": v.spo2_valid,
+                "ecg_leads_off": v.ecg_leads_off,
+                "heart_rate_valid": v.heart_rate_valid,
+                "spo2_ir_signal": v.spo2_ir_signal,
+                "spo2_red_signal": v.spo2_red_signal
             })
     else:
         # Map interval to SQL interval
@@ -290,7 +297,13 @@ async def get_aggregated_vitals(
                     AVG(temperature) AS avg_temperature,
                     COUNT(*) AS data_points,
                     SUM(CASE WHEN heart_rate < 60 OR heart_rate > 100 THEN 1 ELSE 0 END) AS abnormal_hr,
-                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2
+                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2,
+                    SUM(CASE WHEN finger_detected = true THEN 1 ELSE 0 END) AS finger_detected_count,
+                    SUM(CASE WHEN spo2_valid = true THEN 1 ELSE 0 END) AS spo2_valid_count,
+                    SUM(CASE WHEN ecg_leads_off = true THEN 1 ELSE 0 END) AS ecg_leads_off_count,
+                    SUM(CASE WHEN heart_rate_valid = true THEN 1 ELSE 0 END) AS hr_valid_count,
+                    AVG(spo2_ir_signal) AS avg_ir_signal,
+                    AVG(spo2_red_signal) AS avg_red_signal
                 FROM vitals_timeseries
                 WHERE patient_id = :patient_id
                     AND time >= :start_time
@@ -311,7 +324,13 @@ async def get_aggregated_vitals(
                     AVG(temperature) AS avg_temperature,
                     COUNT(*) AS data_points,
                     SUM(CASE WHEN heart_rate < 60 OR heart_rate > 100 THEN 1 ELSE 0 END) AS abnormal_hr,
-                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2
+                    SUM(CASE WHEN spo2_value < 95 THEN 1 ELSE 0 END) AS low_spo2,
+                    SUM(CASE WHEN finger_detected = true THEN 1 ELSE 0 END) AS finger_detected_count,
+                    SUM(CASE WHEN spo2_valid = true THEN 1 ELSE 0 END) AS spo2_valid_count,
+                    SUM(CASE WHEN ecg_leads_off = true THEN 1 ELSE 0 END) AS ecg_leads_off_count,
+                    SUM(CASE WHEN heart_rate_valid = true THEN 1 ELSE 0 END) AS hr_valid_count,
+                    AVG(spo2_ir_signal) AS avg_ir_signal,
+                    AVG(spo2_red_signal) AS avg_red_signal
                 FROM vitals_timeseries
                 WHERE patient_id = :patient_id
                 GROUP BY bucket
@@ -324,14 +343,24 @@ async def get_aggregated_vitals(
         
         aggregated_data = []
         for row in result:
+            total_data_points = row[4]
             aggregated_data.append({
                 "time": row[0].isoformat(),
                 "avg_heart_rate": round(row[1], 1) if row[1] else None,
                 "avg_spo2": round(row[2], 1) if row[2] else None,
                 "avg_temperature": round(row[3], 1) if row[3] else None,
-                "data_points": row[4],
+                "data_points": total_data_points,
                 "abnormal_hr_count": row[5] or 0,
-                "low_spo2_count": row[6] or 0
+                "low_spo2_count": row[6] or 0,
+                # Sensor status (percentage of readings with good status)
+                "finger_detected_pct": round((row[7] or 0) / total_data_points * 100, 1) if total_data_points > 0 else 0,
+                "spo2_valid_pct": round((row[8] or 0) / total_data_points * 100, 1) if total_data_points > 0 else 0,
+                "ecg_leads_off_pct": round((row[9] or 0) / total_data_points * 100, 1) if total_data_points > 0 else 0,
+                "hr_valid_pct": round((row[10] or 0) / total_data_points * 100, 1) if total_data_points > 0 else 0,
+                "avg_ir_signal": round(row[11], 0) if row[11] else None,
+                "avg_red_signal": round(row[12], 0) if row[12] else None,
+                # Data quality indicator (true if >80% valid readings)
+                "data_quality_good": (row[8] or 0) / total_data_points > 0.8 if total_data_points > 0 else False
             })
     
     return {
@@ -344,6 +373,98 @@ async def get_aggregated_vitals(
         "count": len(aggregated_data),
         "data": aggregated_data
     }
+
+
+@router.get("/patients/{patient_id}/vitals/abnormalities")
+async def get_abnormalities(
+    patient_id: int,
+    time_range: str = Query(default="24h"),
+    db: Session = Depends(get_db),
+    ts_db: Session = Depends(get_timescale_db)
+):
+    """
+    Get list of abnormal vital readings
+    Useful for alerts and health warnings
+    """
+    
+    # Verify patient exists
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    # Calculate time range
+    end_time = datetime.now()
+    time_delta = get_time_delta(time_range)
+    start_time = end_time - time_delta if time_delta else None
+
+
+@router.get("/patients/{patient_id}/vitals/diagnostic")
+async def get_vitals_diagnostic(
+    patient_id: int,
+    ts_db: Session = Depends(get_timescale_db)
+):
+    """
+    Diagnostic endpoint to check if data exists for a patient
+    Returns count of records and time range
+    """
+    try:
+        # Get total count
+        total_count = ts_db.query(func.count(VitalTimeseries.time)).filter(
+            VitalTimeseries.patient_id == patient_id
+        ).scalar()
+        
+        # Get time range
+        min_time = ts_db.query(func.min(VitalTimeseries.time)).filter(
+            VitalTimeseries.patient_id == patient_id
+        ).scalar()
+        
+        max_time = ts_db.query(func.max(VitalTimeseries.time)).filter(
+            VitalTimeseries.patient_id == patient_id
+        ).scalar()
+        
+        # Get counts by type
+        type_counts = {}
+        for data_type in ['ecg', 'spo2', 'heart_rate']:
+            count = ts_db.query(func.count(VitalTimeseries.time)).filter(
+                and_(
+                    VitalTimeseries.patient_id == patient_id,
+                    VitalTimeseries.data_type == data_type
+                )
+            ).scalar()
+            type_counts[data_type] = count or 0
+        
+        # Get recent samples
+        recent_samples = ts_db.query(VitalTimeseries).filter(
+            VitalTimeseries.patient_id == patient_id
+        ).order_by(VitalTimeseries.time.desc()).limit(5).all()
+        
+        return {
+            "success": True,
+            "patient_id": patient_id,
+            "total_records": total_count or 0,
+            "time_range": {
+                "oldest": min_time.isoformat() if min_time else None,
+                "newest": max_time.isoformat() if max_time else None
+            },
+            "records_by_type": type_counts,
+            "recent_samples": [
+                {
+                    "time": s.time.isoformat(),
+                    "type": s.data_type,
+                    "hr": s.heart_rate,
+                    "spo2": s.spo2_value,
+                    "ecg": s.ecg_value,
+                    "finger": s.finger_detected,
+                    "valid": s.spo2_valid
+                } for s in recent_samples
+            ]
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to retrieve diagnostic data"
+        }
 
 
 @router.get("/patients/{patient_id}/vitals/abnormalities")
