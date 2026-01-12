@@ -23,9 +23,9 @@ async def get_patient_live_vitals(patient_id: int, db: Session = Depends(get_db)
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
     
-    # Get assigned device
+    # Get assigned device (Device.patient_id is a string)
     device = db.query(Device).filter(
-        Device.patient_id == patient.patient_id,
+        Device.patient_id == str(patient_id),
         Device.status == DeviceStatus.ONLINE
     ).first()
     
@@ -78,12 +78,11 @@ async def get_all_patients_live_vitals(db: Session = Depends(get_db)):
     Used for periodic refresh of patient list cards
     """
     
-    # Get all patients with assigned online devices
-    patients = db.query(Patient).join(
-        Device, Device.patient_id == Patient.patient_id
-    ).filter(
+    # Get all online devices with patient assignments
+    devices = db.query(Device).filter(
         Device.status == DeviceStatus.ONLINE,
-        Device.ip_address.isnot(None)
+        Device.ip_address.isnot(None),
+        Device.patient_id.isnot(None)
     ).all()
     
     vitals_data = []
@@ -91,14 +90,14 @@ async def get_all_patients_live_vitals(db: Session = Depends(get_db)):
     async with aiohttp.ClientSession() as session:
         tasks = []
         
-        for patient in patients:
-            device = db.query(Device).filter(
-                Device.patient_id == patient.patient_id,
-                Device.status == DeviceStatus.ONLINE
-            ).first()
-            
-            if device and device.ip_address:
-                tasks.append(fetch_patient_vitals(session, patient.id, device.ip_address))
+        for device in devices:
+            # Convert patient_id string to int
+            try:
+                patient_id = int(device.patient_id)
+                tasks.append(fetch_patient_vitals(session, patient_id, device.ip_address))
+            except (ValueError, TypeError):
+                print(f"⚠️ Invalid patient_id format: {device.patient_id}")
+                continue
         
         if tasks:
             vitals_data = await asyncio.gather(*tasks, return_exceptions=True)
