@@ -67,6 +67,7 @@ export default function VitalsHistoryTab({ patientId }) {
       setAggregatedData(aggregatedRes.data.data || [])
       setSummary(summaryRes.data.statistics || null)
       setAbnormalities(abnormalitiesRes.data.abnormalities || [])
+      setError(null) // Clear any previous errors on success
     } catch (err) {
       console.error('Failed to fetch vitals history:', err)
       setError('Failed to load vitals history. Please try again.')
@@ -136,8 +137,8 @@ export default function VitalsHistoryTab({ patientId }) {
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
+      {/* Error Message - only show if there's an error AND no data loaded */}
+      {error && !loading && aggregatedData.length === 0 && (
         <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
