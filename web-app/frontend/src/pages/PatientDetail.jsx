@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff, BarChart3 } from 'lucide-react'
+import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff, BarChart3, Brain } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
@@ -10,6 +10,8 @@ import VitalsHistoryTab from '../components/vitals/VitalsHistoryTab'
 import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
 import axios from 'axios'
+import AIInsights from "../components/AIInsight/AIInsights";
+
 
 const API_BASE_URL = 'http://localhost:8000/api'
 
@@ -207,12 +209,14 @@ const PatientDetail = () => {
           </div>
 
           {/* Tab Navigation */}
+          {/* Tab Navigation */}
           <div className="flex gap-4 mb-6 border-b border-slate-700 overflow-x-auto">
             {[
               { id: 'profile', label: 'Patient Profile' },
               { id: 'personal', label: 'Personal Information' },
               { id: 'vitals-history', label: 'Vitals History', icon: BarChart3 },
-              { id: 'prescriptions', label: 'Prescriptions Management' }
+              { id: 'prescriptions', label: 'Prescriptions Management' },
+              { id: 'ai-insights', label: 'AI Insights', icon: Brain }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -228,7 +232,6 @@ const PatientDetail = () => {
               </button>
             ))}
           </div>
-
           {/* Tab Content */}
           {activeTab === 'profile' && <ProfileTab patientData={patientData} photo={photo} setPhoto={setPhoto} handlePhotoSelected={handlePhotoSelected} notes={notes} setNotes={setNotes} editMode={editMode} setEditMode={setEditMode} handleSave={handleSave} />}
           
@@ -237,6 +240,7 @@ const PatientDetail = () => {
           {activeTab === 'vitals-history' && <VitalsHistoryTab patientId={patientData.id} />}
           
           {activeTab === 'prescriptions' && <PrescriptionsTabComponent patientData={patientData} expandedPrescription={expandedPrescription} setExpandedPrescription={setExpandedPrescription} />}
+          {activeTab === 'ai-insights' && <AIInsights patientId={patientData.id} patientData={patientData} />}
         </main>
       </div>
     </div>
