@@ -5,6 +5,8 @@ from starlette.responses import Response
 from .core.config import settings
 from .core.database import engine, Base
 from .core.background_tasks import start_background_tasks
+from .services.ecg_buffer_manager import start_ecg_buffer_manager, stop_ecg_buffer_manager
+from .services.ecg_monitoring_service import start_ecg_monitoring_service, stop_ecg_monitoring_service
 from .api.routes import (
     auth,
     admin_auth,
@@ -23,7 +25,8 @@ from .api.routes import (
     devices,  # Device auto-registration (public endpoint)
     vitals_websocket,  # Real-time vitals WebSocket streaming
     live_vitals,  # Live vitals from ESP32 HTTP endpoints
-    vitals_history  # Historical vitals from TimescaleDB
+    vitals_history,  # Historical vitals from TimescaleDB
+    ecg_websocket  # ECG monitoring with ML inference
 )
 
 Base.metadata.create_all(bind=engine)
@@ -74,6 +77,20 @@ async def startup_event():
     """Start background tasks on application startup"""
     await start_background_tasks()
     print("✓ Background tasks started (device heartbeat monitoring)")
+    
+    # Start ECG monitoring services
+    start_ecg_buffer_manager()
+    start_ecg_monitoring_service()
+    print("✓ ECG monitoring and ML inference services started")
+
+
+# Shutdown event - cleanup
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    stop_ecg_monitoring_service()
+    stop_ecg_buffer_manager()
+    print("✓ ECG monitoring services stopped")
 
 
 # Public authentication routes
@@ -103,6 +120,9 @@ app.include_router(vitals_history.router, prefix="/api", tags=["Vitals History"]
 
 # Real-time WebSocket for live vital signs monitoring
 app.include_router(vitals_websocket.router, prefix="/api", tags=["Real-Time Vitals"])
+
+# ECG monitoring with ML inference
+app.include_router(ecg_websocket.router, prefix="/api", tags=["ECG Monitoring"])
 
 
 @app.get("/")

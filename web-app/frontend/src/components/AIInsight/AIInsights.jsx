@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Brain, Activity, Wind, Thermometer, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle, Loader } from 'lucide-react'
 import axios from 'axios'
+import ECGMonitoring from '../ECG/ECGMonitoring'
 
 const API_BASE_URL = 'http://localhost:8000/api'
 
@@ -103,9 +104,11 @@ const AIInsights = ({ patientId, patientData }) => {
         </div>
       </div>
 
+      {/* Real-Time ECG Monitoring with ML Analysis */}
+      <ECGMonitoring patientId={patientId} />
+
       {/* Insights Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ECG Health Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">{/* ECG Health Status */}
         <ECGHealthCard data={aiInsights.ecgHealth} />
 
         {/* SpO2 Health Status */}
