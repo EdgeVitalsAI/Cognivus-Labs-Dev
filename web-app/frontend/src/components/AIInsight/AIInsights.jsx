@@ -4,15 +4,73 @@ import axios from 'axios'
 import ECGMonitoring from '../ECG/ECGMonitoring'
 
 const API_BASE_URL = 'http://localhost:8000/api'
+const WS_BASE_URL = 'ws://localhost:8001/api'
 
 const AIInsights = ({ patientId, patientData }) => {
   const [loading, setLoading] = useState(true)
   const [aiInsights, setAiInsights] = useState(null)
   const [error, setError] = useState(null)
+  const [wsConnected, setWsConnected] = useState(false)
 
   useEffect(() => {
     fetchAIInsights()
+    connectToECGWebSocket()
   }, [patientId])
+
+  const connectToECGWebSocket = () => {
+    try {
+      const ws = new WebSocket(`${WS_BASE_URL}/ws/ecg/${patientId}`)
+      
+      ws.onopen = () => {
+        console.log('✓ AIInsights: ECG WebSocket connected')
+        setWsConnected(true)
+      }
+      
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          
+          if (message.type === 'ecg_prediction') {
+            console.log('📊 AIInsights: Received ECG prediction:', message)
+            
+            // Update ECG health based on prediction
+            setAiInsights(prev => ({
+              ...prev,
+              ecgHealth: {
+                status: message.trend === 'abnormal' ? 'abnormal' : 'normal',
+                confidence: Math.round(message.confidence || 0),
+                details: message.details || prev.ecgHealth.details,
+                lastAnalyzed: message.timestamp || new Date().toISOString()
+              }
+            }))
+          }
+        } catch (err) {
+          console.error('Error parsing WebSocket message:', err)
+        }
+      }
+      
+      ws.onerror = (error) => {
+        console.error('✗ AIInsights: ECG WebSocket error:', error)
+        setWsConnected(false)
+      }
+      
+      ws.onclose = () => {
+        console.log('✗ AIInsights: ECG WebSocket closed')
+        setWsConnected(false)
+        // Attempt reconnect after 3 seconds
+        setTimeout(() => connectToECGWebSocket(), 3000)
+      }
+      
+      return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
+        }
+      }
+    } catch (err) {
+      console.error('Failed to connect ECG WebSocket:', err)
+      setWsConnected(false)
+    }
+  }
 
   const fetchAIInsights = async () => {
     try {
@@ -97,9 +155,16 @@ const AIInsights = ({ patientId, patientData }) => {
           <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
             <Brain className="w-6 h-6 text-blue-400" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-white">AI Health Insights</h2>
             <p className="text-slate-400 text-sm">AI-powered analysis of patient vital signs and health trends</p>
+          </div>
+          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            wsConnected 
+              ? 'bg-emerald-500/20 text-emerald-400' 
+              : 'bg-slate-500/20 text-slate-400'
+          }`}>
+            {wsConnected ? '● Live' : '○ Offline'}
           </div>
         </div>
       </div>

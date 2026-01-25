@@ -170,3 +170,16 @@ if __name__ == "__main__":
         print("⚠️  MODEL VALIDATION: PARTIAL - Normal detected correctly, but abnormal classified as normal")
     else:
         print("❌ MODEL VALIDATION: FAILED - Model predictions unexpected")
+    
+    # Export model in native Keras format (most compatible)
+    print("\n" + "="*70)
+    print("  EXPORTING MODEL TO .KERAS FORMAT")
+    print("="*70)
+    try:
+        keras_file = "Models/ecg_lstm_model.keras"
+        model.save(keras_file)
+        print(f"✅ Model exported to .keras format: {keras_file}")
+        print(f"  This format is compatible with TensorFlow 2.13+")
+        print(f"  Update backend to load from: {keras_file}")
+    except Exception as e:
+        print(f"❌ Export failed: {e}")

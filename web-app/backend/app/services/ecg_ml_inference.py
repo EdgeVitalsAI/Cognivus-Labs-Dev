@@ -3,6 +3,10 @@ ECG ML Inference Service
 Runs ECG abnormality detection on 15-second windows using trained LSTM model
 Produces trend-based predictions with confidence scores
 """
+import os
+# Force legacy Keras (v2) deserialization to load older models on Keras 3 runtimes
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
 import numpy as np
 import asyncio
 from typing import Dict, Optional, Tuple
@@ -47,9 +51,10 @@ class ECGMLInferenceService:
     Uses trained LSTM model to analyze 15-second ECG windows
     """
     
-    def __init__(self, model_path: Optional[str] = None):
+    def __init__(self, model_path: Optional[str] = None, allow_mock: bool = False):
         self.model = None
         self.model_loaded = False
+        self.allow_mock = allow_mock
         
         # Model configuration (must match training)
         self.FS_SENSOR = 250      # Sensor sampling rate (Hz)
@@ -57,31 +62,86 @@ class ECGMLInferenceService:
         self.WIN_SEC = 15.0       # 15-second analysis window
         self.timesteps = int(self.FS_TARGET * self.WIN_SEC)  # 5400 samples
         
-        # Load model if path provided
+        # Load model
         if model_path:
             self.load_model(model_path)
+        else:
+            self.load_model(self._default_model_path())
     
+    def _default_model_path(self) -> str:
+        """Locate the packaged ECG model under ml-models/ecg-analysis/models or env override"""
+        env_path = Path(str(os.getenv("ECG_MODEL_PATH", ""))).expanduser()
+        if env_path.name and env_path.exists():
+            return str(env_path)
+        
+        # __file__ is /app/app/services/ecg_ml_inference.py
+        # Go up to /app/app then to /app
+        app_dir = Path(__file__).resolve().parent.parent  # /app/app
+        repo_root = app_dir.parent  # /app
+        
+        candidates = [
+            repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model_savedmodel",
+            repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model.keras",
+            repo_root / "ml-models" / "ecg-analysis" / "models" / "best_ecg_model.h5",
+            repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model.h5",
+        ]
+        print(f"[debug] Looking for ECG model in the following locations:")
+        for i, path in enumerate(candidates, 1):
+            exists = "EXISTS" if path.exists() else "NOT FOUND"
+            print(f"  {i}. {path} - {exists}")
+            if path.exists():
+                print(f"[debug] Using: {path}")
+                return str(path)
+        return str(candidates[0])
+
     def load_model(self, model_path: str):
-        """Load the trained TensorFlow/Keras model"""
+        """Load the trained TensorFlow/Keras model. Raises if missing when allow_mock is False."""
+        model_file = Path(model_path)
+        
+        # Check if SavedModel directory exists
+        is_savedmodel = model_file.is_dir() and (model_file / "saved_model.pb").exists()
+        
+        if not model_file.exists():
+            if self.allow_mock:
+                print(f"Warning: ECG model not found at {model_path}, using mock predictions")
+                self.model_loaded = False
+                return
+            raise FileNotFoundError(f"ECG model not found at {model_path}")
+        
         try:
-            model_file = Path(model_path)
-            if not model_file.exists():
-                # Try relative to ml-models directory
-                alt_path = Path(__file__).parent.parent.parent.parent / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model.h5"
-                if alt_path.exists():
-                    model_file = alt_path
-                else:
-                    print(f"⚠️ ECG model not found at {model_path}, using mock predictions")
-                    self.model_loaded = False
-                    return
+            if is_savedmodel:
+                # Load SavedModel format (Keras 3 native)
+                print(f"[debug] Loading SavedModel from {model_file}...")
+                self.model = tf.saved_model.load(str(model_file))
+                self.model_loaded = True
+                print(f"[OK] ECG ML model loaded from SavedModel")
+                return
             
-            self.model = tf.keras.models.load_model(str(model_file))
+            # Try keras package first (from tf-keras) which handles legacy models better
+            try:
+                import keras
+                print(f"[debug] Loading via keras.saving.load_model...")
+                self.model = keras.saving.load_model(str(model_file))
+                self.model_loaded = True
+                print(f"[OK] ECG ML model loaded from {model_file} (via keras)")
+                return
+            except Exception as e:
+                print(f"[debug] keras.saving failed: {e}, trying tf.keras...")
+            
+            # Fall back to tf.keras with minimal config
+            self.model = tf.keras.models.load_model(str(model_file), compile=False, safe_mode=False)
             self.model_loaded = True
-            print(f"✓ ECG ML model loaded from {model_file}")
+            print(f"[OK] ECG ML model loaded from {model_file}")
         except Exception as e:
-            print(f"✗ Failed to load ECG model: {e}")
-            print("⚠️ Using mock predictions for development")
-            self.model_loaded = False
+            error_msg = f"Failed to load ECG model: {e}"
+            print(f"[ERROR] {error_msg}")
+            if self.allow_mock:
+                print("Warning: Falling back to mock predictions for development")
+                self.model_loaded = False
+            else:
+                print("Hint: Model may need retraining with current TensorFlow version")
+                print("For now, restart with allow_mock=True or retrain the model")
+                raise RuntimeError(error_msg) from e
     
     async def predict(self, ecg_samples: np.ndarray, patient_id: int) -> ECGPrediction:
         """
@@ -119,43 +179,41 @@ class ECGMLInferenceService:
             heart_rate = self._estimate_heart_rate(processed, self.FS_TARGET)
             
             # Run inference
-            if self.model_loaded and self.model is not None:
-                # Reshape for model input: (batch_size, timesteps, features)
-                X = processed.reshape(1, self.timesteps, 1)
-                
-                # Get prediction
-                prob = float(self.model.predict(X, verbose=0)[0][0])
-                
-                # Classify based on probability
-                if prob < 0.3:
-                    trend = ECGTrend.NORMAL
-                    confidence = (1 - prob) * 100
-                    details = "Regular sinus rhythm detected. No significant abnormalities."
-                elif prob < 0.7:
-                    trend = ECGTrend.ABNORMAL
-                    confidence = max(prob, 1 - prob) * 100
-                    details = "Potential arrhythmia detected. Irregular heart rhythm patterns observed."
-                else:
-                    trend = ECGTrend.UNSTABLE
-                    confidence = prob * 100
-                    details = "Critical cardiac rhythm abnormality detected. Immediate attention recommended."
-                
-            else:
-                # Mock prediction for development
+            if not self.model_loaded or self.model is None:
+                if not self.allow_mock:
+                    raise RuntimeError("ECG model is not loaded; predictions cannot be generated")
+                # Use mock prediction as fallback
                 prob = self._mock_predict(ecg_samples)
+            else:
+                # Reshape for model input: (batch_size, timesteps, features)
+                X = processed.reshape(1, self.timesteps, 1).astype(np.float32)
                 
-                if prob < 0.3:
-                    trend = ECGTrend.NORMAL
-                    confidence = (1 - prob) * 100
-                    details = "Regular sinus rhythm detected. No significant abnormalities."
-                elif prob < 0.7:
-                    trend = ECGTrend.ABNORMAL
-                    confidence = max(prob, 1 - prob) * 100
-                    details = "Potential arrhythmia detected. Irregular heart rhythm patterns observed."
+                # Get prediction - handle SavedModel signature or Keras model API
+                if hasattr(self.model, "signatures") and "serve" in getattr(self.model, "signatures", {}):
+                    # SavedModel exported via model.export; invoke the serving signature directly
+                    serve_fn = self.model.signatures["serve"]
+                    outputs = serve_fn(tf.constant(X))
+                    first_output = next(iter(outputs.values()))
+                    prob = float(first_output.numpy()[0][0])
+                elif hasattr(self.model, "predict"):
+                    # Keras model
+                    prob = float(self.model.predict(X, verbose=0)[0][0])
                 else:
-                    trend = ECGTrend.UNSTABLE
-                    confidence = prob * 100
-                    details = "Critical cardiac rhythm abnormality detected. Immediate attention recommended."
+                    raise RuntimeError("Loaded ECG model has no callable inference interface")
+            
+            # Classify based on probability
+            if prob < 0.3:
+                trend = ECGTrend.NORMAL
+                confidence = (1 - prob) * 100
+                details = "Regular sinus rhythm detected. No significant abnormalities."
+            elif prob < 0.7:
+                trend = ECGTrend.ABNORMAL
+                confidence = max(prob, 1 - prob) * 100
+                details = "Potential arrhythmia detected. Irregular heart rhythm patterns observed."
+            else:
+                trend = ECGTrend.UNSTABLE
+                confidence = prob * 100
+                details = "Critical cardiac rhythm abnormality detected. Immediate attention recommended."
             
             return ECGPrediction(
                 trend=trend,
@@ -291,8 +349,8 @@ def get_ecg_ml_service() -> ECGMLInferenceService:
     return _ecg_ml_service
 
 
-def initialize_ecg_ml_service(model_path: Optional[str] = None):
+def initialize_ecg_ml_service(model_path: Optional[str] = None, allow_mock: bool = False):
     """Initialize the ECG ML service with model"""
     global _ecg_ml_service
-    _ecg_ml_service = ECGMLInferenceService(model_path)
+    _ecg_ml_service = ECGMLInferenceService(model_path=model_path, allow_mock=allow_mock)
     return _ecg_ml_service

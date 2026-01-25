@@ -96,6 +96,8 @@ async def ecg_monitoring_websocket(
     # Accept connection
     await websocket.accept()
     
+    print(f"[ECG WebSocket] Connection request for patient {patient_id}")
+    
     # Get services
     ecg_service = get_ecg_monitoring_service()
     ws_manager = get_ecg_websocket_manager()
@@ -112,21 +114,37 @@ async def ecg_monitoring_websocket(
     
     try:
         # Send initial connection success message
-        await websocket.send_json({
-            "type": "connection_established",
-            "patient_id": patient_id,
-            "message": "ECG monitoring started",
-            "update_interval_seconds": 2
-        })
+        try:
+            await websocket.send_json({
+                "type": "connection_established",
+                "patient_id": patient_id,
+                "message": "ECG monitoring started",
+                "update_interval_seconds": 2
+            })
+        except WebSocketDisconnect:
+            print(f"[ECG WebSocket] Client disconnected immediately for patient {patient_id}")
+            await ws_manager.disconnect(patient_id, websocket)
+            return
+        except Exception as e:
+            print(f"[ECG WebSocket] Error sending connection message: {e}")
+            await ws_manager.disconnect(patient_id, websocket)
+            return
+        
+        print(f"[ECG WebSocket] Monitoring started for patient {patient_id}")
         
         # Send latest prediction if available
         latest_prediction = ecg_service.get_latest_prediction(patient_id)
         if latest_prediction:
-            await websocket.send_json({
-                "type": "ecg_prediction",
-                "patient_id": patient_id,
-                **latest_prediction.to_dict()
-            })
+            try:
+                await websocket.send_json({
+                    "type": "ecg_prediction",
+                    "patient_id": patient_id,
+                    **latest_prediction.to_dict()
+                })
+            except (WebSocketDisconnect, Exception) as e:
+                print(f"[ECG WebSocket] Error sending initial prediction: {e}")
+                await ws_manager.disconnect(patient_id, websocket)
+                return
         
         # Keep connection alive and handle incoming messages
         while True:
@@ -137,11 +155,17 @@ async def ecg_monitoring_websocket(
                 
                 # Handle client messages (e.g., configuration changes)
                 if message.get("type") == "ping":
-                    await websocket.send_json({"type": "pong"})
+                    try:
+                        await websocket.send_json({"type": "pong"})
+                    except (WebSocketDisconnect, Exception):
+                        break
                 
             except asyncio.TimeoutError:
                 # Send heartbeat to keep connection alive
-                await websocket.send_json({"type": "heartbeat"})
+                try:
+                    await websocket.send_json({"type": "heartbeat"})
+                except (WebSocketDisconnect, Exception):
+                    break
             
     except WebSocketDisconnect:
         print(f"✓ ECG WebSocket disconnected for patient {patient_id}")

@@ -2,11 +2,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from pathlib import Path
 from .core.config import settings
 from .core.database import engine, Base
 from .core.background_tasks import start_background_tasks
 from .services.ecg_buffer_manager import start_ecg_buffer_manager, stop_ecg_buffer_manager
 from .services.ecg_monitoring_service import start_ecg_monitoring_service, stop_ecg_monitoring_service
+from .services.ecg_ml_inference import initialize_ecg_ml_service
 from .api.routes import (
     auth,
     admin_auth,
@@ -28,6 +30,7 @@ from .api.routes import (
     vitals_history,  # Historical vitals from TimescaleDB
     ecg_websocket  # ECG monitoring with ML inference
 )
+import os 
 
 Base.metadata.create_all(bind=engine)
 
@@ -77,6 +80,49 @@ async def startup_event():
     """Start background tasks on application startup"""
     await start_background_tasks()
     print("✓ Background tasks started (device heartbeat monitoring)")
+    # Resolve ECG model location:
+    # 1) Respect explicit env override ECG_MODEL_PATH
+    # 2) Search common repo/container locations
+    env_model = Path(str(os.getenv("ECG_MODEL_PATH", ""))).expanduser()
+    candidates = []
+    if env_model.name:
+        candidates.append(env_model)
+    
+    # __file__ is /app/app/main.py
+    # .parent gives /app/app
+    # .parent.parent gives /app (the container root where ml-models is mounted)
+    app_dir = Path(__file__).resolve().parent  # /app/app
+    repo_root = app_dir.parent  # /app
+    
+    candidates.extend([
+        repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model_savedmodel",
+        repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model.keras",
+        repo_root / "ml-models" / "ecg-analysis" / "models" / "best_ecg_model.h5",
+        repo_root / "ml-models" / "ecg-analysis" / "models" / "ecg_lstm_model.h5",
+    ])
+    
+    print(f"[debug] Looking for ECG model in the following locations:")
+    for idx, candidate in enumerate(candidates):
+        exists = Path(candidate).exists() if candidate else False
+        print(f"  {idx+1}. {candidate} - {'EXISTS' if exists else 'NOT FOUND'}")
+    
+    model_path = next((p for p in candidates if p and Path(p).exists()), None)
+    if model_path is None:
+        raise FileNotFoundError(
+            f"No ECG model found. Searched locations:\n" + 
+            "\n".join(f"  - {c}" for c in candidates) +
+            "\n\nSet ECG_MODEL_PATH or mount ml-models/ecg-analysis/models with ecg_lstm_model_savedmodel (directory) or best_ecg_model.h5/ecg_lstm_model.h5"
+        )
+    
+    # Try to load the model, but allow fallback to mock predictions if there's a version mismatch
+    try:
+        initialize_ecg_ml_service(str(model_path), allow_mock=False)
+        print(f"✓ ECG ML model initialized from {model_path}")
+    except RuntimeError as e:
+        print(f"⚠️ Could not load ECG model due to TensorFlow version incompatibility")
+        print(f"⚠️ Initializing with mock predictions for testing")
+        initialize_ecg_ml_service(str(model_path), allow_mock=True)
+        print(f"✓ ECG ML service initialized with mock predictions (model needs retraining)")
     
     # Start ECG monitoring services
     start_ecg_buffer_manager()

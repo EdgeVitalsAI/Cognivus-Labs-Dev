@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Activity, Heart, AlertTriangle, CheckCircle, TrendingUp, Clock, Wifi, WifiOff } from 'lucide-react'
 
-const WS_BASE_URL = 'ws://localhost:8000/api'
+const WS_BASE_URL = 'ws://localhost:8001/api'  // Updated to port 8001 for admin backend
 
 /**
  * ECG Monitoring Component with ML Trend Analysis
@@ -20,15 +20,9 @@ const ECGMonitoring = ({ patientId }) => {
   const wsRef = useRef(null)
   
   // ECG data state
-  const [ecgSamples, setEcgSamples] = useState([])
-  const [lastUpdate, setLastUpdate] = useState(null)
-  
   // ML prediction state
   const [prediction, setPrediction] = useState(null)
   const [predictionHistory, setPredictionHistory] = useState([])
-  
-  // Chart reference
-  const canvasRef = useRef(null)
   
   // WebSocket connection
   useEffect(() => {
@@ -95,14 +89,7 @@ const ECGMonitoring = ({ patientId }) => {
         break
       
       case 'ecg_waveform':
-        // Update ECG waveform display (2 seconds of data)
-        setEcgSamples(message.samples || [])
-        setLastUpdate(new Date(message.timestamp))
-        
-        // Render waveform on canvas
-        if (message.samples && message.samples.length > 0) {
-          renderECGWaveform(message.samples)
-        }
+        // Waveform hidden in UI; still handled to keep buffer alive
         break
       
       case 'ecg_prediction':
@@ -138,90 +125,6 @@ const ECGMonitoring = ({ patientId }) => {
         console.log('Unknown message type:', message.type)
     }
   }
-  
-  const renderECGWaveform = (samples) => {
-    const canvas = canvasRef.current
-    if (!canvas || !samples || samples.length === 0) return
-    
-    const ctx = canvas.getContext('2d')
-    const width = canvas.width
-    const height = canvas.height
-    
-    // Clear canvas
-    ctx.fillStyle = '#0f172a'
-    ctx.fillRect(0, 0, width, height)
-    
-    // Draw grid
-    ctx.strokeStyle = '#1e293b'
-    ctx.lineWidth = 1
-    
-    // Vertical lines
-    for (let x = 0; x < width; x += 40) {
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, height)
-      ctx.stroke()
-    }
-    
-    // Horizontal lines
-    for (let y = 0; y < height; y += 40) {
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(width, y)
-      ctx.stroke()
-    }
-    
-    // Normalize samples to canvas height
-    const maxVal = Math.max(...samples)
-    const minVal = Math.min(...samples)
-    const range = maxVal - minVal || 1
-    
-    const normalizedSamples = samples.map(val => {
-      return height - ((val - minVal) / range) * height * 0.8 - height * 0.1
-    })
-    
-    // Draw ECG waveform
-    ctx.strokeStyle = '#10b981'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    
-    const stepX = width / (samples.length - 1)
-    
-    normalizedSamples.forEach((y, i) => {
-      const x = i * stepX
-      if (i === 0) {
-        ctx.moveTo(x, y)
-      } else {
-        ctx.lineTo(x, y)
-      }
-    })
-    
-    ctx.stroke()
-  }
-  
-  // Auto-resize canvas
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    
-    const resizeCanvas = () => {
-      const container = canvas.parentElement
-      if (container) {
-        canvas.width = container.clientWidth
-        canvas.height = container.clientHeight
-        
-        // Re-render with current data
-        if (ecgSamples.length > 0) {
-          renderECGWaveform(ecgSamples)
-        }
-      }
-    }
-    
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-    
-    return () => window.removeEventListener('resize', resizeCanvas)
-  }, [ecgSamples])
   
   // Get prediction status styling
   const getPredictionStyle = () => {
@@ -338,39 +241,6 @@ const ECGMonitoring = ({ patientId }) => {
           </div>
         </div>
       )}
-      
-      {/* ECG Waveform Chart */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-white">ECG Waveform</h4>
-          {lastUpdate && (
-            <span className="text-xs text-slate-400">
-              Updated: {lastUpdate.toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-        
-        <div className="relative w-full h-64 bg-slate-950 rounded-lg overflow-hidden">
-          <canvas 
-            ref={canvasRef}
-            className="w-full h-full"
-          />
-          
-          {!connected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80">
-              <div className="text-center">
-                <WifiOff className="w-12 h-12 text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-400">Waiting for connection...</p>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-          <span>2-second window • 250 Hz sampling rate</span>
-          <span>15-second analysis window</span>
-        </div>
-      </div>
       
       {/* Prediction History */}
       {predictionHistory.length > 0 && (
