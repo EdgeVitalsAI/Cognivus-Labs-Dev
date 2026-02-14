@@ -9,6 +9,7 @@ from .core.background_tasks import start_background_tasks
 from .services.ecg_buffer_manager import start_ecg_buffer_manager, stop_ecg_buffer_manager
 from .services.ecg_monitoring_service import start_ecg_monitoring_service, stop_ecg_monitoring_service
 from .services.ecg_ml_inference import initialize_ecg_ml_service
+from .services.ecg_hardware_ingestion import start_ecg_hardware_ingestion, stop_ecg_hardware_ingestion
 from .api.routes import (
     auth,
     admin_auth,
@@ -129,11 +130,16 @@ async def startup_event():
     start_ecg_monitoring_service()
     print("✓ ECG monitoring and ML inference services started")
 
+    # Start real hardware ECG ingestion (connects to ESP32 devices via WebSocket)
+    start_ecg_hardware_ingestion()
+    print("✓ ECG hardware ingestion service started (real ESP32 devices)")
+
 
 # Shutdown event - cleanup
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on application shutdown"""
+    stop_ecg_hardware_ingestion()
     stop_ecg_monitoring_service()
     stop_ecg_buffer_manager()
     print("✓ ECG monitoring services stopped")
