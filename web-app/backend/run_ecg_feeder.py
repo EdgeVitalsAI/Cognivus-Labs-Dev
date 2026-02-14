@@ -66,7 +66,7 @@ def generate_normal_ecg(fs, duration, heart_rate=75):
 
 def generate_abnormal_ecg(fs, duration):
     """Arrhythmic/chaotic pattern"""
-    t = np.linspace(0, duration, int(fs * duration))
+    t = np.linspace(0, duration, int(fs * duration)) 
     signal = np.zeros_like(t)
     num_spikes = np.random.randint(8, 15)
     spike_times = np.sort(np.random.uniform(0, duration, num_spikes))
@@ -102,7 +102,7 @@ def run_feeder(
     waveform_mode: str = "synthetic",
     segment_duration: float = 2.0,
 ):
-    """Run the ECG feeder with occasional abnormal rhythms"""
+    """Run the ECG feeder using only normal sinus rhythm"""
     
     # Default TimescaleDB connection
     if not timescale_dsn:
@@ -118,30 +118,20 @@ def run_feeder(
     phase = 0.0
     dt = 1.0 / sampling_rate
 
-    # Abnormal rhythm scheduling
-    mode = "normal"
-    event_ends_at = 0.0
-    next_event_at = time.perf_counter() + np.random.exponential(abnormal_interval_mean)
-
     segment_data = np.array([], dtype=float)
     segment_idx = 0
 
-    def regenerate_segment(current_mode: str, heart_rate: float):
+    def regenerate_segment(heart_rate: float):
         nonlocal segment_data, segment_idx
-        if current_mode == "normal":
-            segment_data = generate_normal_ecg(sampling_rate, segment_duration, heart_rate=heart_rate)
-        elif current_mode == "tachy":
-            segment_data = generate_normal_ecg(sampling_rate, segment_duration, heart_rate=heart_rate)
-        else:
-            segment_data = generate_abnormal_ecg(sampling_rate, segment_duration)
+        segment_data = generate_normal_ecg(sampling_rate, segment_duration, heart_rate=heart_rate)
         segment_idx = 0
 
-    def next_sample(current_mode: str, heart_rate: float, freq_hz: float, phase_val: float) -> float:
+    def next_sample(heart_rate: float, freq_hz: float, phase_val: float) -> float:
         nonlocal segment_idx
         if waveform_mode == "simple":
             return baseline + amplitude * math.sin(2 * math.pi * freq_hz * phase_val) + np.random.normal(0.0, noise_std)
         if segment_idx >= len(segment_data):
-            regenerate_segment(current_mode, heart_rate)
+            regenerate_segment(heart_rate)
         val = baseline + amplitude * segment_data[segment_idx] + np.random.normal(0.0, noise_std)
         segment_idx += 1
         return val
@@ -180,8 +170,7 @@ def run_feeder(
             with conn.cursor() as cur:
                 execute_values(cur, sql, buffer, page_size=batch_size)
             conn.commit()
-            status = "abnormal data" if mode != "normal" else "normal data"
-            print(f"[ok] Inserted {len(buffer)} samples into TimescaleDB ({status})")
+            print(f"[ok] Inserted {len(buffer)} normal samples into TimescaleDB")
             buffer.clear()
             last_flush = time.perf_counter()
         except psycopg2.Error as exc:
@@ -189,25 +178,7 @@ def run_feeder(
             conn.rollback()
     
     def choose_hr(now: float) -> Tuple[float, float]:
-        nonlocal mode, event_ends_at, next_event_at
-
-        # Handle abnormal event timing
-        if mode != "normal" and now >= event_ends_at:
-            mode = "normal"
-            next_event_at = now + np.random.exponential(abnormal_interval_mean)
-
-        if mode == "normal" and now >= next_event_at:
-            mode = np.random.choice(["tachy", "irregular"])
-            event_ends_at = now + abnormal_duration
-            next_event_at = event_ends_at + np.random.exponential(abnormal_interval_mean)
-
-        if mode == "tachy":
-            hr = np.random.uniform(tachy_hr_min, tachy_hr_max)
-        elif mode == "irregular":
-            base = np.random.uniform(irregular_hr_min, irregular_hr_max)
-            hr = np.clip(base + np.random.normal(0.0, irregular_jitter), irregular_hr_min, irregular_hr_max)
-        else:
-            hr = 72.0 + np.random.normal(0.0, 4.0)
+        hr = 72.0 + np.random.normal(0.0, 4.0)
 
         freq = max(hr / 60.0, 0.5)  # Hz
         return hr, freq
@@ -218,7 +189,7 @@ def run_feeder(
             now = time.perf_counter()
             hr, freq = choose_hr(now)
 
-            val = next_sample(mode, hr, freq, phase)
+            val = next_sample(hr, freq, phase)
 
             append(datetime.now(timezone.utc), val, heart_rate=hr)
 
