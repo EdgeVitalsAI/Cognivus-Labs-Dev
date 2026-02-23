@@ -86,6 +86,58 @@ def generate_abnormal_ecg(fs, duration):
     return signal
 
 
+def generate_tachy_ecg(fs, duration, heart_rate=145):
+    """Fast rhythm with compressed morphology and added instability."""
+    t = np.linspace(0, duration, int(fs * duration))
+    beat_interval = 60 / max(heart_rate, 1e-3)
+    signal = np.zeros_like(t)
+
+    for beat_time in np.arange(0, duration, beat_interval):
+        qrs_center = beat_time + np.random.uniform(0.08, 0.12)
+        qrs_width = np.random.uniform(0.008, 0.012)
+        qrs_amp = np.random.uniform(1.1, 1.8)
+        signal += qrs_amp * np.exp(-((t - qrs_center) ** 2) / (2 * qrs_width ** 2))
+
+        if np.random.rand() < 0.45:
+            ectopic_center = qrs_center + np.random.uniform(0.02, 0.05)
+            signal -= np.random.uniform(0.25, 0.55) * np.exp(-((t - ectopic_center) ** 2) / (2 * (qrs_width * 1.2) ** 2))
+
+    signal += 0.18 * np.sin(2 * np.pi * 3.0 * t + np.random.uniform(0, 2 * np.pi))
+    signal += np.random.normal(0, 0.1, len(t))
+    return signal
+
+
+def generate_irregular_ecg(fs, duration, hr_min=85, hr_max=165):
+    """Irregular rhythm with variable beat intervals and morphology jitter."""
+    t = np.linspace(0, duration, int(fs * duration))
+    signal = np.zeros_like(t)
+
+    beat_time = 0.0
+    while beat_time < duration:
+        inst_hr = np.random.uniform(hr_min, hr_max)
+        beat_interval = 60.0 / max(inst_hr, 1e-3)
+        beat_interval += np.random.normal(0.0, 0.09)
+        beat_interval = float(np.clip(beat_interval, 0.28, 1.2))
+
+        p_center = beat_time + np.random.uniform(0.03, 0.09)
+        qrs_center = beat_time + np.random.uniform(0.11, 0.19)
+        t_center = beat_time + np.random.uniform(0.24, 0.42)
+
+        signal += np.random.uniform(0.03, 0.14) * np.exp(-((t - p_center) ** 2) / (2 * np.random.uniform(0.005, 0.02) ** 2))
+        signal += np.random.uniform(0.7, 1.6) * np.exp(-((t - qrs_center) ** 2) / (2 * np.random.uniform(0.008, 0.022) ** 2))
+        signal += np.random.uniform(0.12, 0.4) * np.exp(-((t - t_center) ** 2) / (2 * np.random.uniform(0.02, 0.06) ** 2))
+
+        if np.random.rand() < 0.35:
+            notch_center = qrs_center + np.random.uniform(0.015, 0.045)
+            signal -= np.random.uniform(0.15, 0.4) * np.exp(-((t - notch_center) ** 2) / (2 * np.random.uniform(0.008, 0.018) ** 2))
+
+        beat_time += beat_interval
+
+    signal += 0.15 * np.sin(2 * np.pi * np.random.uniform(0.3, 1.1) * t)
+    signal += np.random.normal(0, 0.12, len(t))
+    return signal
+
+
 def run_feeder(
     patient_id: int,
     device_id: str,
@@ -140,6 +192,15 @@ def run_feeder(
         nonlocal segment_data, segment_idx
         if rhythm == "abnormal_chaotic":
             segment_data = generate_abnormal_ecg(sampling_rate, segment_duration)
+        elif rhythm == "abnormal_tachy":
+            segment_data = generate_tachy_ecg(sampling_rate, segment_duration, heart_rate=max(130.0, heart_rate))
+        elif rhythm == "abnormal_irregular":
+            segment_data = generate_irregular_ecg(
+                sampling_rate,
+                segment_duration,
+                hr_min=max(70.0, irregular_hr_min),
+                hr_max=max(irregular_hr_max, irregular_hr_min + 10.0),
+            )
         else:
             segment_data = generate_normal_ecg(sampling_rate, segment_duration, heart_rate=heart_rate)
         segment_idx = 0
