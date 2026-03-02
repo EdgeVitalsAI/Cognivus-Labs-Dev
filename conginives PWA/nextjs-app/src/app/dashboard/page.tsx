@@ -6,6 +6,7 @@ import Header from '@/components/dashboard/Header';
 import PatientProfile from '@/components/dashboard/PatientProfile';
 import PatientInfo from '@/components/dashboard/PatientInfo';
 import VitalsSection from '@/components/dashboard/VitalsSection';
+import AlertsSection from '@/components/dashboard/AlertsSection';
 import { useApp, Patient, Vitals, Alert } from '../providers';
 
 // Patient Database (mock data)
@@ -223,24 +224,31 @@ function DashboardPageInner() {
   if (!patient || !vitals) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background-dark">
-        <div className="text-center">
-          <i className="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
-          <p className="text-text-secondary">Loading patient data...</p>
+        <div className="text-center animate-fade-in">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5 animate-glow-pulse">
+            <i className="fas fa-spinner fa-spin text-2xl text-primary-light"></i>
+          </div>
+          <p className="text-text-secondary font-medium">Loading patient data...</p>
+          <p className="text-text-muted text-sm mt-1">Please wait</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background-dark animate-fade-in">
+    <div className="min-h-screen bg-background-dark smooth-scroll">
       <Header 
         onBack={handleBack} 
         onRefresh={handleRefresh} 
         isRefreshing={isRefreshing} 
       />
       <PatientProfile patient={patient} />
-      <PatientInfo patient={patient} />
       <VitalsSection vitals={vitals} lastUpdated={lastUpdated} />
+      <PatientInfo patient={patient} />
+      <AlertsSection alerts={alerts} />
+      
+      {/* Bottom spacer for safe area */}
+      <div className="h-8"></div>
     </div>
   );
 }
@@ -250,9 +258,11 @@ export default function DashboardPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-background-dark">
-          <div className="text-center">
-            <i className="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
-            <p className="text-text-secondary">Loading...</p>
+          <div className="text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5 animate-glow-pulse">
+              <i className="fas fa-spinner fa-spin text-2xl text-primary-light"></i>
+            </div>
+            <p className="text-text-secondary font-medium">Loading...</p>
           </div>
         </div>
       }
