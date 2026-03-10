@@ -236,19 +236,28 @@ function DashboardPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-background-dark smooth-scroll">
-      <Header 
-        onBack={handleBack} 
-        onRefresh={handleRefresh} 
-        isRefreshing={isRefreshing} 
-      />
-      <PatientProfile patient={patient} />
-      <VitalsSection vitals={vitals} lastUpdated={lastUpdated} />
-      <PatientInfo patient={patient} />
-      <AlertsSection alerts={alerts} />
-      
-      {/* Bottom spacer for safe area */}
-      <div className="h-8"></div>
+    <div className="min-h-screen bg-background-dark smooth-scroll relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/[0.07] rounded-full blur-3xl animate-float" />
+        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-accent-blue/[0.05] rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-20 left-1/4 w-72 h-72 bg-accent-purple/[0.04] rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }} />
+      </div>
+
+      <div className="relative z-10">
+        <Header 
+          onBack={handleBack} 
+          onRefresh={handleRefresh} 
+          isRefreshing={isRefreshing} 
+        />
+        <PatientProfile patient={patient} />
+        <VitalsSection vitals={vitals} lastUpdated={lastUpdated} />
+        <PatientInfo patient={patient} />
+        <AlertsSection alerts={alerts} />
+        
+        {/* Bottom spacer for safe area */}
+        <div className="h-8"></div>
+      </div>
     </div>
   );
 }
