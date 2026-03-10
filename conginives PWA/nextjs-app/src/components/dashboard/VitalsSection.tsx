@@ -21,38 +21,37 @@ function VitalCard({ icon, label, value, unit, gradient, percentage, delay }: Vi
   const clampedPercent = Math.min(100, Math.max(0, percentage));
 
   return (
-    <div 
-      className={`${gradient} p-5 rounded-2xl text-center vital-card-hover relative overflow-hidden shadow-card animate-scale-in`}
+    <div
+      className="glass-card p-4 rounded-2xl text-center vital-card-hover relative overflow-hidden animate-scale-in"
       style={{ animationDelay: delay }}
     >
-      {/* Shine overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/[0.12] to-transparent h-1/2 pointer-events-none rounded-2xl"></div>
-      
-      {/* Icon */}
+      {/* Colored top accent line */}
+      <div className={`absolute top-0 left-4 right-4 h-[2px] rounded-full ${gradient} opacity-60`} />
+
       <div className="relative z-10">
-        <div className="w-12 h-12 bg-white/[0.15] rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur-xs">
-          <i className={`fas ${icon} text-xl text-white`}></i>
+        {/* Icon with colored bg */}
+        <div className={`w-10 h-10 ${gradient} rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+          <i className={`fas ${icon} text-base text-white`}></i>
         </div>
-        
+
         {/* Label */}
-        <span className="block text-xs font-medium text-white/80 uppercase tracking-wider mb-2">{label}</span>
-        
+        <span className="block text-[10px] font-medium text-text-muted uppercase tracking-widest mb-1.5">{label}</span>
+
         {/* Value */}
-        <div className="flex items-baseline justify-center gap-1">
-          <span className="text-4xl font-extrabold leading-none text-white tracking-tight">{value}</span>
-          <span className="text-sm font-medium text-white/70">{unit}</span>
+        <div className="flex items-baseline justify-center gap-0.5">
+          <span className="text-3xl font-bold leading-none text-white tracking-tight">{value}</span>
+          <span className="text-xs font-medium text-text-secondary">{unit}</span>
         </div>
-        
+
         {/* Progress Bar */}
-        <div className="mt-4 h-1.5 bg-white/20 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-white/80 rounded-full progress-bar-animated shadow-sm"
+        <div className="mt-3 h-1 bg-white/[0.08] rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full progress-bar-animated ${gradient}`}
             style={{ width: `${clampedPercent}%` }}
-          ></div>
+          />
         </div>
-        
-        {/* Progress percentage */}
-        <span className="block text-[10px] text-white/50 mt-1.5 font-medium">{Math.round(clampedPercent)}%</span>
+
+        <span className="block text-[9px] text-text-muted mt-1 font-medium">{Math.round(clampedPercent)}%</span>
       </div>
     </div>
   );
@@ -66,12 +65,12 @@ export default function VitalsSection({ vitals, lastUpdated }: VitalsSectionProp
   const bpPercent = ((vitals.bp.systolic - 90) / 70) * 100;
 
   return (
-    <div className="px-4 mb-8 animate-fade-in-up">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-base font-bold section-title text-text-primary">Vital Signs</h3>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
+    <div className="px-4 mb-6 animate-fade-in-up">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-semibold section-title text-text-primary">Vital Signs</h3>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
           <div className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse"></div>
-          <span className="text-xs text-text-muted font-medium">Live &middot; {lastUpdated}</span>
+          <span className="text-[10px] text-text-muted font-medium">Live &middot; {lastUpdated}</span>
         </div>
       </div>
 
