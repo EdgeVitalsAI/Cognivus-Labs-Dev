@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "author": "Wooshan Pill Dispenser",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-nano", "id": "nano", "top": 200, "left": 100, "attrs": {} },
+    { "type": "wokwi-a4988", "id": "driver", "top": 80, "left": 320, "attrs": {} },
+    { "type": "wokwi-stepper-motor", "id": "motor", "top": -180, "left": 380, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 83,
+      "left": 38.4,
+      "attrs": { "color": "green" }
+    }
+  ],
+  "connections": [
+    [ "nano:D3", "driver:STEP", "green", [] ],
+    [ "nano:D4", "driver:DIR", "green", [] ],
+    [ "nano:5V", "driver:VDD", "red", [] ],
+    [ "nano:GND", "driver:GND", "black", [] ],
+    [ "nano:5V", "driver:VMOT", "red", [] ],
+    [ "nano:GND", "driver:GND.1", "black", [] ],
+    [ "nano:5V", "driver:RESET", "orange", [] ],
+    [ "nano:5V", "driver:SLEEP", "orange", [] ],
+    [ "nano:GND", "driver:ENABLE", "black", [] ],
+    [ "driver:1A", "motor:A+", "green", [] ],
+    [ "driver:1B", "motor:A-", "green", [] ],
+    [ "driver:2A", "motor:B+", "green", [] ],
+    [ "driver:2B", "motor:B-", "green", [] ],
+    [ "nano:D2", "btn1:1.l", "green", [] ],
+    [ "nano:GND", "btn1:2.l", "black", [] ],
+    [ "btn1:1.l", "nano:2", "green", [ "h-20.8", "v99", "h192" ] ],
+    [ "btn1:2.l", "nano:GND.2", "green", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}
