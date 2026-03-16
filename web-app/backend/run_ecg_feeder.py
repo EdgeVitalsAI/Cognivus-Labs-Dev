@@ -161,7 +161,6 @@ def run_feeder(
     prediction_poll_interval: float = 2.0,
     normal_phase_seconds: float = 30.0,
     abnormal_phase_seconds: float = 30.0,
-    feed_mode: str = "abnormal_only",
 ):
     """Run ECG feeder with periodic abnormal rhythm injection."""
     
@@ -223,10 +222,7 @@ def run_feeder(
     
     print(f"[ok] ECG Timescale feeder running at {sampling_rate} Hz for patient {patient_id} with device {device_id}")
     print(f"[ok] Connected to TimescaleDB: {timescale_dsn.split('@')[1] if '@' in timescale_dsn else 'database'}")
-    if feed_mode == "abnormal_only":
-        print("[ok] Feed mode: abnormal_only (continuous abnormal signal)")
-    else:
-        print(f"[ok] Phase schedule: {normal_phase_seconds:.1f}s normal, {abnormal_phase_seconds:.1f}s abnormal (repeating)")
+    print(f"[ok] Phase schedule: {normal_phase_seconds:.1f}s normal, {abnormal_phase_seconds:.1f}s abnormal (repeating)")
 
     def _parse_prediction_ts(ts: str) -> Optional[datetime]:
         try:
@@ -361,39 +357,29 @@ def run_feeder(
         while running:
             now = time.perf_counter()
 
-            if feed_mode == "abnormal_only":
-                if current_abnormal not in ("abnormal_tachy", "abnormal_irregular", "abnormal_chaotic"):
-                    current_abnormal = "abnormal_chaotic"
-                # Rotate abnormal profiles occasionally to keep variety.
-                if np.random.rand() < 0.003:
+            elapsed = now - run_start
+            normal_dur = max(0.1, normal_phase_seconds)
+            abnormal_dur = max(0.1, abnormal_phase_seconds)
+            cycle_dur = normal_dur + abnormal_dur
+            cycle_pos = elapsed % cycle_dur
+
+            phase_index = int(elapsed // cycle_dur)
+            if phase_index != last_phase_index:
+                last_phase_index = phase_index
+                print(f"[ok] Starting cycle #{phase_index + 1}")
+
+            if cycle_pos < normal_dur:
+                active_rhythm = "normal"
+                if segment_idx >= len(segment_data):
+                    segment_idx = len(segment_data)
+            else:
+                # At abnormal phase boundary, pick/rotate abnormal profile
+                abnormal_phase_pos = cycle_pos - normal_dur
+                if abnormal_phase_pos < dt:
                     current_abnormal = np.random.choice(["abnormal_tachy", "abnormal_irregular", "abnormal_chaotic"])
                     segment_idx = len(segment_data)
-                    print(f"[warn] Switched abnormal profile: {current_abnormal}")
+                    print(f"[warn] Switching to abnormal phase ({abnormal_dur:.1f}s): {current_abnormal}")
                 active_rhythm = current_abnormal
-            else:
-                elapsed = now - run_start
-                normal_dur = max(0.1, normal_phase_seconds)
-                abnormal_dur = max(0.1, abnormal_phase_seconds)
-                cycle_dur = normal_dur + abnormal_dur
-                cycle_pos = elapsed % cycle_dur
-
-                phase_index = int(elapsed // cycle_dur)
-                if phase_index != last_phase_index:
-                    last_phase_index = phase_index
-                    print(f"[ok] Starting cycle #{phase_index + 1}")
-
-                if cycle_pos < normal_dur:
-                    active_rhythm = "normal"
-                    if segment_idx >= len(segment_data):
-                        segment_idx = len(segment_data)
-                else:
-                    # At abnormal phase boundary, pick/rotate abnormal profile
-                    abnormal_phase_pos = cycle_pos - normal_dur
-                    if abnormal_phase_pos < dt:
-                        current_abnormal = np.random.choice(["abnormal_tachy", "abnormal_irregular", "abnormal_chaotic"])
-                        segment_idx = len(segment_data)
-                        print(f"[warn] Switching to abnormal phase ({abnormal_dur:.1f}s): {current_abnormal}")
-                    active_rhythm = current_abnormal
             hr, freq = choose_hr(active_rhythm)
 
             val = next_sample(hr, freq, phase, active_rhythm)
@@ -440,7 +426,6 @@ def main():
     parser.add_argument("--prediction-poll-interval", type=float, default=2.0, help="Seconds between prediction endpoint polls when delay tracking is enabled")
     parser.add_argument("--normal-phase-seconds", type=float, default=30.0, help="Seconds to feed normal ECG in each cycle")
     parser.add_argument("--abnormal-phase-seconds", type=float, default=30.0, help="Seconds to feed abnormal ECG in each cycle")
-    parser.add_argument("--feed-mode", type=str, default="abnormal_only", choices=["abnormal_only", "cycle"], help="Signal mode: continuous abnormal feed or normal/abnormal cycle")
     args = parser.parse_args()
     
     def handle_signal(signum, frame):
@@ -472,7 +457,6 @@ def main():
         prediction_poll_interval=args.prediction_poll_interval,
         normal_phase_seconds=args.normal_phase_seconds,
         abnormal_phase_seconds=args.abnormal_phase_seconds,
-        feed_mode=args.feed_mode,
     )
 
 
