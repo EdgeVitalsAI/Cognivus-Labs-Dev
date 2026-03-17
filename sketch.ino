@@ -15,8 +15,8 @@ RTC_DS1307 rtc;
 int stepsPerSlot = 114;
 
 // Dispense times (24h format) — edit as needed
-int dispenseHours[]   = {8, 14, 20};   // 8am, 2pm, 8pm
-int dispenseMinutes[] = {0,  0,  0};
+int dispenseHours[]   = {0,0,0};
+int dispenseMinutes[] = {0,1,2};
 int numDoses = 3;
 
 bool dosedToday[3] = {false, false, false};
@@ -60,6 +60,7 @@ void setup() {
 
   digitalWrite(DIR_PIN,    HIGH);
   digitalWrite(BUZZER_PIN, LOW);
+  digitalWrite(STEP_PIN, LOW);
 
   // ── RTC Init ─────────────────────────────────────
   Wire.begin(21, 22); // ESP32 default SDA=21, SCL=22
@@ -93,38 +94,46 @@ void loop() {
   }
 
   // ── RTC-based automatic dispensing ───────────────
-  if (rtc.begin()) {
     DateTime now = rtc.now();
 
     // Reset daily flags at midnight
     if (now.day() != lastDay) {
-      for (int i = 0; i < numDoses; i++) dosedToday[i] = false;
+      for (int i = 0; i < numDoses; i++) {
+        dosedToday[i] = false;
+      }
       lastDay = now.day();
     }
 
     for (int i = 0; i < numDoses; i++) {
+
       if (!dosedToday[i] &&
-          now.hour()   == dispenseHours[i] &&
+          now.hour() == dispenseHours[i] &&
           now.minute() == dispenseMinutes[i] &&
-          now.second() <  5) {
+          now.second() < 5) {
 
         Serial.print("RTC Alarm — dispensing dose ");
         Serial.println(i + 1);
+
         rotateSlot();
         dosedToday[i] = true;
       }
     }
-  }
 
   // ── Simulation fallback (timed, no RTC needed) ────
+  // ── Simulation fallback (timed, no RTC needed) ────
   if (timerStarted) {
+
     unsigned long currentMillis = millis();
+
     if (currentMillis - previousMillis >= simInterval) {
+
       Serial.println("Sim timer — dispensing next pill");
+
       rotateSlot();
+
       previousMillis = currentMillis;
     }
   }
 
   delay(500);
-}
+  }
