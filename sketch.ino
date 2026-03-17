@@ -5,8 +5,10 @@
 bool timerStarted = false;
 unsigned long previousMillis = 0;
 
+// 10 seconds for simulation — change to 86400000UL for real 24-hour use
 unsigned long interval = 10000;
 
+// Steps per pill slot — adjust to match your physical wheel
 int stepsPerSlot = 200;
 
 void setup() {
