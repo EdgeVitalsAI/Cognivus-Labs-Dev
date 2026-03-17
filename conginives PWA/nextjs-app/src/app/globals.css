@@ -4,15 +4,15 @@
 
 /* Custom CSS Variables */
 :root {
-    --primary-color: #6C63FF;
-    --primary-dark: #5A52D5;
-    --primary-light: #8B83FF;
-    --background-dark: #0B0F19;
-    --background-card: #131A2B;
+    --primary-color: #6c63ff;
+    --primary-dark: #5a52d5;
+    --primary-light: #8b83ff;
+    --background-dark: #0b0f19;
+    --background-card: #0a0f1e;
     --background-elevated: #182036;
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     --safe-area-top: env(safe-area-inset-top);
     --safe-area-bottom: env(safe-area-inset-bottom);
     --glass-bg: rgba(19, 26, 43, 0.7);
@@ -47,41 +47,41 @@
 
 /* Gradient Backgrounds */
 .gradient-primary {
-    background: linear-gradient(135deg, #6C63FF 0%, #5A52D5 50%, #4338CA 100%);
+    background: linear-gradient(135deg, #6c63ff 0%, #5a52d5 50%, #4338ca 100%);
 }
 
 .gradient-primary-mesh {
-    background: 
+    background:
         radial-gradient(at 20% 20%, rgba(108, 99, 255, 0.4) 0%, transparent 50%),
         radial-gradient(at 80% 80%, rgba(90, 82, 213, 0.3) 0%, transparent 50%),
         radial-gradient(at 50% 50%, rgba(67, 56, 202, 0.2) 0%, transparent 70%),
-        linear-gradient(135deg, #6C63FF 0%, #4338CA 100%);
+        linear-gradient(135deg, #6c63ff 0%, #4338ca 100%);
 }
 
 .gradient-header {
-    background: linear-gradient(180deg, #0B0F19 0%, rgba(11, 15, 25, 0.95) 100%);
+    background: linear-gradient(180deg, #0b0f19 0%, rgba(11, 15, 25, 0.95) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 }
 
 .gradient-spo2 {
-    background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
 }
 
 .gradient-pulse {
-    background: linear-gradient(135deg, #F87171 0%, #DC2626 100%);
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
 }
 
 .gradient-temp {
-    background: linear-gradient(135deg, #FB923C 0%, #EA580C 100%);
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
 }
 
 .gradient-bp {
-    background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%);
+    background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
 }
 
 .gradient-emergency {
-    background: linear-gradient(135deg, #F87171 0%, #DC2626 100%);
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
 }
 
 /* Glassmorphism */
@@ -188,14 +188,14 @@
 
 /* Gradient Text */
 .gradient-text {
-    background: linear-gradient(135deg, #F8FAFC 0%, #8B83FF 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #8b83ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .gradient-text-primary {
-    background: linear-gradient(135deg, #6C63FF 0%, #A78BFA 100%);
+    background: linear-gradient(135deg, #6c63ff 0%, #a78bfa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -244,7 +244,7 @@ input:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -267,12 +267,16 @@ input:focus {
 
 /* Avatar glow ring */
 .avatar-glow {
-    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.3), 0 0 30px rgba(108, 99, 255, 0.2);
+    box-shadow:
+        0 0 0 4px rgba(108, 99, 255, 0.3),
+        0 0 30px rgba(108, 99, 255, 0.2);
     transition: all 0.3s ease;
 }
 
 .avatar-glow:hover {
-    box-shadow: 0 0 0 6px rgba(108, 99, 255, 0.4), 0 0 50px rgba(108, 99, 255, 0.3);
+    box-shadow:
+        0 0 0 6px rgba(108, 99, 255, 0.4),
+        0 0 50px rgba(108, 99, 255, 0.3);
 }
 
 /* Decorative mesh dots */
@@ -287,7 +291,7 @@ input:focus {
     display: block;
     width: 28px;
     height: 2px;
-    background: linear-gradient(90deg, #6C63FF, #8B83FF);
+    background: linear-gradient(90deg, #6c63ff, #8b83ff);
     border-radius: 2px;
     margin-top: 6px;
 }
@@ -307,18 +311,23 @@ input:focus {
 }
 
 .status-dot-green {
-    background: #4ADE80;
+    background: #4ade80;
     box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
 }
 
 .status-dot-red {
-    background: #F87171;
+    background: #f87171;
     box-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
 }
 
 @keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* Alert card pulse for critical */
@@ -327,8 +336,13 @@ input:focus {
 }
 
 @keyframes alertPulse {
-    0%, 100% { border-left-color: #F87171; }
-    50% { border-left-color: #FCA5A5; }
+    0%,
+    100% {
+        border-left-color: #f87171;
+    }
+    50% {
+        border-left-color: #fca5a5;
+    }
 }
 
 /* Print Styles */
