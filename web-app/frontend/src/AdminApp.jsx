@@ -19,6 +19,7 @@ function AdminApp() {
           <Route path="/sys/users" element={<AdminUsers />} />
           <Route path="/sys/settings" element={<AdminSettings />} />
           <Route path="*" element={<Navigate to="/sys/auth" replace />} />
+          <Route path="/admin/model-inference"element={<AdminModelInference />}/>
         </Routes>
       </Router>
     </ThemeProvider>
