@@ -11,18 +11,16 @@
       "id": "btn1",
       "top": 83,
       "left": 38.4,
-      "attrs": { "color": "green" }
+      "attrs": { "color": "green", "xray": "" }
     }
   ],
   "connections": [
     [ "nano:D3", "driver:STEP", "green", [] ],
     [ "nano:D4", "driver:DIR", "green", [] ],
-    [ "nano:5V", "driver:VDD", "red", [] ],
     [ "nano:GND", "driver:GND", "black", [] ],
-    [ "nano:5V", "driver:VMOT", "red", [] ],
+    [ "nano:5V", "driver:VMOT", "red", [ "v25.6", "h147.35" ] ],
     [ "nano:GND", "driver:GND.1", "black", [] ],
-    [ "nano:5V", "driver:RESET", "orange", [] ],
-    [ "nano:5V", "driver:SLEEP", "orange", [] ],
+    [ "nano:5V", "driver:SLEEP", "orange", [ "v35.2", "h99.5" ] ],
     [ "nano:GND", "driver:ENABLE", "black", [] ],
     [ "driver:1A", "motor:A+", "green", [] ],
     [ "driver:1B", "motor:A-", "green", [] ],
@@ -31,7 +29,14 @@
     [ "nano:D2", "btn1:1.l", "green", [] ],
     [ "nano:GND", "btn1:2.l", "black", [] ],
     [ "btn1:1.l", "nano:2", "green", [ "h-20.8", "v99", "h192" ] ],
-    [ "btn1:2.l", "nano:GND.2", "green", [ "h0" ] ]
+    [ "btn1:2.l", "nano:GND.2", "green", [ "v38.6", "h186.9" ] ],
+    [ "nano:3", "driver:STEP", "green", [ "v0" ] ],
+    [ "nano:4", "driver:DIR", "blue", [ "v0" ] ],
+    [ "nano:5V", "driver:VDD", "red", [ "v16", "h158.7", "v-134.4" ] ],
+    [ "nano:GND.1", "driver:GND.1", "black", [ "v6.4", "h149.1", "v-115.2" ] ],
+    [ "nano:GND.2", "driver:GND.2", "black", [ "v-147.2", "h168.3", "v38.4" ] ],
+    [ "driver:RESET", "nano:5V", "orange", [ "h-27.2", "v88", "h0", "v105.6", "h-67.2" ] ],
+    [ "driver:ENABLE", "nano:GND.2", "black", [ "h0" ] ]
   ],
   "dependencies": {}
 }
