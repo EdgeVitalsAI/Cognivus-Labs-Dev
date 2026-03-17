@@ -7,3 +7,7 @@ export const runInference = (data) =>
 // Get model health
 export const getModelHealth = () =>
   api.get("/admin/model-health");
+
+// Get model versions
+export const getModelVersions = () =>
+  api.get("/admin/model-versions");
