@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminDevices from './pages/AdminDevices';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+import AdminModelInference from "./pages/AdminModelInference";
 
 function AdminApp() {
   return (
