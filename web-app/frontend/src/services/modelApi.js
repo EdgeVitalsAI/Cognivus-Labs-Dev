@@ -11,3 +11,7 @@ export const getModelHealth = () =>
 // Get model versions
 export const getModelVersions = () =>
   api.get("/admin/model-versions");
+
+// Get prediction stats
+export const getPredictionStats = () =>
+  api.get("/admin/prediction-stats");
