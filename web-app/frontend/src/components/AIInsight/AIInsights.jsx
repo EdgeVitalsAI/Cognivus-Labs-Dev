@@ -4,7 +4,7 @@ import axios from 'axios'
 import ECGMonitoring from '../ECG/ECGMonitoring'
 
 const API_BASE_URL = 'http://localhost:8000/api'
-const WS_BASE_URL = 'ws://localhost:8001/api'
+const WS_BASE_URL = 'ws://localhost:8000/api'
 
 const AIInsights = ({ patientId, patientData }) => {
   const [loading, setLoading] = useState(true)
@@ -14,13 +14,22 @@ const AIInsights = ({ patientId, patientData }) => {
 
   useEffect(() => {
     fetchAIInsights()
-    connectToECGWebSocket()
+    const ecgWs = connectToECGWebSocket()
+    const spo2Ws = connectToSpO2WebSocket()
 
     const poller = setInterval(() => {
       fetchSpO2Prediction()
     }, 3000)
 
-    return () => clearInterval(poller)
+    return () => {
+      clearInterval(poller)
+      if (ecgWs && ecgWs.readyState === WebSocket.OPEN) {
+        ecgWs.close()
+      }
+      if (spo2Ws && spo2Ws.readyState === WebSocket.OPEN) {
+        spo2Ws.close()
+      }
+    }
   }, [patientId])
 
   const connectToECGWebSocket = () => {
@@ -49,24 +58,6 @@ const AIInsights = ({ patientId, patientData }) => {
                 lastAnalyzed: message.timestamp || new Date().toISOString()
               }
             }))
-          } else if (message.type === 'spo2_prediction') {
-            setAiInsights(prev => {
-              if (!prev) return prev
-              const trend = message.trend || 'stable'
-              return {
-                ...prev,
-                spo2Health: {
-                  ...prev.spo2Health,
-                  status: trend,
-                  trend,
-                  confidence: Math.round(message.confidence || 0),
-                  currentValue: message.current_value ?? prev.spo2Health.currentValue,
-                  averageValue: message.average_value ?? prev.spo2Health.averageValue,
-                  details: message.details || prev.spo2Health.details,
-                  lastAnalyzed: message.timestamp || new Date().toISOString()
-                }
-              }
-            })
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err)
@@ -81,8 +72,6 @@ const AIInsights = ({ patientId, patientData }) => {
       ws.onclose = () => {
         console.log('✗ AIInsights: ECG WebSocket closed')
         setWsConnected(false)
-        // Attempt reconnect after 3 seconds
-        setTimeout(() => connectToECGWebSocket(), 3000)
       }
       
       return () => {
@@ -93,6 +82,58 @@ const AIInsights = ({ patientId, patientData }) => {
     } catch (err) {
       console.error('Failed to connect ECG WebSocket:', err)
       setWsConnected(false)
+    }
+  }
+
+  const connectToSpO2WebSocket = () => {
+    try {
+      const ws = new WebSocket(`${WS_BASE_URL}/ws/spo2/${patientId}`)
+
+      ws.onopen = () => {
+        console.log('✓ AIInsights: SpO2 WebSocket connected')
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          if (message.type !== 'spo2_prediction') {
+            return
+          }
+
+          const trend = message.trend || 'stable'
+          setAiInsights(prev => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              spo2Health: {
+                ...prev.spo2Health,
+                status: trend,
+                trend,
+                confidence: Math.round(message.confidence || 0),
+                currentValue: message.current_value ?? prev.spo2Health.currentValue,
+                averageValue: message.average_value ?? prev.spo2Health.averageValue,
+                details: message.details || prev.spo2Health.details,
+                lastAnalyzed: message.timestamp || new Date().toISOString()
+              }
+            }
+          })
+        } catch (err) {
+          console.error('Error parsing SpO2 WebSocket message:', err)
+        }
+      }
+
+      ws.onerror = (error) => {
+        console.error('✗ AIInsights: SpO2 WebSocket error:', error)
+      }
+
+      ws.onclose = () => {
+        console.log('✗ AIInsights: SpO2 WebSocket closed')
+      }
+
+      return ws
+    } catch (err) {
+      console.error('Failed to connect SpO2 WebSocket:', err)
+      return null
     }
   }
 

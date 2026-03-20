@@ -108,7 +108,7 @@ async def spo2_monitoring_websocket(
 @router.get("/spo2/prediction/{patient_id}")
 async def get_latest_spo2_prediction(patient_id: int):
     service = get_spo2_monitoring_service()
-    prediction = service.get_latest_prediction(patient_id)
+    prediction = await service.get_or_create_prediction(patient_id)
 
     if prediction:
         return {

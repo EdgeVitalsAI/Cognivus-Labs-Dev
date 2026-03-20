@@ -422,7 +422,7 @@ async def get_patient_ai_insights(patient_id: int, db: Session = Depends(get_db)
     spo2_service = get_spo2_monitoring_service()
 
     ecg_prediction = ecg_service.get_latest_prediction(patient_id)
-    spo2_prediction = spo2_service.get_latest_prediction(patient_id)
+    spo2_prediction = await spo2_service.get_or_create_prediction(patient_id)
 
     latest_vitals = (
         db.query(PatientVitals)

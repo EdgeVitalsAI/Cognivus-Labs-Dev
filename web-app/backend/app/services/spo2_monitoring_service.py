@@ -52,6 +52,32 @@ class SpO2MonitoringService:
     def get_latest_prediction(self, patient_id: int) -> Optional[SpO2Prediction]:
         return self.latest_predictions.get(patient_id)
 
+    async def get_or_create_prediction(self, patient_id: int, wait_seconds: float = 2.5) -> Optional[SpO2Prediction]:
+        """
+        Ensure monitoring is active and try to produce a prediction immediately.
+        This allows HTTP polling clients (like AI Insights) to bootstrap predictions
+        even when no WebSocket client has connected yet.
+        """
+        self.start_monitoring(patient_id)
+
+        # Return cached prediction if available.
+        existing = self.latest_predictions.get(patient_id)
+        if existing is not None:
+            return existing
+
+        # Force a fresh Timescale pull and one processing pass.
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self.buffer_manager._fetch_spo2_data)
+        await self._process_patient(patient_id)
+
+        created = self.latest_predictions.get(patient_id)
+        if created is not None:
+            return created
+
+        # Give the background loop a brief chance to complete another cycle.
+        await asyncio.sleep(max(0.1, wait_seconds))
+        return self.latest_predictions.get(patient_id)
+
     async def _monitoring_loop(self):
         while self._running:
             try:
