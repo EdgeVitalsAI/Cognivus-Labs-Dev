@@ -3,6 +3,9 @@ SpO2 ML Inference Service
 Runs oxygen saturation trend prediction using the MEDIUM model.
 """
 import os
+import json
+import tempfile
+import zipfile
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -62,6 +65,8 @@ class SpO2MLInferenceService:
         self.critical_threshold = 0.80
         self.warning_threshold = 0.70
         self.watch_threshold = 0.60
+        self.l2_reg = 0.005
+        self.dropout_rate = 0.3
 
         if model_path:
             self.load_model(model_path)
@@ -101,6 +106,16 @@ class SpO2MLInferenceService:
             raise FileNotFoundError(f"SpO2 model not found at {model_path}")
 
         try:
+            # Handle unpacked Keras format directory created by `model.save(..., zipped=False)`
+            config_path = model_file / "config.json"
+            weights_path = model_file / "model.weights.h5"
+            if model_file.is_dir() and config_path.exists() and weights_path.exists():
+                self.model = self._build_medium_model_architecture()
+                self.model.load_weights(str(weights_path))
+                self.model_loaded = True
+                print(f"[OK] SpO2 MEDIUM model loaded from unpacked Keras directory {model_file}")
+                return
+
             try:
                 import keras
 
@@ -115,6 +130,73 @@ class SpO2MLInferenceService:
                 self.model_loaded = False
             else:
                 raise RuntimeError(f"Failed to load SpO2 model: {e}") from e
+
+    def _load_from_unpacked_keras_dir(self, model_dir: Path):
+        """
+        Load Keras v3 unpacked directory by packing it into a temporary .keras file.
+        This avoids version-specific JSON deserialization issues.
+        """
+        import keras
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            archive_path = Path(tmp_dir) / "spo2_medium_temp.keras"
+
+            with zipfile.ZipFile(archive_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+                for entry in model_dir.rglob("*"):
+                    if entry.is_file():
+                        zf.write(entry, arcname=str(entry.relative_to(model_dir)).replace("\\", "/"))
+
+            try:
+                return keras.saving.load_model(str(archive_path), compile=False)
+            except Exception:
+                return tf.keras.models.load_model(str(archive_path), compile=False, safe_mode=False)
+
+    def _build_medium_model_architecture(self):
+        """Rebuild MEDIUM model architecture used in training, then load external weights."""
+        inputs = tf.keras.layers.Input(shape=(self.window_size, 19), name="input_layer_1")
+
+        x = tf.keras.layers.LSTM(
+            64,
+            return_sequences=False,
+            kernel_regularizer=tf.keras.regularizers.l2(self.l2_reg),
+            name="lstm_1",
+        )(inputs)
+        x = tf.keras.layers.BatchNormalization(name="batch_normalization_2")(x)
+        x = tf.keras.layers.Dropout(self.dropout_rate, name="dropout_2")(x)
+
+        x = tf.keras.layers.Dense(
+            32,
+            activation="relu",
+            kernel_regularizer=tf.keras.regularizers.l2(self.l2_reg),
+            name="dense_2",
+        )(x)
+        x = tf.keras.layers.BatchNormalization(name="batch_normalization_3")(x)
+        x = tf.keras.layers.Dropout(self.dropout_rate, name="dropout_3")(x)
+
+        outputs = tf.keras.layers.Dense(1, activation="sigmoid", name="dense_3")(x)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="functional_1")
+        return model
+
+    def _normalize_keras_config(self, cfg):
+        """Patch legacy serialized Keras config keys for runtime compatibility."""
+        if isinstance(cfg, dict):
+            cls_name = cfg.get("class_name")
+            inner = cfg.get("config")
+
+            # Legacy models may serialize InputLayer with `batch_shape`.
+            if cls_name == "InputLayer" and isinstance(inner, dict) and "batch_shape" in inner:
+                if "batch_input_shape" not in inner:
+                    inner["batch_input_shape"] = inner["batch_shape"]
+                inner.pop("batch_shape", None)
+
+            for key, value in list(cfg.items()):
+                cfg[key] = self._normalize_keras_config(value)
+            return cfg
+
+        if isinstance(cfg, list):
+            return [self._normalize_keras_config(item) for item in cfg]
+
+        return cfg
 
     async def predict(self, spo2_values: np.ndarray, patient_id: int) -> SpO2Prediction:
         loop = asyncio.get_event_loop()

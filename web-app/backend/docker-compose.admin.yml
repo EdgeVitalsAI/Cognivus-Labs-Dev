@@ -58,6 +58,7 @@ services:
       TIMESCALE_USER: ${TIMESCALE_USER:-timescale_user}
       TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-timescale_secure_password_123}
       TIMESCALE_DB: ${TIMESCALE_DB:-cognivus_vitals_timeseries}
+      SPO2_MODEL_PATH: /app/ml-models/spo2-prediction/model/model_medium.keras
       CORS_ORIGINS: http://localhost:5174,http://127.0.0.1:5174
       DEBUG: "True"
     ports:
@@ -69,6 +70,7 @@ services:
       - ./create_admin.py:/app/create_admin.py
       - ./seed_devices.py:/app/seed_devices.py
       - ./seed_system_logs.py:/app/seed_system_logs.py
+      - ../../ml-models:/app/ml-models:ro
     networks:
       - admin-network
       - backend_cognivus_network
