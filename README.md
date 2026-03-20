@@ -767,8 +767,8 @@ Computing School (Bachelor of Science in Computer Science)
 **Official Website:**
 🌐 [cognivusmed.com](https://cognivusmed.com)
 
-**Academic Supervision:**
-Supervised as final-year capstone project focusing on IoT healthcare innovation and real-time biosignal processing.
+**Academic Project:**
+Second Year SDGP (Software Development Group Project) at IIT
 
 ---
 
