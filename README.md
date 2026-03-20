@@ -753,16 +753,19 @@ export LOG_LEVEL=DEBUG; python run.py
 
 ## 👥 Development Team
 
-**Developers:**
-- **Wathsala Dewmina** – Backend, ML Inference, Database Design
-- **Rivindu Ashinsa** – Frontend, Real-time Visualization
-- **Wooshan Gamage** – Hardware/Firmware, ESP32 Integration
-- **Dulina Samarathunga** – DevOps, Docker, System Architecture
-- **Lakidu Minosha** – ML Model Training, AI Insights
+**Core Team Members:**
+- **Wathsala Dewmina** – Embedded Systems Engineer, Sensor Integration, Lead Backend Development, Security & Authentication
+- **Rivindu Ashinsa** – Lead AI/ML Engineer, Research & Development, Model Inference, All AI/ML Implementation
+- **Dulina Samarathunga** – Frontend Developer, Backend Assistant
+- **Lakindu Minosha** – Flutter App Development, Progressive Web App, Mobile App for Vitals Monitoring
+- **Wooshan Gamage** – Hardware Engineering Support, Backend Assistance
 
 **Institution:**
 Computing School (Bachelor of Science in Computer Science)  
 *IIT (Informatics Institute Of Technology), Sri Lanka*
+
+**Official Website:**
+🌐 [cognivusmed.com](https://cognivusmed.com)
 
 **Academic Supervision:**
 Supervised as final-year capstone project focusing on IoT healthcare innovation and real-time biosignal processing.
