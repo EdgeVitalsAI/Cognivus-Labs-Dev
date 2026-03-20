@@ -3,8 +3,9 @@ SpO2 Monitoring Service
 Orchestrates SpO2 buffering, inference, and publishing.
 """
 import asyncio
+from collections import deque
 from datetime import datetime
-from typing import Dict, Optional, Set
+from typing import Deque, Dict, List, Optional, Set
 
 from .spo2_buffer_manager import get_spo2_buffer_manager
 from .spo2_ml_inference import get_spo2_ml_service, SpO2Prediction, SpO2Trend
@@ -18,6 +19,7 @@ class SpO2MonitoringService:
 
         self.active_patients: Set[int] = set()
         self.latest_predictions: Dict[int, SpO2Prediction] = {}
+        self.prediction_history: Dict[int, Deque[SpO2Prediction]] = {}
 
         self.websocket_manager = None
 
@@ -51,6 +53,19 @@ class SpO2MonitoringService:
 
     def get_latest_prediction(self, patient_id: int) -> Optional[SpO2Prediction]:
         return self.latest_predictions.get(patient_id)
+
+    def get_recent_predictions(self, patient_id: int, within_seconds: int = 60) -> List[SpO2Prediction]:
+        """Return rolling SpO2 predictions in the requested trailing time window."""
+        history = self.prediction_history.get(patient_id)
+        if not history:
+            return []
+
+        cutoff = datetime.utcnow().timestamp() - max(1, within_seconds)
+        return [p for p in history if p.timestamp.timestamp() >= cutoff]
+
+    def _record_prediction(self, patient_id: int, prediction: SpO2Prediction):
+        history = self.prediction_history.setdefault(patient_id, deque(maxlen=180))
+        history.append(prediction)
 
     async def get_or_create_prediction(self, patient_id: int, wait_seconds: float = 2.5) -> Optional[SpO2Prediction]:
         """
@@ -105,6 +120,7 @@ class SpO2MonitoringService:
             values, timestamps = buffer.get_window()
             prediction = await self.ml_service.predict(values, patient_id)
             self.latest_predictions[patient_id] = prediction
+            self._record_prediction(patient_id, prediction)
 
             await self._publish_results(patient_id, prediction, values, timestamps, buffer.data_quality)
         except Exception as e:

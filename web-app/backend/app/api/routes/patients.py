@@ -411,6 +411,7 @@ async def get_patient_ai_insights(patient_id: int, db: Session = Depends(get_db)
     from ...models.patient_vitals import PatientVitals
     from ...services.ecg_monitoring_service import get_ecg_monitoring_service
     from ...services.spo2_monitoring_service import get_spo2_monitoring_service
+    from ...services.patient_risk_scoring import compute_overall_patient_risk_window
 
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
@@ -423,6 +424,13 @@ async def get_patient_ai_insights(patient_id: int, db: Session = Depends(get_db)
 
     ecg_prediction = ecg_service.get_latest_prediction(patient_id)
     spo2_prediction = await spo2_service.get_or_create_prediction(patient_id)
+    ecg_window = ecg_service.get_recent_predictions(patient_id, within_seconds=60)
+    spo2_window = spo2_service.get_recent_predictions(patient_id, within_seconds=60)
+
+    if not ecg_window and ecg_prediction is not None:
+        ecg_window = [ecg_prediction]
+    if not spo2_window and spo2_prediction is not None:
+        spo2_window = [spo2_prediction]
 
     latest_vitals = (
         db.query(PatientVitals)
@@ -483,11 +491,14 @@ async def get_patient_ai_insights(patient_id: int, db: Session = Depends(get_db)
         "lastAnalyzed": now_iso,
     }
 
+    overall_risk = compute_overall_patient_risk_window(ecg_window, spo2_window, window_seconds=60)
+
     return {
         "patientId": patient_id,
         "ecgHealth": ecg_data,
         "spo2Health": spo2_data,
         "temperatureStatus": temp_data,
+        "overallRisk": overall_risk,
     }
 
 

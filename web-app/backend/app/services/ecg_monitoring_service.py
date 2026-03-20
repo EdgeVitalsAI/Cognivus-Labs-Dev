@@ -4,7 +4,8 @@ Orchestrates ECG data flow: buffering → ML inference → WebSocket publishing
 Runs analysis every 1 second on 15-second sliding windows
 """
 import asyncio
-from typing import Dict, Optional, Set
+from collections import deque
+from typing import Deque, Dict, List, Optional, Set
 from datetime import datetime
 
 from .ecg_buffer_manager import get_ecg_buffer_manager, ECGBuffer
@@ -29,6 +30,7 @@ class ECGMonitoringService:
         
         # Store latest predictions for each patient
         self.latest_predictions: Dict[int, ECGPrediction] = {}
+        self.prediction_history: Dict[int, Deque[ECGPrediction]] = {}
         self.fast_alert_streaks: Dict[int, int] = {}
         
         # WebSocket connection manager (injected later)
@@ -74,6 +76,19 @@ class ECGMonitoringService:
     def get_latest_prediction(self, patient_id: int) -> Optional[ECGPrediction]:
         """Get the most recent prediction for a patient"""
         return self.latest_predictions.get(patient_id)
+
+    def get_recent_predictions(self, patient_id: int, within_seconds: int = 60) -> List[ECGPrediction]:
+        """Return rolling ECG predictions in the requested trailing time window."""
+        history = self.prediction_history.get(patient_id)
+        if not history:
+            return []
+
+        cutoff = datetime.utcnow().timestamp() - max(1, within_seconds)
+        return [p for p in history if p.timestamp.timestamp() >= cutoff]
+
+    def _record_prediction(self, patient_id: int, prediction: ECGPrediction):
+        history = self.prediction_history.setdefault(patient_id, deque(maxlen=240))
+        history.append(prediction)
     
     async def _monitoring_loop(self):
         """
@@ -139,6 +154,7 @@ class ECGMonitoringService:
             
             # Store prediction
             self.latest_predictions[patient_id] = prediction
+            self._record_prediction(patient_id, prediction)
             
             # Get latest samples for waveform display (2 seconds = 500 samples at 250Hz)
             latest_samples, latest_times = buffer.get_latest_samples(n_samples=500)
