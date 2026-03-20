@@ -15,6 +15,12 @@ const AIInsights = ({ patientId, patientData }) => {
   useEffect(() => {
     fetchAIInsights()
     connectToECGWebSocket()
+
+    const poller = setInterval(() => {
+      fetchSpO2Prediction()
+    }, 3000)
+
+    return () => clearInterval(poller)
   }, [patientId])
 
   const connectToECGWebSocket = () => {
@@ -43,6 +49,24 @@ const AIInsights = ({ patientId, patientData }) => {
                 lastAnalyzed: message.timestamp || new Date().toISOString()
               }
             }))
+          } else if (message.type === 'spo2_prediction') {
+            setAiInsights(prev => {
+              if (!prev) return prev
+              const trend = message.trend || 'stable'
+              return {
+                ...prev,
+                spo2Health: {
+                  ...prev.spo2Health,
+                  status: trend,
+                  trend,
+                  confidence: Math.round(message.confidence || 0),
+                  currentValue: message.current_value ?? prev.spo2Health.currentValue,
+                  averageValue: message.average_value ?? prev.spo2Health.averageValue,
+                  details: message.details || prev.spo2Health.details,
+                  lastAnalyzed: message.timestamp || new Date().toISOString()
+                }
+              }
+            })
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err)
@@ -72,6 +96,36 @@ const AIInsights = ({ patientId, patientData }) => {
     }
   }
 
+  const fetchSpO2Prediction = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/spo2/prediction/${patientId}`)
+      if (!response.data?.success) {
+        return
+      }
+
+      const data = response.data
+      const trend = data.trend || 'stable'
+      setAiInsights(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          spo2Health: {
+            ...prev.spo2Health,
+            status: trend,
+            trend,
+            confidence: Math.round(data.confidence || 0),
+            currentValue: data.current_value ?? prev.spo2Health.currentValue,
+            averageValue: data.average_value ?? prev.spo2Health.averageValue,
+            details: data.details || prev.spo2Health.details,
+            lastAnalyzed: data.timestamp || prev.spo2Health.lastAnalyzed
+          }
+        }
+      })
+    } catch (err) {
+      // Keep UI functional even when prediction endpoint is not yet available.
+    }
+  }
+
   const fetchAIInsights = async () => {
     try {
       setLoading(true)
@@ -98,6 +152,7 @@ const AIInsights = ({ patientId, patientData }) => {
         spo2Health: {
           status: 'stable', // 'declining', 'stable', or 'improving'
           trend: 'stable',
+          confidence: 0,
           currentValue: 98,
           averageValue: 97.5,
           details: 'Oxygen saturation levels are within normal range and stable.',
@@ -347,6 +402,10 @@ const SpO2HealthCard = ({ data }) => {
       <p className="text-slate-300 text-sm mb-3">{data.details}</p>
       
       <div className="pt-3 border-t border-slate-700 space-y-2">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span>Confidence</span>
+          <span className="font-semibold text-white">{data.confidence ?? 0}%</span>
+        </div>
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>Current</span>
           <span className="font-semibold text-white">{data.currentValue}%</span>

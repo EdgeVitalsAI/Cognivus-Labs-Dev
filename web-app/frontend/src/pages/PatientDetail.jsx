@@ -6,6 +6,8 @@ import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
 import ECGChart from '../components/vitals/ECGChart'
+import SpO2Monitoring from '../components/vitals/SpO2Monitoring'
+import SpO2Chart from '../components/vitals/SpO2Chart'
 import VitalsHistoryTab from '../components/vitals/VitalsHistoryTab'
 import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
@@ -215,6 +217,7 @@ const PatientDetail = () => {
               { id: 'profile', label: 'Patient Profile' },
               { id: 'personal', label: 'Personal Information' },
               { id: 'vitals-history', label: 'Vitals History', icon: BarChart3 },
+              { id: 'spo2-monitoring', label: 'SpO2 Monitoring', icon: Droplet },
               { id: 'prescriptions', label: 'Prescriptions Management' },
               { id: 'ai-insights', label: 'AI Insights', icon: Brain }
             ].map(tab => (
@@ -238,6 +241,12 @@ const PatientDetail = () => {
           {activeTab === 'personal' && <PersonalInformationTab patientData={patientData} />}
           
           {activeTab === 'vitals-history' && <VitalsHistoryTab patientId={patientData.id} />}
+          
+          {activeTab === 'spo2-monitoring' && (
+            <div className="space-y-6">
+              <SpO2Monitoring patientId={patientData.id} />
+            </div>
+          )}
           
           {activeTab === 'prescriptions' && <PrescriptionsTabComponent patientData={patientData} expandedPrescription={expandedPrescription} setExpandedPrescription={setExpandedPrescription} />}
           {activeTab === 'ai-insights' && <AIInsights patientId={patientData.id} patientData={patientData} />}

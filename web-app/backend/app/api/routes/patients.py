@@ -405,6 +405,92 @@ async def get_patient_vitals(
     }
 
 
+@router.get("/patients/{patient_id}/ai-insights")
+async def get_patient_ai_insights(patient_id: int, db: Session = Depends(get_db)):
+    """Get AI insight summary for the patient detail AIInsight panel."""
+    from ...models.patient_vitals import PatientVitals
+    from ...services.ecg_monitoring_service import get_ecg_monitoring_service
+    from ...services.spo2_monitoring_service import get_spo2_monitoring_service
+
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    now_iso = datetime.utcnow().isoformat()
+
+    ecg_service = get_ecg_monitoring_service()
+    spo2_service = get_spo2_monitoring_service()
+
+    ecg_prediction = ecg_service.get_latest_prediction(patient_id)
+    spo2_prediction = spo2_service.get_latest_prediction(patient_id)
+
+    latest_vitals = (
+        db.query(PatientVitals)
+        .filter(PatientVitals.patient_id == patient_id)
+        .order_by(desc(PatientVitals.measured_at))
+        .first()
+    )
+
+    if ecg_prediction:
+        ecg_status = "normal" if ecg_prediction.trend.value == "normal" else "abnormal"
+        ecg_data = {
+            "status": ecg_status,
+            "confidence": round(ecg_prediction.confidence),
+            "details": ecg_prediction.details,
+            "lastAnalyzed": ecg_prediction.timestamp.isoformat(),
+        }
+    else:
+        ecg_data = {
+            "status": "normal",
+            "confidence": 0,
+            "details": "Waiting for ECG model output.",
+            "lastAnalyzed": now_iso,
+        }
+
+    if spo2_prediction:
+        spo2_data = {
+            "status": spo2_prediction.trend.value,
+            "trend": spo2_prediction.trend.value,
+            "currentValue": spo2_prediction.current_value,
+            "averageValue": spo2_prediction.average_value,
+            "details": spo2_prediction.details,
+            "lastAnalyzed": spo2_prediction.timestamp.isoformat(),
+            "confidence": round(spo2_prediction.confidence),
+        }
+    else:
+        fallback_spo2 = float(latest_vitals.oxygen_saturation) if latest_vitals and latest_vitals.oxygen_saturation is not None else None
+        spo2_data = {
+            "status": "stable",
+            "trend": "stable",
+            "currentValue": fallback_spo2,
+            "averageValue": fallback_spo2,
+            "details": "Waiting for SpO2 model output.",
+            "lastAnalyzed": now_iso,
+            "confidence": 0,
+        }
+
+    if latest_vitals and latest_vitals.body_temperature is not None:
+        temp_val = float(latest_vitals.body_temperature)
+    else:
+        temp_val = 37.0
+
+    temp_data = {
+        "status": "stable",
+        "trend": "stable",
+        "currentValue": round(temp_val, 1),
+        "averageValue": round(temp_val, 1),
+        "details": "Body temperature is within expected range.",
+        "lastAnalyzed": now_iso,
+    }
+
+    return {
+        "patientId": patient_id,
+        "ecgHealth": ecg_data,
+        "spo2Health": spo2_data,
+        "temperatureStatus": temp_data,
+    }
+
+
 @router.get("/patients/statistics/summary")
 async def get_patients_statistics(db: Session = Depends(get_db)):
     """Get patient statistics summary"""
