@@ -2,310 +2,303 @@
 
 ## 2.1 Chapter Introduction
 
-This chapter documents the testing performed for the Smart IoT-Based Healthcare Monitoring and Management System. The goal of testing was to verify that implemented system capabilities work as expected under realistic use conditions, identify incomplete requirements, and provide evidence for system quality.
+This chapter presents the testing activities conducted for the Smart IoT-Based Healthcare Monitoring and Management System. The objective of the testing process was to determine whether the implemented modules satisfy the defined functional and non-functional requirements, while also identifying limitations and partially completed areas that require further work.
 
-Testing in this project was carried out across hardware simulation scripts, backend service tests, WebSocket streaming checks, model inference validation, and UI-level checks. Since development is phase-based, this chapter prioritizes completed functionality first, then reports partially completed and not-yet-implemented requirements.
+Testing was performed across the complete operational path of the system, including wearable data simulation, backend ingestion and processing, machine learning inference, WebSocket delivery, and user interface verification. Since the project is being developed in phases, the chapter intentionally reports completed functionality first, followed by partially implemented and pending features.
 
-The documented evidence is based on:
-- Executable test scripts in the repository.
-- Backend and firmware integration test tools.
-- Project-level performance and implementation notes.
-- Existing run logs and validation outputs.
+The evidence in this chapter is derived from executable scripts in the codebase, implementation logs, technical documentation, and direct validation of service behavior.
 
 ---
 
 ## 2.2 Testing Criteria
 
-The following criteria were selected to evaluate the current system implementation.
+The following criteria were selected to evaluate the current implementation state of the system.
 
-| Criterion | Purpose | Measurement Method |
+| Criterion | Rationale | Evaluation Method |
 |---|---|---|
-| Functional correctness | Validate each implemented feature against FR definitions | Script execution, API/WebSocket behavior, DB checks |
-| Data flow integrity | Ensure end-to-end pipeline works (sensor/simulator -> backend -> storage -> frontend) | Live stream simulation + DB verification |
-| Real-time behavior | Verify periodic processing and timely event delivery | Message interval checks, inference cycle checks |
-| Reliability and fault handling | Ensure system behaves safely on missing models, connection drops, and invalid states | Startup fallback validation, reconnection behavior, service status checks |
-| Security controls | Validate authentication and role restrictions | JWT, password hashing, protected route behavior |
-| Usability and accessibility baseline | Verify essential user workflows are understandable and operable | Dashboard flow checks, Flutter widget load test |
-| Compatibility | Confirm multi-platform and multi-client operability | Browser/web stack checks, Flutter multi-target support, API/WebSocket client compatibility |
+| Functional correctness | To verify that implemented features behave according to their requirement definitions | Execution of test scripts, route validation, WebSocket payload inspection |
+| End-to-end data integrity | To ensure that data moves correctly from source to storage and presentation layers | Stream simulation, database state verification, frontend observation |
+| Real-time responsiveness | To evaluate timeliness of processing and delivery for clinical monitoring use | Inference interval checks, stream cadence checks, latency observations |
+| Reliability and resilience | To assess continuity of operation under non-ideal conditions | Startup/shutdown lifecycle checks, fallback behavior, reconnection checks |
+| Security controls | To confirm existence and operation of access protection mechanisms | JWT validation paths, password hashing behavior, role-based access checks |
+| Usability baseline | To ensure core user workflows are understandable and operable | Dashboard workflow walkthroughs, UI smoke tests |
+| Compatibility baseline | To verify operation across expected clients and deployment targets | Protocol checks, browser/runtime checks, mobile framework checks |
 
-Acceptance logic used:
-- Pass: Feature works according to current implementation scope and has supporting evidence.
-- Partial: Feature exists but with limited scope, incomplete automation, or in-progress integration.
-- Fail/Not implemented: Feature absent or explicitly marked as future work.
+To maintain consistency in reporting, each requirement was categorized using the following outcome labels.
+
+- Completed: Implemented and supported by current test evidence.
+- Partial/In Progress: Implemented in part, but lacking full workflow completion or comprehensive validation.
+- Not Implemented: Not currently available in the active project scope.
 
 ---
 
 ## 2.3 Testing Functional Requirements
 
-### 2.3.1 Prioritized Functional Test Results (Completed First)
+### 2.3.1 Prioritized Functional Test Results
 
-| FR | Priority | Requirement | Status | Evidence Summary |
+In accordance with the requirement priorities provided for the project, completed critical and desirable functionalities are presented first.
+
+| FR | Priority | Requirement | Status | Summary of Current Evidence |
 |---|---|---|---|---|
-| FR1 | Critical | Real-time vital sign monitoring | Completed | ECG + SpO2 + HR streaming pipeline implemented; live monitoring services and WebSocket routes active. |
-| FR2 | Critical | Wireless data transmission | Completed | ESP32 and simulator clients transmit over Wi-Fi/WebSocket and HTTP stream endpoints. |
-| FR3 | Critical | ML-based health predictions | Completed | ECG and SpO2 inference services integrated with buffer managers and live publishing. |
-| FR6 | Critical | Web portal for doctors and staff | Completed | Multi-role React web portal with doctor/staff/admin dashboards and patient views. |
-| FR7 | Critical | Alert generation for abnormal readings | Completed | ECG/SpO2 prediction outputs include abnormal trend and alert-oriented status/events. |
-| FR10 | Critical | Data logging and storage | Completed | TimescaleDB + relational models, history routes, and feeder validation scripts confirm data persistence. |
-| FR18 | Critical | Local network backend processing | Completed | Local FastAPI backend performs data processing and model inference on LAN workflow. |
-| FR17 | Desirable | User-friendly dashboard | Completed | Structured dashboards for real-time vitals, trends, and clinical tasks available in web frontend. |
-| FR8 | Desirable | Patient profile management | Completed | Patient CRUD and profile data model/routes implemented. |
-| FR15 | Desirable | Report generation for doctors | Partial | Notes/history/analytics are available, but formal downloadable report workflow is still limited. |
-| FR11 | Desirable | Multi-patient monitoring support | Partial | Backend models and dashboards support multiple patients; stress validation for full-scale operations is limited. |
-| FR12 | Desirable | Secure login and authentication | Partial to Completed | JWT + bcrypt + role checks implemented; WebSocket auth hardening remains pending. |
-| FR13 | Desirable | Sensor connectivity status monitoring | Partial | Device heartbeat and connection status exist; full notification escalation can be expanded. |
-| FR9 | Critical | Automated medication reminder notifications | Partial | Prescription/task reminder fields exist, but full patient/caregiver reminder automation is not complete. |
-| FR20 | Desirable | Caregiver notification system | Partial | Alert-related structures exist; dedicated caregiver communication workflow is not fully completed. |
-| FR5 | Desirable | Mobile application for patients | In Progress | Flutter project exists with base test; feature-complete patient app still under development. |
-| FR4 | Critical | Medicine dispensing automation | Not Implemented | Explicitly planned for later phase. |
-| FR19 | Critical | Fail-safe medicine dispensing | Not Implemented | Depends on dispenser subsystem; not yet integrated. |
-| FR14 | Luxury | Medicine stock tracking | In Progress/Partial | Inventory-facing UI/backend entities exist, but full device stock telemetry and enforcement are not complete. |
-| FR16 | Luxury | OTA updates for ESP32 firmware | Not Implemented | Mentioned as future roadmap item. |
+| FR1 | Critical | Real-time vital sign monitoring | Completed | ECG, SpO2, and heart-rate monitoring paths are implemented with active stream handling. |
+| FR2 | Critical | Wireless data transmission | Completed | Sensor and simulator data transmission is supported through WebSocket and HTTP pathways over local network. |
+| FR3 | Critical | Machine learning-based health predictions | Completed | ECG and SpO2 inference services are integrated with buffering and monitoring workflows. |
+| FR6 | Critical | Web portal for doctors and staff | Completed | Multi-role web interfaces for doctors, staff, and administrators are implemented. |
+| FR7 | Critical | Alert generation for abnormal readings | Completed | Abnormal trend outputs and alert-oriented status messaging are available in monitoring flows. |
+| FR10 | Critical | Data logging and storage | Completed | Time-series and relational persistence are implemented and verifiable through test and history routes. |
+| FR18 | Critical | Local network backend processing | Completed | Data processing and prediction pipelines run in local backend deployment. |
+| FR8 | Desirable | Patient profile management | Completed | Patient profile creation and management routes are implemented. |
+| FR17 | Desirable | User-friendly dashboard | Completed | Dashboards provide live vitals, trends, and patient-centered workflow views. |
+| FR9 | Critical | Automated medication reminder notifications | Partial/In Progress | Reminder-related data structures exist, but complete automated reminder delivery is not finalized. |
+| FR11 | Desirable | Multi-patient monitoring support | Partial/In Progress | Core architecture supports multiple patients; full-scale concurrency testing remains limited. |
+| FR12 | Desirable | Secure login and authentication | Partial/In Progress | JWT and RBAC are implemented; complete security hardening across all channels is still pending. |
+| FR13 | Desirable | Sensor connectivity status monitoring | Partial/In Progress | Device status tracking is present; escalation and richer notification logic require expansion. |
+| FR15 | Desirable | Report generation for doctors | Partial/In Progress | Clinical data views are present, but finalized downloadable report generation is limited. |
+| FR20 | Desirable | Caregiver notification system | Partial/In Progress | Alert structures are available, while dedicated caregiver notification workflow is incomplete. |
+| FR5 | Desirable | Mobile application for patients | Partial/In Progress | Flutter application structure and basic test coverage exist; full patient feature set is under development. |
+| FR14 | Luxury | Medicine stock tracking | Partial/In Progress | Some inventory-related structures exist; complete stock telemetry and enforcement workflow is pending. |
+| FR4 | Critical | Medicine dispensing automation | Not Implemented | Not implemented in the current phase. |
+| FR19 | Critical | Fail-safe medicine dispensing | Not Implemented | Dependent on dispensing subsystem that is not yet integrated. |
+| FR16 | Luxury | OTA updates for ESP32 firmware | Not Implemented | Marked as planned future functionality. |
 
-### 2.3.2 Functional Test Cases Executed
+### 2.3.2 Functional Test Activities and Outcomes
 
 1. End-to-end ECG data flow validation.
-- Script: `test_ecg_flow.py`.
-- Validation: checks TimescaleDB connection, sample counts, first/last sample times, and 15-second active window.
-- Outcome: confirms FR1 + FR10 data pipeline when feeder is running.
+- Artifact: test_ecg_flow.py.
+- Method: verifies database connectivity, sample availability, and active 15-second data windows.
+- Outcome: validates continuity between feeder data and persistent storage.
 
-2. Backend WebSocket live monitoring simulation.
-- Script: `web-app/backend/test_websocket.py`.
-- Validation: simulates ECG, HR, and SpO2 payload transmission to backend WebSocket route.
-- Outcome: confirms FR1, FR2, FR6 real-time stream pathway without hardware dependency.
+2. WebSocket live monitoring simulation.
+- Artifact: web-app/backend/test_websocket.py.
+- Method: transmits simulated ECG, heart-rate, and SpO2 payloads through backend WebSocket endpoints.
+- Outcome: confirms real-time ingestion and stream compatibility without requiring physical hardware.
 
-3. Continuous stream endpoint ingestion test.
-- Script: `hardware/WearablePatch/python_clients/continuous_stream_test.py`.
-- Validation: sends periodic ECG/SpO2/HR HTTP stream payloads and checks backend response.
-- Outcome: supports FR2 + FR10 continuous ingestion behavior.
+3. Continuous ingestion validation.
+- Artifact: hardware/WearablePatch/python_clients/continuous_stream_test.py.
+- Method: sends recurring vital payloads to continuous backend endpoints and inspects response behavior.
+- Outcome: validates sustained data ingestion behavior under repetitive load.
 
-4. Multi-device registration test.
-- Script: `hardware/WearablePatch/python_clients/test_device_registration.py`.
-- Validation: registers multiple synthetic ESP32 devices with unique MAC/IP values.
-- Outcome: supports FR11 + FR13 readiness for multi-device operation.
+4. Multi-device registration validation.
+- Artifact: hardware/WearablePatch/python_clients/test_device_registration.py.
+- Method: registers multiple simulated devices with unique identifiers.
+- Outcome: supports readiness for multi-device and multi-patient expansion.
 
-5. Real-time ECG monitor test tools.
-- Scripts: `tests/ECG-Sensor-Test/monitor.py`, `tests/ECG-Sensor-Test/real-time.py`, `tests/ECG-Sensor-Test/monitor-cli.py`.
-- Validation: serial/WebSocket stream, preprocessing, model inference, abnormal event reporting.
-- Outcome: supports FR1 + FR3 + FR7 algorithm and live processing flow.
+5. Real-time ECG analysis toolchain validation.
+- Artifacts: tests/ECG-Sensor-Test/monitor.py, tests/ECG-Sensor-Test/real-time.py, tests/ECG-Sensor-Test/monitor-cli.py.
+- Method: verifies stream handling, preprocessing stages, model inference cycle, and abnormality reporting.
+- Outcome: confirms operational behavior of the ECG analysis and alert pipeline.
 
-### 2.3.3 Screenshot Evidence to Include
+### 2.3.3 Required Screenshot Evidence
 
-Add the following screenshots when compiling the final thesis document:
-- Screenshot A: terminal output of `python test_ecg_flow.py` showing DB count and recent 15-second window.
-- Screenshot B: terminal output of `python web-app/backend/test_websocket.py` showing successful WebSocket connection and sample send logs.
-- Screenshot C: terminal output of continuous stream script showing repeated success responses.
-- Screenshot D: admin/device listing after registration test showing multiple devices.
-- Screenshot E: live ECG monitor output (normal/abnormal inference logs).
+The following screenshots should be captured and inserted into the final implementation report.
+
+- Screenshot A: test_ecg_flow.py terminal output with sample counts and recent-window confirmation.
+- Screenshot B: test_websocket.py terminal output showing successful connection and streamed payload logs.
+- Screenshot C: continuous_stream_test.py output showing recurring successful submissions.
+- Screenshot D: device registration output and corresponding device list view in the administrative interface.
+- Screenshot E: ECG monitoring output demonstrating normal and abnormal inference messages.
 
 ---
 
 ## 2.4 Testing Non-Functional Requirements
 
-### 2.4.1 NFR Test Results (Completed First)
+### 2.4.1 Non-Functional Requirement Outcomes
 
-| NFR | Priority | Requirement | Status | Evidence Summary |
+| NFR | Priority | Requirement | Status | Summary of Current Evidence |
 |---|---|---|---|---|
-| NFR3 | Critical | Real-time performance | Completed | Configured 2-second inference cycle, real-time WebSocket delivery, and documented latency targets. |
-| NFR1 | Critical | System reliability | Completed (current scope) | Service startup/shutdown lifecycle, buffering, reconnection, and graceful fallback support. |
-| NFR8 | Critical | Accuracy of AI predictions | Partial to Completed | Production models integrated with monitoring tools and training metrics; full clinical validation set is outside current scope. |
-| NFR9 | Critical | Fault tolerance | Completed (baseline) | Handles missing model/version issues with mock fallback; buffer timeout and connection resiliency implemented. |
-| NFR2 | Critical | Data security and privacy | Partial | JWT, bcrypt, RBAC present; full transport hardening and compliance controls still need expansion. |
-| NFR4 | Desirable | Usability and accessibility | Partial | Multi-role dashboards and simple workflows exist; formal accessibility audit not yet completed. |
-| NFR6 | Desirable | Scalability | Partial | Architecture supports multi-patient operations; broad load testing evidence is limited. |
-| NFR7 | Desirable | Maintainability | Completed | Modular services (buffer/inference/monitoring), clear route separation, and componentized firmware/backend structure. |
-| NFR5 | Desirable | Wearability and comfort | Not Yet Fully Tested | Hardware usability testing exists informally; no formal comfort study results included yet. |
-| NFR10 | Luxury | Interoperability | Partial | Standard REST/WebSocket JSON interfaces exist; integration with external hospital systems pending. |
+| NFR3 | Critical | Real-time performance | Completed | Real-time buffering, periodic inference cycles, and stream-based delivery are active. |
+| NFR1 | Critical | System reliability | Completed (current scope) | Lifecycle handling, buffered processing, and fallback behavior are implemented. |
+| NFR9 | Critical | Fault tolerance | Completed (baseline) | Recovery-oriented behavior exists for model loading issues and stream continuity concerns. |
+| NFR8 | Critical | Accuracy of AI predictions | Partial/In Progress | ML models are integrated and tested operationally; full clinical-grade validation is pending. |
+| NFR2 | Critical | Data security and privacy | Partial/In Progress | Authentication and role controls are implemented; full compliance hardening is pending. |
+| NFR7 | Desirable | Maintainability | Completed | Modular structure across backend services, routes, and firmware components supports maintainability. |
+| NFR4 | Desirable | Usability and accessibility | Partial/In Progress | Core workflows are usable; formal accessibility evaluation has not yet been completed. |
+| NFR6 | Desirable | Scalability | Partial/In Progress | Multi-patient architecture exists, but large-scale stress evidence remains limited. |
+| NFR10 | Luxury | Interoperability | Partial/In Progress | Standard REST and WebSocket interfaces are provided; external healthcare integrations are pending. |
+| NFR5 | Desirable | Wearability and comfort | Not Yet Fully Tested | Formal long-duration comfort studies are not yet documented. |
 
-### 2.4.2 Key Non-Functional Checks Performed
+### 2.4.2 Non-Functional Validation Activities
 
-1. Reliability and startup resilience.
-- Verified startup sequence initializes ML services and monitoring managers.
-- Verified fallback operation when model incompatibility/missing model occurs.
+1. Reliability and service resilience checks.
+- Startup and shutdown behavior for ECG and SpO2 monitoring services was verified.
+- Model-loading fallback behavior was validated for compatibility and missing-model cases.
 
-2. Security mechanism verification.
-- Password hashing via bcrypt.
-- JWT access and refresh token generation and decode checks.
-- Role-based route protection for doctor/staff/admin workflows.
+2. Security control checks.
+- Password hashing workflow (bcrypt) and token-based authentication paths were verified.
+- Role-based endpoint access control for doctor, staff, and administrator roles was reviewed.
 
-3. Fault tolerance checks.
-- WebSocket reconnection patterns and long-running stream validation.
-- Buffer timeout handling and stale data protection paths in monitoring services.
+3. Fault-tolerance checks.
+- Continuous stream and WebSocket behaviors were observed for long-running scenarios.
+- Timeout and stale-data safeguards in buffering and monitoring layers were reviewed.
 
 4. Maintainability checks.
-- Modularized architecture across services, routes, schemas, and models.
-- Isolated sensor firmware modules and backend service boundaries.
+- Separation of concerns was verified across services, models, routes, and frontend modules.
+- Firmware components were confirmed to follow modular structure for extensibility.
 
-### 2.4.3 Screenshot Evidence to Include
+### 2.4.3 Required Screenshot Evidence
 
-- Screenshot F: backend startup logs showing ECG/SpO2 service initialization and fallback behavior.
-- Screenshot G: protected route behavior with invalid/expired token.
-- Screenshot H: WebSocket reconnection or resumed streaming after interruption.
+- Screenshot F: backend startup logs showing monitoring service initialization.
+- Screenshot G: authentication failure behavior for invalid or expired token.
+- Screenshot H: stream recovery or continued monitoring after connection interruption.
 
 ---
 
 ## 2.5 Unit Testing
 
-Formal unit testing is currently limited, but targeted script-level and widget-level tests are present.
+Unit testing coverage is currently limited but includes direct evidence at component and UI levels.
 
-### 2.5.1 Unit/Component Test Evidence
+### 2.5.1 Unit and Component-Level Evidence
 
-1. Flutter widget unit test.
-- File: `mobile-app/Test_Flutter_Project/test/widget_test.dart`.
-- Test objective: ensure patient app loads and essential login text is rendered.
-- Assertion examples: checks for "Patient Monitor" and login helper text.
+1. Flutter widget test.
+- Artifact: mobile-app/Test_Flutter_Project/test/widget_test.dart.
+- Purpose: verifies application boot and initial user-facing login text.
+- Outcome: confirms baseline UI integrity for the patient mobile application entry state.
 
-2. Backend component behavior verification through focused scripts.
-- `test_ecg_flow.py` validates data state assumptions for ECG pipeline.
-- `test_device_registration.py` validates deterministic device identity handling behavior.
+2. Backend component-oriented checks.
+- Artifacts: test_ecg_flow.py and test_device_registration.py.
+- Purpose: validate assumptions at individual pipeline segments, including data persistence and deterministic identity behavior.
+- Outcome: confirms expected behavior of specific backend interaction units.
 
-3. ECG processing component validation.
-- ECG monitor scripts in `tests/ECG-Sensor-Test` validate preprocessing + model inference cycle.
+3. ECG processing component checks.
+- Artifacts: tests/ECG-Sensor-Test scripts.
+- Purpose: validate preprocessing, buffering, and model invocation behavior.
+- Outcome: supports confidence in ECG-specific computational components.
 
-### 2.5.2 Justification
+### 2.5.2 Interpretation
 
-Because this project includes hardware, streaming, and ML inference components, test strategy currently emphasizes integration-driven verification. Existing unit-level coverage is strongest in Flutter UI and component logic checks, while backend and firmware testing is presently script-oriented. Expanding automated unit tests (pytest for backend services and mocks for WebSocket/device adapters) is recommended as next work.
+Due to the hybrid nature of this system (embedded device + backend streaming + machine learning), testing has emphasized integration behavior. Nevertheless, available unit-oriented checks provide useful baseline confidence. Additional automated backend unit test suites with mocks are recommended for stronger regression control.
 
-### 2.5.3 Screenshot Evidence to Include
+### 2.5.3 Required Screenshot Evidence
 
-- Screenshot I: Flutter test run output for `widget_test.dart` passing.
-- Screenshot J: selected code snippets from widget test and one backend script with expected assertions/checks.
+- Screenshot I: successful execution of Flutter widget tests.
+- Screenshot J: code snippet and output evidence from one backend-focused component test.
 
 ---
 
 ## 2.6 Performance Testing
 
-### 2.6.1 Performance Scope
+### 2.6.1 Performance Objectives
 
-The current performance verification focused on real-time processing constraints:
-- ECG processing and prediction cycle timing.
-- SpO2 periodic inference throughput.
-- WebSocket stream responsiveness.
-- Backend data query responsiveness.
+Performance testing focused on whether the current implementation can sustain near real-time clinical monitoring behavior.
 
-### 2.6.2 Performance Evidence
+The evaluated dimensions were:
 
-1. Documented target metrics (project baseline):
+- ECG processing and prediction turnaround.
+- SpO2 prediction cadence.
+- WebSocket delivery continuity and responsiveness.
+- Backend read/write responsiveness for vital records.
+
+### 2.6.2 Performance Evidence Summary
+
+1. Baseline targets documented in project artifacts.
 - ECG end-to-end latency target: < 5 seconds.
-- ECG inference time target: < 2 seconds.
+- ECG inference target: < 2 seconds.
 - SpO2 inference target: < 1 second.
-- WebSocket rates: ECG 25 Hz, SpO2 0.5 Hz.
+- Stream rates: ECG 25 Hz, SpO2 0.5 Hz.
 
-2. ECG monitoring implementation characteristics:
-- Inference loop interval: 2 seconds.
-- Backend ML inference noted around ~50-200 ms per prediction in implementation documentation.
-- Frontend WebSocket latency target noted as < 100 ms (local environment).
+2. Observed implementation characteristics.
+- Monitoring cycle configured at 2-second intervals for inference updates.
+- Inference and stream behavior align with real-time dashboard update expectations.
 
-3. Firmware stability evidence:
-- Continuous-load stability and memory behavior documented in ESP32 performance section.
+3. Firmware-side stability evidence.
+- Continuous-load behavior and memory stability are documented in embedded performance notes.
 
-### 2.6.3 Justification
+### 2.6.3 Interpretation
 
-Given medical monitoring context, predictability and low-latency behavior are critical. Current performance checks confirm that the implemented architecture supports near real-time monitoring in local deployment. A formal load-testing suite (multiple concurrent patient streams with measured P95/P99 latency) should be added for final production validation.
+Current results indicate that the architecture is suitable for local near real-time monitoring in the current deployment context. For production-readiness, formal benchmark campaigns with concurrent patient simulations and percentile latency reporting should be added.
 
-### 2.6.4 Screenshot Evidence to Include
+### 2.6.4 Required Screenshot Evidence
 
-- Screenshot K: backend logs showing periodic prediction generation.
-- Screenshot L: WebSocket stream monitor showing steady message cadence.
-- Screenshot M: ESP32 memory/performance monitoring output.
+- Screenshot K: periodic prediction logs from backend runtime.
+- Screenshot L: steady stream cadence as observed in monitoring client or dashboard logs.
+- Screenshot M: firmware memory and stability output under sustained operation.
 
 ---
 
 ## 2.7 Usability Testing
 
-### 2.7.1 Usability Scope
+### 2.7.1 Scope
 
-Usability testing focused on practical user flows for clinicians/staff and basic patient app accessibility.
+Usability testing at this stage focused on validating core workflows for doctors, staff, and administrators, with baseline verification for the patient mobile interface.
 
-### 2.7.2 Activities Performed
+### 2.7.2 Activities Conducted
 
-1. Doctor/staff dashboard workflow walkthrough.
-- Verified patient list access, patient detail navigation, and live vitals visibility.
-- Verified access to prescriptions, notes, and AI insight pages.
+1. Clinical dashboard workflow walkthrough.
+- Verified navigation from patient list to patient detail pages.
+- Verified visibility of real-time vital information and related clinical sections.
 
-2. Admin usability check.
-- Verified login and device/user management navigation paths.
+2. Administrative workflow walkthrough.
+- Verified login flow and access to user and device management views.
 
-3. Mobile baseline check.
-- Verified Flutter app startup and initial guidance text through widget test.
+3. Mobile baseline verification.
+- Verified successful loading of the patient mobile app entry interface through widget testing.
 
 ### 2.7.3 Findings
 
-- Core navigation and role-based dashboard segmentation are usable.
-- Real-time visual components are integrated and understandable for technical users.
-- Formal usability scoring with end users (elderly patients, caregivers, clinicians) is still pending and should be conducted using SUS or task-completion metrics.
+The current interfaces support the primary technical workflows required for monitoring and management. However, formal usability studies involving representative end users should be completed to provide quantitative usability evidence.
 
-### 2.7.4 Screenshot Evidence to Include
+### 2.7.4 Required Screenshot Evidence
 
-- Screenshot N: doctor dashboard main view.
-- Screenshot O: patient detail with live vitals and AI insights.
-- Screenshot P: admin devices/users screen.
-- Screenshot Q: Flutter app initial screen.
+- Screenshot N: doctor dashboard landing view.
+- Screenshot O: patient detail interface with live monitoring elements.
+- Screenshot P: administrative interface for device and user management.
+- Screenshot Q: patient mobile application initial screen.
 
 ---
 
 ## 2.8 Compatibility Testing
 
-### 2.8.1 Compatibility Scope
+### 2.8.1 Scope
 
-Compatibility was examined across API clients, browser-based frontend runtime, and mobile app target structure.
+Compatibility testing was performed at baseline level across communication protocols, browser runtime expectations, and mobile framework targets.
 
-### 2.8.2 Evidence and Results
+### 2.8.2 Results
 
-1. Protocol and client compatibility.
-- REST and WebSocket interfaces use JSON payloads, enabling cross-client interoperability.
-- Python clients and backend test scripts validate protocol compatibility.
+1. Protocol compatibility.
+- JSON-based REST and WebSocket interfaces were validated using backend and client-side scripts.
 
 2. Browser compatibility baseline.
-- Frontend built using Vite + React, tested in modern Chromium-class environments during development.
-- No browser-specific APIs without fallbacks were identified in the tested workflow.
+- Frontend architecture uses standard React and Vite tooling suitable for modern browser environments.
+- No critical browser-specific dependency was identified in tested workflows.
 
-3. Mobile platform compatibility baseline.
-- Flutter project contains Android, iOS, web, Windows, Linux, and macOS targets.
-- Base widget test confirms application boot path at framework level.
+3. Mobile target compatibility baseline.
+- Flutter project includes Android, iOS, web, Windows, Linux, and macOS targets.
+- Entry-path widget tests execute successfully as a baseline compatibility indicator.
 
-4. Device/backend compatibility.
-- ESP32 firmware and backend integration scripts confirm network protocol compatibility on local network deployment.
+4. Device-backend compatibility.
+- Integration scripts and wearable communication patterns confirm compatibility over local network deployment.
 
-### 2.8.3 Limitations
+### 2.8.3 Current Limitations
 
-- Formal cross-browser matrix (Chrome, Firefox, Edge, Safari versions) is not yet fully documented.
-- Real-device mobile compatibility matrix (multiple Android/iOS versions) is still pending.
+- A full browser-version compatibility matrix is not yet documented.
+- Formal device-lab validation across multiple Android and iOS versions remains pending.
 
-### 2.8.4 Screenshot Evidence to Include
+### 2.8.4 Required Screenshot Evidence
 
-- Screenshot R: same frontend page rendered in at least two browsers.
-- Screenshot S: WebSocket message logs from backend and browser dev tools.
-- Screenshot T: mobile app running on emulator/device.
+- Screenshot R: same dashboard view rendered in at least two browser environments.
+- Screenshot S: backend and browser-side stream messages confirming protocol compatibility.
+- Screenshot T: mobile app execution on emulator or physical device.
 
 ---
 
 ## 2.9 Chapter Summary
 
-This chapter presented testing performed for the current project phase and mapped outcomes directly to functional and non-functional requirements. Completed areas are strongest in real-time monitoring, data transmission, backend processing, ML inference integration, storage, and role-based web operations. Performance and reliability baselines are also established through streaming and service-level checks.
+This chapter documented the testing process and outcomes for the current development stage of the Smart IoT-Based Healthcare Monitoring and Management System. Results indicate strong progress in real-time monitoring, wireless transmission, local AI-enabled processing, data persistence, and role-based web portal functionality. Non-functional baselines for reliability, performance, and maintainability are also established.
 
-At the same time, the testing report clearly identifies partial or pending areas: medicine dispensing automation, OTA firmware updates, full caregiver notification automation, broader security hardening for all channels, and formalized cross-browser/mobile test matrices.
+At the same time, this chapter identifies clearly bounded gaps, including medicine dispensing automation, fail-safe dispensing logic, OTA firmware updates, full caregiver notification workflows, and comprehensive compatibility and usability studies. These findings provide a transparent basis for final-phase implementation and validation planning.
 
-Overall, the implemented system demonstrates a stable and testable foundation for a real-time healthcare monitoring platform, with clear next steps for completing advanced and luxury requirements.
+Overall, the present evidence demonstrates that the system has achieved a stable technical foundation appropriate for continued development toward full requirement completion.
 
 ---
 
-## Appendix: Quick Command Set Used During Testing
+## Appendix: Command Set Used During Testing
 
 ```bash
-# Backend websocket simulation
 python web-app/backend/test_websocket.py
-
-# End-to-end ECG flow check (DB validation)
 python test_ecg_flow.py
-
-# Continuous HTTP streaming simulation
 python hardware/WearablePatch/python_clients/continuous_stream_test.py
-
-# Multi-device registration simulation
 python hardware/WearablePatch/python_clients/test_device_registration.py
 
-# Flutter widget test
 cd mobile-app/Test_Flutter_Project
 flutter test
 ```
