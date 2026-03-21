@@ -12,6 +12,8 @@ The evidence in this chapter is derived from executable scripts in the codebase,
 
 ## 2.2 Testing Criteria
 
+This section defines the criteria used to evaluate the implemented system and establishes the basis for all subsequent testing decisions. The criteria were selected to ensure that technical behavior is assessed from both functional and quality perspectives. Each criterion is linked to observable evidence such as script output, service behavior, or interface response. This approach enables consistent interpretation of results across hardware, backend, and frontend components. It also ensures that requirement-level conclusions are grounded in repeatable validation steps rather than informal observation. By setting these criteria first, the chapter maintains a structured and traceable testing methodology.
+
 The following criteria were selected to evaluate the current implementation state of the system.
 
 | Criterion | Rationale | Evaluation Method |
@@ -33,6 +35,8 @@ To maintain consistency in reporting, each requirement was categorized using the
 ---
 
 ## 2.3 Testing Functional Requirements
+
+This section presents the testing outcomes for all functional requirements defined for the current project phase. The results are organized by implementation status, with completed high-priority requirements presented before partially implemented and pending requirements. This ordering reflects practical system readiness and highlights areas with immediate clinical and operational value. Each reported outcome is tied to concrete validation evidence from scripts, services, or observable application behavior. Where full implementation is not yet available, the section explicitly documents current progress and identified gaps. This structure supports transparent reporting and simplifies future reassessment during subsequent project phases.
 
 ### 2.3.1 Prioritized Functional Test Results
 
@@ -102,6 +106,8 @@ The following screenshots should be captured and inserted into the final impleme
 
 ## 2.4 Testing Non-Functional Requirements
 
+This section evaluates the non-functional properties that determine the overall quality and operational robustness of the system. In addition to feature availability, these qualities influence clinical trust, system stability, and long-term deployment suitability. The evaluation includes real-time performance, reliability, fault tolerance, security posture, maintainability, usability, and compatibility readiness. Each area is assessed using currently available evidence from runtime behavior, implementation structure, and targeted validation activities. The findings are reported with clear status labels to distinguish strong baseline compliance from areas that still require formal verification. This provides a balanced view of both achieved quality attributes and remaining engineering priorities.
+
 ### 2.4.1 Non-Functional Requirement Outcomes
 
 | NFR | Priority | Requirement | Status | Summary of Current Evidence |
@@ -145,6 +151,8 @@ The following screenshots should be captured and inserted into the final impleme
 
 ## 2.5 Unit Testing
 
+This section documents unit-level and component-level testing evidence collected from the current implementation. It identifies which parts of the system are covered by direct isolated checks and which parts rely primarily on integration-driven verification. The section also explains why unit coverage is currently uneven, given the hybrid nature of embedded, streaming, and machine-learning components. Available test artifacts are interpreted in terms of confidence contribution rather than only pass or fail outcomes. Where unit coverage is limited, the section records the impact on regression assurance and maintainability risk. This creates a clear baseline for planning expanded automated tests in future iterations.
+
 Unit testing coverage is currently limited but includes direct evidence at component and UI levels.
 
 ### 2.5.1 Unit and Component-Level Evidence
@@ -176,6 +184,8 @@ Due to the hybrid nature of this system (embedded device + backend streaming + m
 ---
 
 ## 2.6 Performance Testing
+
+This section summarizes performance-focused validation activities conducted to assess near real-time behavior of the system. The objective is to determine whether processing and delivery characteristics align with healthcare monitoring expectations. Performance observations include inference cadence, stream continuity, and responsiveness of backend operations under typical development load. Documented target values are compared with observed operational behavior where evidence is available. The section also distinguishes baseline verification from formal benchmarking to avoid overstating current maturity. As a result, it provides a realistic interpretation of performance readiness and identifies required next-step measurements.
 
 ### 2.6.1 Performance Objectives
 
@@ -217,6 +227,8 @@ Current results indicate that the architecture is suitable for local near real-t
 
 ## 2.7 Usability Testing
 
+This section describes usability-oriented validation performed on the principal user workflows in the system. The assessment focuses on how effectively clinicians, staff, and administrators can execute essential tasks in the current interface design. Basic mobile interface readiness is also considered through available test evidence. Rather than formal human-subject metrics, this stage emphasizes workflow clarity, navigation consistency, and practical operability during development. The section documents strengths observed in current interfaces while clearly acknowledging the absence of full user-study-based scoring. This ensures that usability conclusions remain accurate and appropriately scoped to the present project stage.
+
 ### 2.7.1 Scope
 
 Usability testing at this stage focused on validating core workflows for doctors, staff, and administrators, with baseline verification for the patient mobile interface.
@@ -247,6 +259,8 @@ The current interfaces support the primary technical workflows required for moni
 ---
 
 ## 2.8 Compatibility Testing
+
+This section reports baseline compatibility validation across communication protocols, browser environments, and mobile deployment targets. Compatibility is critical to ensure that the system can operate consistently across its intended technical contexts. The validation considers API and WebSocket interoperability, frontend runtime behavior, and cross-platform mobile project readiness. Current findings are based on available implementation evidence and development-time checks rather than exhaustive certification testing. Limitations are explicitly documented to distinguish confirmed compatibility from assumed compatibility. This approach provides a credible foundation for planning a complete compatibility matrix in later phases.
 
 ### 2.8.1 Scope
 
@@ -282,6 +296,8 @@ Compatibility testing was performed at baseline level across communication proto
 ---
 
 ## 2.9 Chapter Summary
+
+This section provides a consolidated interpretation of all testing findings presented in Chapter 2. It brings together functional and non-functional outcomes to describe the present maturity level of the system. The summary highlights areas with strong implementation evidence and identifies gaps that remain before full requirement closure. It also clarifies how current results support continued development rather than final production qualification. By combining achievements and limitations in one closing view, the section supports transparent academic reporting. Finally, it establishes clear validation priorities for the next implementation and testing cycle.
 
 This chapter documented the testing process and outcomes for the current development stage of the Smart IoT-Based Healthcare Monitoring and Management System. Results indicate strong progress in real-time monitoring, wireless transmission, local AI-enabled processing, data persistence, and role-based web portal functionality. Non-functional baselines for reliability, performance, and maintainability are also established.
 
