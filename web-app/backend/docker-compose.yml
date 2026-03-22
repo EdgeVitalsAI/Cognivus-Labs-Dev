@@ -92,7 +92,7 @@ services:
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
 
-  # PgAdmin - PostgreSQL Administration Tool (Optional)
+  # PgAdmin - PostgreSQL Administration ATool (Optional)
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: cognivus_pgadmin
