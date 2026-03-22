@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 /// Based on the dark theme design with blue accents
 class AppColors {
   // Primary Background Colors
-  static const Color background = Color(0xFF040719);
-  static const Color backgroundLight = Color(0xFF0A0E23);
+
+  static const Color background = Color(0xFF0D1117);
+  static const Color backgroundLight = Color(0xFF161B22);
   static const Color cardBackground = Color(0xFF0D1229);
   static const Color cardBackgroundLight = Color(0xFF141B36);
 
