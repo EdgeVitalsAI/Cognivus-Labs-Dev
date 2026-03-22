@@ -251,6 +251,29 @@ export default function AdminDashboard() {
                 Users
               </button>
               <button
+                onClick={() => navigate('/admin/model-inference')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: currentTheme.textSecondary,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = currentTheme.hoverBackground
+                  e.target.style.color = currentTheme.textPrimary
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = currentTheme.textSecondary
+                }}
+              >
+                AI Models
+              </button>
+              <button
                 onClick={() => navigate('/sys/settings')}
                 style={{
                   padding: '8px',

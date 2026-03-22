@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminDevices from './pages/AdminDevices';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+import AdminModelInference from "./pages/AdminModelInference";
 
 function AdminApp() {
   return (
@@ -18,6 +19,7 @@ function AdminApp() {
           <Route path="/sys/users" element={<AdminUsers />} />
           <Route path="/sys/settings" element={<AdminSettings />} />
           <Route path="*" element={<Navigate to="/sys/auth" replace />} />
+          <Route path="/admin/model-inference" element={<AdminModelInference />} />
         </Routes>
       </Router>
     </ThemeProvider>

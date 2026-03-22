@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "author": "Wooshan Pill Dispenser ESP32",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 158.3, "left": 196.6, "attrs": {} },
+    { "type": "wokwi-a4988", "id": "drv", "top": 302.4, "left": 513.6, "attrs": {} },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "mtr",
+      "top": 14.11,
+      "left": 519.28,
+      "attrs": { "display": "steps" }
+    },
+    { "type": "wokwi-ds1307", "id": "rtc", "top": 4.2, "left": 134.5, "attrs": {} },
+    { "type": "wokwi-buzzer", "id": "buz", "top": 160, "left": 40, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn",
+      "top": 438.2,
+      "left": 220.8,
+      "attrs": { "color": "green" }
+    }
+  ],
+  "connections": [
+    [ "esp:3V3", "drv:VDD", "red", [ "v7.9", "h245.9", "v38.32" ] ],
+    [ "esp:GND.1", "drv:GND", "black", [] ],
+    [ "esp:VIN", "drv:VMOT", "red", [ "h207.8", "v-20.9", "h153.45" ] ],
+    [ "esp:GND.2", "drv:GND.1", "black", [ "h351.8", "v65.32" ] ],
+    [ "esp:3V3", "drv:RESET", "orange", [ "h44.3", "v27.1" ] ],
+    [ "esp:3V3", "drv:SLEEP", "orange", [ "h15.5", "v36.7" ] ],
+    [ "esp:GND.1", "drv:ENABLE", "black", [ "v-21", "h217.1" ] ],
+    [ "esp:D18", "drv:STEP", "green", [ "h34.7", "v123.1" ] ],
+    [ "esp:D19", "drv:DIR", "blue", [ "h25.1", "v142.2" ] ],
+    [ "drv:1A", "mtr:A+", "green", [] ],
+    [ "drv:1B", "mtr:A-", "yellow", [] ],
+    [ "drv:2A", "mtr:B+", "green", [] ],
+    [ "drv:2B", "mtr:B-", "yellow", [] ],
+    [ "esp:D21", "rtc:SDA", "green", [] ],
+    [ "esp:D22", "rtc:SCL", "green", [] ],
+    [ "esp:3V3", "rtc:VCC", "red", [] ],
+    [ "esp:GND.1", "rtc:GND", "black", [] ],
+    [ "esp:D5", "buz:1", "green", [] ],
+    [ "esp:GND.1", "buz:2", "black", [] ],
+    [ "esp:D15", "btn:1.l", "green", [] ],
+    [ "esp:GND.1", "btn:2.l", "black", [] ],
+    [
+      "drv:GND.2",
+      "esp:GND.2",
+      "black",
+      [ "h9.75", "v67.28", "h-259.2", "v19.2", "h9.6", "v-9.6", "h-57.6", "v-124.8" ]
+    ]
+  ],
+  "dependencies": {}
+}

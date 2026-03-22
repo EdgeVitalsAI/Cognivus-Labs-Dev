@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "axios": "^1.6.7",
+    "cognivus-health-frontend": "file:",
     "framer-motion": "^11.0.3",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.344.0",
