@@ -22,17 +22,7 @@ export default function ModelVersion({ data }) {
         alignItems: 'center',
         gap: '8px'
       }}>
-        <div style={{
-          padding: '6px',
-          background: theme === 'dark' ? 'rgba(168,85,247,0.15)' : 'rgba(168,85,247,0.1)',
-          borderRadius: '8px',
-          boxShadow: '0 0 12px rgba(168,85,247,0.35), 0 0 4px rgba(168,85,247,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <GitBranch style={{ width: '20px', height: '20px', color: '#a855f7', filter: 'drop-shadow(0 0 4px rgba(168,85,247,0.6))' }} />
-        </div>
+        <GitBranch style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
         Model Version Tracking
       </h2>
 
@@ -115,7 +105,7 @@ export default function ModelVersion({ data }) {
                 {/* Footer stats */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <BarChart3 style={{ width: '14px', height: '14px', color: '#3b82f6', filter: 'drop-shadow(0 0 3px rgba(59,130,246,0.5))' }} />
+                    <BarChart3 style={{ width: '14px', height: '14px', color: currentTheme.textTertiary }} />
                     <span style={{ fontSize: '12px', color: currentTheme.textSecondary }}>
                       <span style={{ fontWeight: '600', color: currentTheme.textPrimary, fontFamily: 'Consolas, monospace' }}>
                         {(model.totalPredictions || 0).toLocaleString()}

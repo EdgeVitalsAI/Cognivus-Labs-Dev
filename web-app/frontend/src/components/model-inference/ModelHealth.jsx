@@ -41,17 +41,7 @@ export default function ModelHealth({ data }) {
         alignItems: 'center',
         gap: '8px'
       }}>
-        <div style={{
-          padding: '6px',
-          background: theme === 'dark' ? 'rgba(59,130,246,0.15)' : 'rgba(0,102,204,0.1)',
-          borderRadius: '8px',
-          boxShadow: '0 0 12px rgba(59,130,246,0.35), 0 0 4px rgba(59,130,246,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Activity style={{ width: '20px', height: '20px', color: currentTheme.primary, filter: 'drop-shadow(0 0 4px rgba(59,130,246,0.6))' }} />
-        </div>
+        <Activity style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
         Model Health Monitoring
       </h2>
 
@@ -107,7 +97,7 @@ export default function ModelHealth({ data }) {
                 <div style={{ marginBottom: '14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '12px', color: currentTheme.textSecondary, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Percent style={{ width: '12px', height: '12px', color: '#22c55e', filter: 'drop-shadow(0 0 3px rgba(34,197,94,0.6))' }} /> Avg Confidence
+                      <Percent style={{ width: '12px', height: '12px' }} /> Avg Confidence
                     </span>
                     <span style={{ fontSize: '13px', color: '#22c55e', fontWeight: '600', fontFamily: 'Consolas, monospace' }}>{confidencePercent}%</span>
                   </div>
@@ -130,7 +120,7 @@ export default function ModelHealth({ data }) {
                     border: `1px solid ${currentTheme.border}`,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                      <BarChart3 style={{ width: '12px', height: '12px', color: currentTheme.primary, filter: 'drop-shadow(0 0 3px rgba(59,130,246,0.6))' }} />
+                      <BarChart3 style={{ width: '12px', height: '12px', color: currentTheme.primary }} />
                       <span style={{ fontSize: '11px', color: currentTheme.textTertiary }}>Total Inferences</span>
                     </div>
                     <p style={{ fontSize: '18px', fontWeight: '700', color: currentTheme.textPrimary, margin: 0, fontFamily: 'Consolas, monospace' }}>
@@ -144,7 +134,7 @@ export default function ModelHealth({ data }) {
                     border: `1px solid ${currentTheme.border}`,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                      <AlertTriangle style={{ width: '12px', height: '12px', color: errorPercent < 5 ? '#22c55e' : '#ef4444', filter: `drop-shadow(0 0 3px ${errorPercent < 5 ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)'})` }} />
+                      <AlertTriangle style={{ width: '12px', height: '12px', color: errorPercent < 5 ? '#22c55e' : '#ef4444' }} />
                       <span style={{ fontSize: '11px', color: currentTheme.textTertiary }}>Error Rate</span>
                     </div>
                     <p style={{

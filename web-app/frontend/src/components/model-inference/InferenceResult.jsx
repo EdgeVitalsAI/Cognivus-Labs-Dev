@@ -53,17 +53,7 @@ export default function InferenceResult({ result }) {
           alignItems: 'center',
           gap: '8px'
         }}>
-          <div style={{
-            padding: '6px',
-            background: theme === 'dark' ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)',
-            borderRadius: '8px',
-            boxShadow: '0 0 12px rgba(34,197,94,0.35), 0 0 4px rgba(34,197,94,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <CheckCircle style={{ width: '20px', height: '20px', color: '#22c55e', filter: 'drop-shadow(0 0 4px rgba(34,197,94,0.6))' }} />
-          </div>
+          <CheckCircle style={{ width: '20px', height: '20px', color: '#22c55e' }} />
           Inference Result
         </h2>
         <span style={{
@@ -154,7 +144,7 @@ export default function InferenceResult({ result }) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-              <card.icon style={{ width: '14px', height: '14px', color: card.color, filter: `drop-shadow(0 0 4px ${card.color})` }} />
+              <card.icon style={{ width: '14px', height: '14px', color: card.color }} />
               <span style={{ fontSize: '12px', color: currentTheme.textTertiary, fontWeight: '500' }}>{card.label}</span>
             </div>
             <p style={{
@@ -179,7 +169,7 @@ export default function InferenceResult({ result }) {
         gap: '8px',
         border: `1px solid ${currentTheme.border}`,
       }}>
-        <Clock style={{ width: '14px', height: '14px', color: '#a855f7', filter: 'drop-shadow(0 0 3px rgba(168,85,247,0.5))' }} />
+        <Clock style={{ width: '14px', height: '14px', color: currentTheme.textTertiary }} />
         <span style={{ fontSize: '12px', color: currentTheme.textTertiary }}>
           {new Date(result.timestamp).toLocaleString()}
         </span>

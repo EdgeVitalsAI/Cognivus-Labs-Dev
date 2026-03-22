@@ -126,7 +126,7 @@ export default function InferenceForm({ onSubmit }) {
           </>
         ) : (
           <>
-            <Play style={{ width: '18px', height: '18px', filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.6))' }} />
+            <Play style={{ width: '18px', height: '18px' }} />
             Run Inference
           </>
         )}
