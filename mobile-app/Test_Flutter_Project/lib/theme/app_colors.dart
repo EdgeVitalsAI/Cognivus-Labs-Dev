@@ -66,9 +66,8 @@ class AppColors {
   static const Color sidebarItemActive = Color(0xFF2563EB); // Primary blue (highlight)
   static const Color sidebarItemHover = Color(0xFF1E293B);  // Slightly lighter hover state
   
-  // Input Field Colors
-  static const Color inputBackground = Color(0xFF0D1229);
-  static const Color inputBorder = Color(0xFF2A3352);
-  static const Color inputFocusBorder = Color(0xFF6E80E7);
+
+
+  
 }
 
