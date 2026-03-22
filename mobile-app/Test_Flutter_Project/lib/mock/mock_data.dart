@@ -30,3 +30,13 @@ List<Patient> mockPatients = [
     roomNumber: 'Ward 1 - Bed 05',
     doctor: 'Dr. Nimal Perera',
   ),
+
+  
+  Patient(
+    patientId: 'PT002',
+    fullName: 'Nadeesha Fernando',
+    gender: 'Female',
+    nic: '199845678912',
+    roomNumber: 'Ward 2 - Bed 08',
+    doctor: 'Dr. Chamila Silva',
+  ),
