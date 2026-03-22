@@ -59,11 +59,6 @@ class AppColors {
   static const Color temperatureColor = Color(0xFFFFB347);
   static const Color bloodPressureColor = Color(0xFF9B59B6);
 
-  // Sidebar Colors
-  static const Color sidebarBackground = Color(0xFF0A0D1F);
-  static const Color sidebarItemActive = Color(0xFF2323FF);
-  static const Color sidebarItemHover = Color(0xFF141B36);
-
   // Input Field Colors
   static const Color inputBackground = Color(0xFF0D1229);
   static const Color inputBorder = Color(0xFF2A3352);
