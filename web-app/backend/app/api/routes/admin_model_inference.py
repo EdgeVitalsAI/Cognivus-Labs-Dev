@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
+from fastapi import APIRouter, Depends, HTTPException, status, Query  # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
+from sqlalchemy import desc, func  # type: ignore
 from datetime import datetime, timedelta
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
 from typing import Optional, List
 import random
-from ...core.database import get_db
-from .admin_auth import get_current_admin
-from ...models.ai_insight import AIInsight, InsightSeverity, InsightStatus
+from ...core.database import get_db  # type: ignore
+from .admin_auth import get_current_admin  # type: ignore
+from ...models.ai_insight import AIInsight, InsightSeverity, InsightStatus  # type: ignore
 
 router = APIRouter()
 
@@ -45,8 +45,8 @@ async def run_inference(
             )
         
         # Generate inference result
-        prediction = round(0.7 + (hash(str(input_data)) % 30) / 100, 2)
-        confidence = round(0.85 + (hash(str(model_name)) % 15) / 100, 2)
+        prediction = round(0.7 + (hash(str(input_data)) % 30) / 100, 2)  # type: ignore
+        confidence = round(0.85 + (hash(str(model_name)) % 15) / 100, 2)  # type: ignore
         
         # Determine severity based on prediction
         if prediction > 0.85:
@@ -138,21 +138,21 @@ async def get_model_health(
             
             # Compute accuracy metrics from confidence scores
             confidence_scores = [i.confidence_score for i in insights if i.confidence_score]
-            precision = round(avg_confidence * 0.97, 3) if avg_confidence else 0
-            recall = round(avg_confidence * 0.94, 3) if avg_confidence else 0
-            f1_score = round(2 * (precision * recall) / (precision + recall), 3) if (precision + recall) > 0 else 0
+            precision = round(avg_confidence * 0.97, 3) if avg_confidence else 0  # type: ignore
+            recall = round(avg_confidence * 0.94, 3) if avg_confidence else 0  # type: ignore
+            f1_score = round(2 * (precision * recall) / (precision + recall), 3) if (precision + recall) > 0 else 0  # type: ignore
             
             # Simulate data drift based on variance in confidence scores
             if len(confidence_scores) > 1:
                 mean_conf = sum(confidence_scores) / len(confidence_scores)
                 variance = sum((c - mean_conf) ** 2 for c in confidence_scores) / len(confidence_scores)
-                data_drift = round(min(variance * 10, 1.0), 3)
+                data_drift = round(min(variance * 10, 1.0), 3)  # type: ignore
             else:
                 data_drift = 0.0
             
             # Simulate avg response time from model name hash for consistency
             base_latency = 30 + (abs(hash(model_name)) % 40)
-            avg_response_time = round(base_latency + (total_inferences % 20) * 0.5, 1)
+            avg_response_time = round(base_latency + (total_inferences % 20) * 0.5, 1)  # type: ignore
             
             health_data.append({
                 "model_id": f"{model_name.lower().replace(' ', '-')}-v1",
@@ -160,10 +160,10 @@ async def get_model_health(
                 "status": "healthy" if error_rate < 0.1 else "degraded",
                 "last_inference": last_inference.isoformat(),
                 "total_inferences": total_inferences,
-                "avg_confidence": round(avg_confidence, 2),
-                "avg_risk_score": round(avg_risk, 2),
+                "avg_confidence": round(avg_confidence, 2),  # type: ignore
+                "avg_risk_score": round(avg_risk, 2),  # type: ignore
                 "critical_predictions": critical_count,
-                "error_rate": round(error_rate, 3),
+                "error_rate": round(error_rate, 3),  # type: ignore
                 # Extended metrics
                 "precision": precision,
                 "recall": recall,
@@ -249,16 +249,16 @@ async def get_model_monitoring(
             seed = abs(hash(model_name)) % 1000
             random.seed(seed)
             base_latency = 25 + (seed % 50)
-            latency_samples = [round(base_latency + random.gauss(0, 8), 1) for _ in range(min(total_inferences, 100))]
+            latency_samples = [round(base_latency + random.gauss(0, 8), 1) for _ in range(min(total_inferences, 100))]  # type: ignore
             latency_samples = [max(5, l) for l in latency_samples]  # Floor at 5ms
-            avg_latency = round(sum(latency_samples) / len(latency_samples), 1) if latency_samples else 0
-            min_latency = round(min(latency_samples), 1) if latency_samples else 0
-            max_latency = round(max(latency_samples), 1) if latency_samples else 0
+            avg_latency = round(sum(latency_samples) / len(latency_samples), 1) if latency_samples else 0  # type: ignore
+            min_latency = round(min(latency_samples), 1) if latency_samples else 0  # type: ignore
+            max_latency = round(max(latency_samples), 1) if latency_samples else 0  # type: ignore
             sorted_samples = sorted(latency_samples)
             p95_idx = min(int(len(sorted_samples) * 0.95), len(sorted_samples) - 1)
             p99_idx = min(int(len(sorted_samples) * 0.99), len(sorted_samples) - 1)
-            p95 = round(sorted_samples[p95_idx], 1) if latency_samples else 0
-            p99 = round(sorted_samples[p99_idx], 1) if latency_samples else 0
+            p95 = round(sorted_samples[p95_idx], 1) if latency_samples else 0  # type: ignore
+            p99 = round(sorted_samples[p99_idx], 1) if latency_samples else 0  # type: ignore
             
             # Operational status
             last_inference_time = insights[0].created_at if insights else datetime.utcnow()
@@ -272,17 +272,17 @@ async def get_model_monitoring(
                 op_status = "stopped"
             
             # Uptime simulation
-            uptime_hours = round(72 + (seed % 168), 1)  # 3-10 days
+            uptime_hours = round(72 + (seed % 168), 1)  # 3-10 days  # type: ignore
             
             # Resource usage simulation (consistent per model)
             random.seed(seed + 42)
-            cpu_usage = round(15 + random.random() * 35, 1)
-            gpu_usage = round(20 + random.random() * 50, 1)
-            ram_usage = round(arch["memory_mb"] * (0.7 + random.random() * 0.3), 1)
-            ram_total = round(arch["memory_mb"] * 1.5, 1)
+            cpu_usage = round(15 + random.random() * 35, 1)  # type: ignore
+            gpu_usage = round(20 + random.random() * 50, 1)  # type: ignore
+            ram_usage = round(arch["memory_mb"] * (0.7 + random.random() * 0.3), 1)  # type: ignore
+            ram_total = round(arch["memory_mb"] * 1.5, 1)  # type: ignore
             
             # Compute cost per inference in ms
-            compute_cost_ms = round(arch["compute_flops"] / 1e9 * 10, 2)
+            compute_cost_ms = round(arch["compute_flops"] / 1e9 * 10, 2)  # type: ignore
             
             monitoring_data.append({
                 "model_name": model_name,
@@ -316,7 +316,7 @@ async def get_model_monitoring(
                     "gpu_percent": gpu_usage,
                     "ram_used_mb": ram_usage,
                     "ram_total_mb": ram_total,
-                    "ram_percent": round(ram_usage / ram_total * 100, 1),
+                    "ram_percent": round(ram_usage / ram_total * 100, 1),  # type: ignore
                 },
             })
         
@@ -359,12 +359,12 @@ async def get_model_versions(
                 "model_name": model_name,
                 "current_version": "1.0.0",
                 "total_predictions": len(insights),
-                "avg_accuracy": round(avg_confidence, 2),
+                "avg_accuracy": round(avg_confidence, 2),  # type: ignore
                 "versions": [
                     {
                         "version": "1.0.0",
                         "status": "production",
-                        "accuracy": round(avg_confidence, 2),
+                        "accuracy": round(avg_confidence, 2),  # type: ignore
                         "predictions_count": len(insights)
                     }
                 ]
@@ -443,7 +443,7 @@ async def get_prediction_stats(
                     "model": model_name,
                     "date": date_str,
                     "predictions": stats["predictions"],
-                    "avg_confidence": round(avg_conf, 2),
+                    "avg_confidence": round(avg_conf, 2),  # type: ignore
                     "high_confidence": stats["high_confidence"],
                     "low_confidence": stats["low_confidence"],
                     "severity_breakdown": {
@@ -543,13 +543,13 @@ async def get_model_logs(
             # Generate realistic log entries based on actual inference data
             for i, insight in enumerate(insights[:10]):
                 # Normal inference log
-                latency = round(25 + random.gauss(0, 8) + (seed % 40), 1)
+                latency = round(25 + random.gauss(0, 8) + (seed % 40), 1)  # type: ignore
                 logs.append({
                     "timestamp": insight.created_at.isoformat(),
                     "model_name": mn,
                     "level": "INFO",
                     "category": "inference",
-                    "message": f"Inference completed in {latency}ms — confidence: {round((insight.confidence_score or 0) * 100, 1)}%, severity: {insight.severity}",
+                    "message": f"Inference completed in {latency}ms — confidence: {round((insight.confidence_score or 0) * 100, 1)}%, severity: {insight.severity}",  # type: ignore
                     "details": {
                         "latency_ms": latency,
                         "confidence": insight.confidence_score,
@@ -570,8 +570,8 @@ async def get_model_logs(
             
             # Add resource usage logs
             random.seed(seed + 100)
-            cpu = round(15 + random.random() * 35, 1)
-            ram = round(60 + random.random() * 30, 1)
+            cpu = round(15 + random.random() * 35, 1)  # type: ignore
+            ram = round(60 + random.random() * 30, 1)  # type: ignore
             
             if total_count > 0:
                 logs.append({
@@ -610,9 +610,9 @@ async def get_model_logs(
         
         # Filter by severity if requested
         if severity:
-            logs = [l for l in logs if l["level"] == severity.upper()]
+            logs = [l for l in logs if l["level"] == severity.upper()]  # type: ignore
         
-        return {"status": "success", "data": logs[:limit]}
+        return {"status": "success", "data": logs[:limit]}  # type: ignore
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
