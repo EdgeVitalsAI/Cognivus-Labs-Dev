@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Patient {
+  id        String   @id
+  name      String
+  gender    String
+  nic       String   @unique
+  room      String
+  doctor    String
+  vitals    Vital[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vital {
+  id        Int      @id @default(autoincrement())
+  patientId String
+  spo2      Float
+  pulse     Float
+  temp      Float
+  bpSys     Float
+  bpDia     Float
+  createdAt DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt])
+}
