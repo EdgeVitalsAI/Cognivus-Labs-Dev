@@ -9,58 +9,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Alert, Patient, useApp, Vitals } from '../providers';
 
-// Patient Database (mock data)
-const PatientDatabase: Record<string, { patient: Patient; vitals: Vitals }> = {
-    PT001: {
-        patient: {
-            id: 'PT001',
-            name: 'John Silva',
-            gender: 'Male',
-            nic: '200112345678',
-            room: 'Ward 3 - Bed 12',
-            doctor: 'Dr. Perera',
-        },
-        vitals: {
-            spo2: { value: 97, min: 95, max: 100 },
-            pulse: { value: 77, min: 60, max: 100 },
-            temperature: { value: 37.3, min: 36.5, max: 37.5 },
-            bp: { systolic: 120, diastolic: 80 },
-        },
-    },
-    PT002: {
-        patient: {
-            id: 'PT002',
-            name: 'Sarah Fernando',
-            gender: 'Female',
-            nic: '199856789012',
-            room: 'Ward 2 - Bed 5',
-            doctor: 'Dr. Wijesinghe',
-        },
-        vitals: {
-            spo2: { value: 98, min: 95, max: 100 },
-            pulse: { value: 72, min: 60, max: 100 },
-            temperature: { value: 36.8, min: 36.5, max: 37.5 },
-            bp: { systolic: 118, diastolic: 75 },
-        },
-    },
-    PT003: {
-        patient: {
-            id: 'PT003',
-            name: 'Kumar Jayawardena',
-            gender: 'Male',
-            nic: '198523456789',
-            room: 'ICU - Bed 2',
-            doctor: 'Dr. Mendis',
-        },
-        vitals: {
-            spo2: { value: 94, min: 95, max: 100 },
-            pulse: { value: 95, min: 60, max: 100 },
-            temperature: { value: 38.2, min: 36.5, max: 37.5 },
-            bp: { systolic: 145, diastolic: 95 },
-        },
-    },
-};
-
 function DashboardPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -72,6 +20,7 @@ function DashboardPageInner() {
     const [alerts, setLocalAlerts] = useState<Alert[]>([]);
     const [lastUpdated, setLastUpdated] = useState<string>('--:--:--');
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Check alerts based on vitals
     const checkAlerts = useCallback((currentVitals: Vitals): Alert[] => {
@@ -113,37 +62,44 @@ function DashboardPageInner() {
         return newAlerts;
     }, []);
 
-    // Update vitals with random variations
-    const updateVitals = useCallback((baseVitals: Vitals): Vitals => {
-        const clamp = (value: number, min: number, max: number) =>
-            Math.min(Math.max(value, min), max);
+    const fetchVitalsForPatient = useCallback(async (id: string) => {
+        const vitalsResponse = await fetch(`/api/vitals/${id}`, { cache: 'no-store' });
+        if (!vitalsResponse.ok) {
+            throw new Error('Failed to load vitals');
+        }
 
-        const randomVariation = (min: number, max: number) =>
-            Math.random() * (max - min) + min;
+        const currentVitals: Vitals = await vitalsResponse.json();
+        setLocalVitals(currentVitals);
+        setVitals(currentVitals);
+        setLastUpdated(new Date().toLocaleTimeString());
 
-        return {
-            spo2: {
-                ...baseVitals.spo2,
-                value: Math.round(clamp(baseVitals.spo2.value + randomVariation(-1, 1), 90, 100)),
-            },
-            pulse: {
-                ...baseVitals.pulse,
-                value: Math.round(clamp(baseVitals.pulse.value + randomVariation(-3, 3), 50, 120)),
-            },
-            temperature: {
-                ...baseVitals.temperature,
-                value: parseFloat(clamp(
-                    baseVitals.temperature.value + randomVariation(-0.1, 0.1),
-                    35.5,
-                    39.5
-                ).toFixed(1)),
-            },
-            bp: {
-                systolic: Math.round(clamp(baseVitals.bp.systolic + randomVariation(-2, 2), 90, 160)),
-                diastolic: Math.round(clamp(baseVitals.bp.diastolic + randomVariation(-2, 2), 60, 100)),
-            },
-        };
-    }, []);
+        const newAlerts = checkAlerts(currentVitals);
+        setLocalAlerts(newAlerts);
+        setAlerts(newAlerts);
+    }, [checkAlerts, setAlerts, setVitals]);
+
+    const loadPatientAndVitals = useCallback(async (id: string) => {
+        setIsLoading(true);
+        try {
+            const patientResponse = await fetch(`/api/patients/${id}`, { cache: 'no-store' });
+
+            if (!patientResponse.ok) {
+                throw new Error('Patient not found');
+            }
+
+            const loadedPatient: Patient = await patientResponse.json();
+            setPatient(loadedPatient);
+            setCurrentPatient(loadedPatient);
+
+            await fetchVitalsForPatient(id);
+        } catch (error) {
+            console.error(error);
+            showToast('Patient not found', 'error');
+            router.push('/');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [fetchVitalsForPatient, router, setCurrentPatient, showToast]);
 
     // Load patient data
     useEffect(() => {
@@ -152,47 +108,24 @@ function DashboardPageInner() {
             return;
         }
 
-        const data = PatientDatabase[patientId.toUpperCase()];
-        if (!data) {
-            showToast('Patient not found', 'error');
-            router.push('/');
-            return;
-        }
-
-        setPatient(data.patient);
-        setLocalVitals(data.vitals);
-        setCurrentPatient(data.patient);
-        setVitals(data.vitals);
-        setLastUpdated(new Date().toLocaleTimeString());
-
-        const initialAlerts = checkAlerts(data.vitals);
-        setLocalAlerts(initialAlerts);
-        setAlerts(initialAlerts);
+        loadPatientAndVitals(patientId.toUpperCase());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [patientId]);
 
     // Real-time vitals monitoring
     useEffect(() => {
-        if (!vitals) return;
+        if (!patientId) return;
+        const normalizedId = patientId.toUpperCase();
 
         const interval = setInterval(() => {
-            setLocalVitals((prev) => {
-                if (!prev) return prev;
-                const updated = updateVitals(prev);
-                setVitals(updated);
-                setLastUpdated(new Date().toLocaleTimeString());
-
-                const newAlerts = checkAlerts(updated);
-                setLocalAlerts(newAlerts);
-                setAlerts(newAlerts);
-
-                return updated;
+            fetchVitalsForPatient(normalizedId).catch((error) => {
+                console.error(error);
             });
         }, 10000);
 
         return () => clearInterval(interval);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [updateVitals, checkAlerts]);
+    }, [fetchVitalsForPatient, patientId]);
 
     const handleBack = useCallback(() => {
         if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -204,24 +137,23 @@ function DashboardPageInner() {
     }, [router]);
 
     const handleRefresh = useCallback(() => {
+        if (!patientId) return;
+
         setIsRefreshing(true);
-        setTimeout(() => {
-            if (vitals) {
-                const updated = updateVitals(vitals);
-                setLocalVitals(updated);
-                setVitals(updated);
-                setLastUpdated(new Date().toLocaleTimeString());
+        fetchVitalsForPatient(patientId.toUpperCase())
+            .then(() => {
+                showToast('Vitals refreshed', 'success');
+            })
+            .catch((error) => {
+                console.error(error);
+                showToast('Failed to refresh vitals', 'error');
+            })
+            .finally(() => {
+                setIsRefreshing(false);
+            });
+    }, [fetchVitalsForPatient, patientId, showToast]);
 
-                const newAlerts = checkAlerts(updated);
-                setLocalAlerts(newAlerts);
-                setAlerts(newAlerts);
-            }
-            setIsRefreshing(false);
-            showToast('Vitals refreshed', 'success');
-        }, 1000);
-    }, [vitals, updateVitals, checkAlerts, setVitals, setAlerts, showToast]);
-
-    if (!patient || !vitals) {
+    if (isLoading || !patient || !vitals) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background-dark">
                 <div className="text-center animate-fade-in">
