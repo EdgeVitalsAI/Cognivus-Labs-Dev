@@ -18,9 +18,6 @@ import StaffInventory from './pages/Staff/StaffInventory';
 import StaffIncidents from './pages/Staff/StaffIncidents';
 import StaffCommunication from './pages/Staff/StaffCommunication';
 import StaffNotes from './pages/Staff/StaffNotes';
-<<<<<<< HEAD
-import StaffSettings from './pages/Staff/StaffSettings';
-=======
 import StaffDevices from './pages/Staff/StaffDevices';
 import ProfileSettingsPage from './pages/ProfileSettingsPage';
 import AdminLogin from './pages/AdminLogin';
@@ -30,7 +27,6 @@ import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
 import DoctorNotifications from './pages/DoctorNotifications';
 import StaffNotifications from './pages/Staff/StaffNotifications';
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 
 function App() {
     return (
@@ -128,65 +124,6 @@ function App() {
                     element={
                         <ProtectedRoute role="staff">
                             <StaffDashboardMain />
-<<<<<<< HEAD
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/tasks"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffTasks />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/patients"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffPatients />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/inventory"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffInventory />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/incidents"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffIncidents />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/communication"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffCommunication />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/notes"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffNotes />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/staff/settings"
-                    element={
-                        <ProtectedRoute role="staff">
-                            <StaffSettings />
-=======
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                         </ProtectedRoute>
                     }
                 />

@@ -1,66 +1,3 @@
-<<<<<<< HEAD
-import { useState } from 'react'
-import { Search, Filter, Heart, Thermometer, AlertCircle, Wind } from 'lucide-react'
-import StaffSidebar from '../../components/staff/StaffSidebar'
-import TopBar from '../../components/TopBar'
-
-export default function StaffPatients() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      age: 58,
-      gender: 'F',
-      room: '302A',
-      department: 'Cardiology',
-      doctor: 'Dr. Smith',
-      diagnosis: 'Acute Coronary Syndrome',
-      hr: 125,
-      temp: 98.6,
-      bp: '135/85',
-      o2: 97,
-      alerts: 2,
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      age: 45,
-      gender: 'M',
-      room: '215B',
-      department: 'Cardiology',
-      doctor: 'Dr. Johnson',
-      diagnosis: 'Hypertension',
-      hr: 72,
-      temp: 98.2,
-      bp: '120/78',
-      o2: 98,
-      alerts: 1,
-      status: 'active'
-    },
-    {
-      id: 3,
-      name: 'Emma Davis',
-      age: 72,
-      gender: 'F',
-      room: '410C',
-      department: 'Post-op',
-      doctor: 'Dr. Williams',
-      diagnosis: 'Hip Replacement Recovery',
-      hr: 68,
-      temp: 98.4,
-      bp: '118/76',
-      o2: 96,
-      alerts: 0,
-      status: 'active'
-    }
-  ])
-
-  const [selectedPatient, setSelectedPatient] = useState(null)
-  const [showDetail, setShowDetail] = useState(false)
-=======
 import { useState, useEffect } from 'react'
 import { Search, Filter, Heart, Thermometer, Activity, Wind, User, Stethoscope, X, FileText, Pill, Plus, Wifi, WifiOff, Clock, AlertCircle, RefreshCw } from 'lucide-react'
 import StaffSidebar from '../../components/staff/StaffSidebar'
@@ -180,7 +117,6 @@ export default function StaffPatients() {
   const [showDetail, setShowDetail] = useState(false)
   const [showLiveVitals, setShowLiveVitals] = useState(false)
   const [livePatientId, setLivePatientId] = useState(null)
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 
   const filteredPatients = patients.filter(
     (p) =>
@@ -190,105 +126,38 @@ export default function StaffPatients() {
 
   return (
     <div className="flex h-screen bg-slate-950">
-<<<<<<< HEAD
-      <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-=======
       <StaffSidebar />
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />
 
         <div className="flex-1 overflow-auto">
-<<<<<<< HEAD
-          <div className="p-8 max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">My Patients</h1>
-              <p className="text-slate-400">{patients.length} Assigned</p>
-=======
           <div className="p-6">
             {/* Header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-white mb-1">My Patients</h1>
               <p className="text-sm text-slate-400">{patients.length} patients assigned to you</p>
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
             </div>
 
             {/* Search and Filter */}
             <div className="flex gap-3 mb-6">
               <div className="flex-1 relative">
-<<<<<<< HEAD
-                <Search className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-=======
                 <Search className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                 <input
                   type="text"
                   placeholder="Search by name or room..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-<<<<<<< HEAD
-                  className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-600"
-                />
-              </div>
-              <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors">
-                <Filter className="w-5 h-5" />
-=======
                   className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-slate-700 transition-colors"
                 />
               </div>
               <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-lg text-sm font-medium transition-colors">
                 <Filter className="w-4 h-4" />
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                 Filter
               </button>
             </div>
 
             {/* Patients Grid */}
-<<<<<<< HEAD
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredPatients.map((patient) => (
-                <div
-                  key={patient.id}
-                  className="bg-slate-900 border border-slate-700 rounded-lg p-5 hover:border-slate-600 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setSelectedPatient(patient)
-                    setShowDetail(true)
-                  }}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{patient.name}</h3>
-                      <p className="text-sm text-slate-400">
-                        {patient.age}{patient.gender} • Room {patient.room}
-                      </p>
-                    </div>
-                    {patient.alerts > 0 && (
-                      <span className="px-3 py-1 bg-red-900/30 border border-red-900/50 text-red-300 text-sm rounded-full font-semibold">
-                        🔴 {patient.alerts}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="bg-slate-800/50 rounded-lg p-3 mb-4">
-                    <p className="text-xs text-slate-400 mb-2">Vitals:</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center gap-2 text-xs">
-                        <Heart className="w-3.5 h-3.5 text-red-400" />
-                        <span className="text-slate-300">{patient.hr} bpm</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <Thermometer className="w-3.5 h-3.5 text-orange-400" />
-                        <span className="text-slate-300">{patient.temp}°F</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <AlertCircle className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="text-slate-300">{patient.bp} mmHg</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <Wind className="w-3.5 h-3.5 text-cyan-400" />
-                        <span className="text-slate-300">{patient.o2}%</span>
-=======
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredPatients.map((patient) => (
                 <div
@@ -355,19 +224,10 @@ export default function StaffPatients() {
                           <span className="text-xs text-slate-500">Temp</span>
                         </div>
                         <p className="text-sm font-medium text-slate-300">{patient.temp}°F</p>
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                       </div>
                     </div>
                   </div>
 
-<<<<<<< HEAD
-                  <div className="flex gap-2">
-                    <button className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors">
-                      View Details
-                    </button>
-                    <button className="flex-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded transition-colors">
-                      Vitals
-=======
                   {/* Actions */}
                   <div className="px-4 py-3 flex gap-2">
                     <button
@@ -395,7 +255,6 @@ export default function StaffPatients() {
                       title="Refresh vitals"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                     </button>
                   </div>
                 </div>
@@ -404,10 +263,7 @@ export default function StaffPatients() {
 
             {filteredPatients.length === 0 && (
               <div className="text-center py-12">
-<<<<<<< HEAD
-=======
                 <User className="w-12 h-12 text-slate-700 mx-auto mb-3" />
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                 <p className="text-slate-400">No patients found</p>
               </div>
             )}
@@ -417,55 +273,6 @@ export default function StaffPatients() {
 
       {/* Patient Detail Modal */}
       {showDetail && selectedPatient && (
-<<<<<<< HEAD
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-slate-900 border border-slate-700 rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{selectedPatient.name} - Room {selectedPatient.room}</h2>
-              <button
-                onClick={() => setShowDetail(false)}
-                className="text-slate-400 hover:text-slate-200 font-bold text-xl"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-6 text-slate-200">
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-400 mb-3">Basic Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-slate-400">DOB:</span> {selectedPatient.age} years old
-                    </p>
-                    <p>
-                      <span className="text-slate-400">Department:</span> {selectedPatient.department}
-                    </p>
-                    <p>
-                      <span className="text-slate-400">Doctor:</span> {selectedPatient.doctor}
-                    </p>
-                    <p>
-                      <span className="text-slate-400">Diagnosis:</span> {selectedPatient.diagnosis}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-400 mb-3">Current Vitals</h3>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-slate-400">Heart Rate:</span> {selectedPatient.hr} bpm
-                    </p>
-                    <p>
-                      <span className="text-slate-400">Temperature:</span> {selectedPatient.temp}°F
-                    </p>
-                    <p>
-                      <span className="text-slate-400">BP:</span> {selectedPatient.bp} mmHg
-                    </p>
-                    <p>
-                      <span className="text-slate-400">O2 Sat:</span> {selectedPatient.o2}%
-                    </p>
-=======
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
@@ -536,22 +343,10 @@ export default function StaffPatients() {
                       <span className="text-slate-400">Temperature:</span>
                       <span className="text-white font-medium">{selectedPatient.temp}°F</span>
                     </div>
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                   </div>
                 </div>
               </div>
 
-<<<<<<< HEAD
-              <div className="flex gap-3">
-                <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors">
-                  Add Note
-                </button>
-                <button className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded transition-colors">
-                  Record Vitals
-                </button>
-                <button className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded transition-colors">
-                  View Medications
-=======
               {/* Diagnosis */}
               <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800 mb-6">
                 <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
@@ -574,15 +369,12 @@ export default function StaffPatients() {
                 <button className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors border border-slate-700">
                   <Pill className="w-4 h-4" />
                   Medications
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-<<<<<<< HEAD
-=======
 
       {/* Live Vitals Modal */}
       {showLiveVitals && livePatientId && <LiveVitalsModal patientId={livePatientId} onClose={() => setShowLiveVitals(false)} />}
@@ -823,7 +615,6 @@ function LiveVitalsModal({ patientId, onClose }) {
           )}
         </div>
       </div>
->>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
     </div>
   )
 }
