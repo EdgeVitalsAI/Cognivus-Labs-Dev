@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 /// CognivusLabs Color Palette
 /// Based on the dark theme design with blue accents
