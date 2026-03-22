@@ -12,7 +12,7 @@ import ModelVersion from "../components/model-inference/ModelVersion";
 import PredictionChart from "../components/model-inference/PredictionChart";
 import {
   Shield, Terminal, Settings, LogOut, RefreshCw, Brain,
-  BarChart3, Cpu, TrendingUp, AlertTriangle
+  BarChart3, Cpu, TrendingUp, AlertTriangle, ArrowLeft
 } from "lucide-react";
 
 const API_BASE_URL = "http://localhost:8001";
@@ -367,6 +367,37 @@ export default function AdminModelInference() {
 
       {/* ── Main Content ── */}
       <div style={{ padding: "24px" }}>
+        {/* Back Button */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          <button
+            onClick={() => navigate("/sys/dashboard")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "8px 12px",
+              backgroundColor: currentTheme.cardBackground,
+              border: `1px solid ${currentTheme.border}`,
+              borderRadius: "4px",
+              color: currentTheme.textPrimary,
+              fontSize: "14px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = currentTheme.hoverBackground;
+              e.currentTarget.style.borderColor = currentTheme.primary;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = currentTheme.cardBackground;
+              e.currentTarget.style.borderColor = currentTheme.border;
+            }}
+          >
+            <ArrowLeft style={{ width: "16px", height: "16px" }} />
+            Back to Dashboard
+          </button>
+        </div>
+
         {/* Error Banner */}
         {error && (
           <div style={{
