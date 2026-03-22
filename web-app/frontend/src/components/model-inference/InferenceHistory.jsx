@@ -47,7 +47,17 @@ export default function InferenceHistory({ history, total, limit, offset, onPage
           alignItems: 'center',
           gap: '8px'
         }}>
-          <History style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
+          <div style={{
+            padding: '6px',
+            background: theme === 'dark' ? 'rgba(249,115,22,0.15)' : 'rgba(249,115,22,0.1)',
+            borderRadius: '8px',
+            boxShadow: '0 0 12px rgba(249,115,22,0.35), 0 0 4px rgba(249,115,22,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <History style={{ width: '20px', height: '20px', color: '#f97316', filter: 'drop-shadow(0 0 4px rgba(249,115,22,0.6))' }} />
+          </div>
           Prediction History
           {total != null && (
             <span style={{
@@ -62,7 +72,7 @@ export default function InferenceHistory({ history, total, limit, offset, onPage
 
       {/* Filters */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <Filter style={{ width: '14px', height: '14px', color: currentTheme.textTertiary }} />
+        <Filter style={{ width: '14px', height: '14px', color: '#a855f7', filter: 'drop-shadow(0 0 3px rgba(168,85,247,0.5))' }} />
         {severityFilters.map((filter) => (
           <button
             key={filter}

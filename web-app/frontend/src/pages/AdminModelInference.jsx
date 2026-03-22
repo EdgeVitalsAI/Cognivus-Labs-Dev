@@ -233,6 +233,10 @@ export default function AdminModelInference() {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
+          @keyframes glowPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+          }
         `}</style>
       </div>
     );
@@ -259,13 +263,14 @@ export default function AdminModelInference() {
               <div style={{
                 width: "40px",
                 height: "40px",
-                backgroundColor: currentTheme.primary,
-                borderRadius: "4px",
+                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                borderRadius: "8px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 0 16px rgba(59,130,246,0.45), 0 0 6px rgba(99,102,241,0.3)",
               }}>
-                <Shield style={{ width: "20px", height: "20px", color: "#ffffff" }} />
+                <Shield style={{ width: "20px", height: "20px", color: "#ffffff", filter: "drop-shadow(0 0 4px rgba(255,255,255,0.5))" }} />
               </div>
               <div>
                 <h1 style={{
@@ -277,7 +282,7 @@ export default function AdminModelInference() {
                   alignItems: "center",
                   gap: "8px",
                 }}>
-                  <Terminal style={{ width: "16px", height: "16px", color: currentTheme.primary }} />
+                  <Terminal style={{ width: "16px", height: "16px", color: currentTheme.primary, filter: "drop-shadow(0 0 4px rgba(59,130,246,0.5))" }} />
                   Administrator Control Panel
                 </h1>
                 <p style={{
@@ -442,13 +447,13 @@ export default function AdminModelInference() {
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                 <div style={{
-                  padding: "8px",
-                  backgroundColor: theme === "dark"
-                    ? `${kpi.color}18`
-                    : `${kpi.color}10`,
-                  borderRadius: "8px",
+                  padding: "10px",
+                  background: `linear-gradient(135deg, ${kpi.color}22, ${kpi.color}38)`,
+                  borderRadius: "10px",
+                  boxShadow: `0 0 14px ${kpi.color}40, 0 0 5px ${kpi.color}25`,
+                  animation: "glowPulse 3s ease-in-out infinite",
                 }}>
-                  <kpi.icon style={{ width: "22px", height: "22px", color: kpi.color }} />
+                  <kpi.icon style={{ width: "22px", height: "22px", color: kpi.color, filter: `drop-shadow(0 0 6px ${kpi.color})` }} />
                 </div>
               </div>
               <p style={{ fontSize: "13px", color: currentTheme.textSecondary, margin: "0 0 4px 0" }}>{kpi.label}</p>
@@ -488,7 +493,17 @@ export default function AdminModelInference() {
               alignItems: "center",
               gap: "8px",
             }}>
-              <Brain style={{ width: "20px", height: "20px", color: currentTheme.primary }} />
+              <div style={{
+                padding: "6px",
+                background: theme === "dark" ? "rgba(59,130,246,0.15)" : "rgba(0,102,204,0.1)",
+                borderRadius: "8px",
+                boxShadow: "0 0 12px rgba(59,130,246,0.3), 0 0 4px rgba(59,130,246,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Brain style={{ width: "20px", height: "20px", color: currentTheme.primary, filter: "drop-shadow(0 0 4px rgba(59,130,246,0.6))" }} />
+              </div>
               Run Model Inference
             </h2>
             <button

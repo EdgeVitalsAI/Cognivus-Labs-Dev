@@ -1,5 +1,5 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Heart, Wind } from 'lucide-react';
+import { Heart, Wind, Cpu } from 'lucide-react';
 
 const modelIcons = {
   'ECG Analysis Model': Heart,
@@ -69,20 +69,26 @@ export default function ModelSelector({ selectedModel, setSelectedModel, models 
               <div style={{
                 width: '40px',
                 height: '40px',
-                borderRadius: '8px',
-                backgroundColor: isSelected
-                  ? currentTheme.primary
-                  : (theme === 'dark' ? '#2a2a2a' : '#f0f0f0'),
+                borderRadius: '10px',
+                background: isSelected
+                  ? 'linear-gradient(135deg, #3b82f6, #6366f1)'
+                  : (theme === 'dark' ? 'rgba(59,130,246,0.12)' : 'rgba(0,102,204,0.08)'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 flexShrink: 0,
+                boxShadow: isSelected
+                  ? '0 0 16px rgba(59,130,246,0.5), 0 0 6px rgba(99,102,241,0.3)'
+                  : '0 0 10px rgba(59,130,246,0.2), 0 0 4px rgba(59,130,246,0.1)',
               }}>
                 <Icon style={{
                   width: '20px',
                   height: '20px',
-                  color: isSelected ? '#ffffff' : currentTheme.primary
+                  color: isSelected ? '#ffffff' : currentTheme.primary,
+                  filter: isSelected
+                    ? 'drop-shadow(0 0 4px rgba(255,255,255,0.5))'
+                    : 'drop-shadow(0 0 3px rgba(59,130,246,0.5))',
                 }} />
               </div>
               <div>

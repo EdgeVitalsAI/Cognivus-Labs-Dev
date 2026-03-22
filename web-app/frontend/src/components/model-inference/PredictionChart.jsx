@@ -54,7 +54,17 @@ export default function PredictionChart({ data }) {
           fontSize: '16px', fontWeight: '600', color: currentTheme.textPrimary, margin: 0,
           display: 'flex', alignItems: 'center', gap: '8px'
         }}>
-          <TrendingUp style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
+          <div style={{
+            padding: '6px',
+            background: theme === 'dark' ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)',
+            borderRadius: '8px',
+            boxShadow: '0 0 12px rgba(34,197,94,0.35), 0 0 4px rgba(34,197,94,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <TrendingUp style={{ width: '20px', height: '20px', color: '#22c55e', filter: 'drop-shadow(0 0 4px rgba(34,197,94,0.6))' }} />
+          </div>
           Prediction Trends
         </h2>
         <p style={{ fontSize: '13px', color: currentTheme.textTertiary, textAlign: 'center', padding: '40px 0' }}>
@@ -76,7 +86,17 @@ export default function PredictionChart({ data }) {
         fontSize: '16px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0 0 20px 0',
         display: 'flex', alignItems: 'center', gap: '8px'
       }}>
-        <TrendingUp style={{ width: '20px', height: '20px', color: currentTheme.primary }} />
+        <div style={{
+          padding: '6px',
+          background: theme === 'dark' ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)',
+          borderRadius: '8px',
+          boxShadow: '0 0 12px rgba(34,197,94,0.35), 0 0 4px rgba(34,197,94,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <TrendingUp style={{ width: '20px', height: '20px', color: '#22c55e', filter: 'drop-shadow(0 0 4px rgba(34,197,94,0.6))' }} />
+        </div>
         Prediction Trends
       </h2>
 
