@@ -13,5 +13,9 @@ export const getModelVersions = () =>
   api.get("/admin/model-versions");
 
 // Get prediction stats
-export const getPredictionStats = () =>
-  api.get("/admin/prediction-stats");
+export const getPredictionStats = (days = 7) =>
+  api.get("/admin/prediction-stats", { params: { days } });
+
+// Get inference history
+export const getInferenceHistory = (params = {}) =>
+  api.get("/admin/inference-history", { params });
