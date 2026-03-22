@@ -14,7 +14,7 @@ RTC_DS1307 rtc;
 // Wokwi stepper = 800 steps/rev, 7 slots → 800/7 ≈ 114
 int stepsPerSlot = 114;
 
-// ── System Config ─────────────────────────────
+// ── System Config ───────────────────────────────────
 struct SystemConfig {
   int stepsPerSlot;
   int dosesPerDay;
@@ -25,13 +25,21 @@ SystemConfig config = {
   3
 };
 
-// Dispense times (24h format) — edit as needed
-int dispenseHours[]   = {0,0,0};
-int dispenseMinutes[] = {0,1,2};
-int numDoses = 3;
+// ── Dose Schedule ───────────────────────────────────
+struct Dose {
+  int hour;
+  int minute;
+  bool taken;
+};
 
-bool dosedToday[3] = {false, false, false};
-int  lastDay = -1;
+Dose doses[3] = {
+  {0, 0, false},
+  {0, 1, false},
+  {0, 2, false}
+};
+
+const int numDoses = sizeof(doses) / sizeof(doses[0]);
+int lastDay = -1;
 
 bool timerStarted    = false;
 bool buttonStarted   = false;
@@ -69,7 +77,7 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  digitalWrite(DIR_PIN,    HIGH);
+  digitalWrite(DIR_PIN, HIGH);
   digitalWrite(BUZZER_PIN, LOW);
   digitalWrite(STEP_PIN, LOW);
 
@@ -90,7 +98,6 @@ void setup() {
 }
 
 void loop() {
-
   // ── Button: manual dispense / start system ────────
   if (digitalRead(BUTTON_PIN) == LOW && !buttonStarted) {
     delay(50);
@@ -105,46 +112,40 @@ void loop() {
   }
 
   // ── RTC-based automatic dispensing ───────────────
-    DateTime now = rtc.now();
+  DateTime now = rtc.now();
 
-    // Reset daily flags at midnight
-    if (now.day() != lastDay) {
-      for (int i = 0; i < numDoses; i++) {
-        dosedToday[i] = false;
-      }
-      lastDay = now.day();
-    }
-
+  // Reset daily flags at midnight
+  if (now.day() != lastDay) {
     for (int i = 0; i < numDoses; i++) {
-
-      if (!dosedToday[i] &&
-          now.hour() == dispenseHours[i] &&
-          now.minute() == dispenseMinutes[i] &&
-          now.second() < 5) {
-
-        Serial.print("RTC Alarm — dispensing dose ");
-        Serial.println(i + 1);
-
-        rotateSlot();
-        dosedToday[i] = true;
-      }
+      doses[i].taken = false;
     }
+    lastDay = now.day();
+  }
 
-  // ── Simulation fallback (timed, no RTC needed) ────
+  for (int i = 0; i < numDoses; i++) {
+    if (!doses[i].taken &&
+        now.hour() == doses[i].hour &&
+        now.minute() == doses[i].minute &&
+        now.second() < 5) {
+
+      Serial.print("RTC Alarm — dispensing dose ");
+      Serial.println(i + 1);
+
+      rotateSlot();
+      doses[i].taken = true;
+    }
+  }
+
   // ── Simulation fallback (timed, no RTC needed) ────
   if (timerStarted) {
-
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= simInterval) {
-
       Serial.println("Sim timer — dispensing next pill");
-
       rotateSlot();
-
       previousMillis = currentMillis;
     }
   }
 
   delay(500);
-  }
+}
