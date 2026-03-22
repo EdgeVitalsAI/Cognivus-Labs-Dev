@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Brain, Activity, Wind, Thermometer, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle, Loader, WifiOff, Unplug } from 'lucide-react'
 import axios from 'axios'
 import ECGMonitoring from '../ECG/ECGMonitoring'
-
-const API_BASE_URL = 'http://localhost:8000/api'
-const WS_BASE_URL = 'ws://localhost:8000/api'
+import { API_BASE_URL, WS_BASE_URL } from '../../config'
 
 const AIInsights = ({ patientId, patientData }) => {
   const [loading, setLoading] = useState(true)

@@ -5,8 +5,7 @@ import TopBar from '../../components/TopBar'
 import ECGChart from '../../components/vitals/ECGChart'
 import useVitalsWebSocket from '../../hooks/useVitalsWebSocket'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../../config'
 
 export default function StaffPatients() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -392,7 +391,7 @@ function LiveVitalsModal({ patientId, onClose }) {
     const fetchPatient = async () => {
       try {
         const token = localStorage.getItem('access_token')
-        const response = await axios.get(`http://localhost:8000/api/patients/${patientId}`, {
+        const response = await axios.get(`${API_BASE_URL}/patients/${patientId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         setPatientInfo(response.data)

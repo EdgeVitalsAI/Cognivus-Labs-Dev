@@ -6,8 +6,7 @@ import StatCard from '../../components/staff/StatCard'
 import ActiveMonitoringPanel from '../../components/dashboard/ActiveMonitoringPanel'
 import AlertsPanel from '../../components/dashboard/AlertsPanel'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../../config'
 
 export default function StaffDashboardMain() {
   const [dashboardData, setDashboardData] = useState({

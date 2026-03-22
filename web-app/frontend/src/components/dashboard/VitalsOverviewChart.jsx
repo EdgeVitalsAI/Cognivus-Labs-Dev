@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../../config'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null

@@ -7,8 +7,7 @@ import DeviceCard from '../components/device-management/DeviceCard';
 import PairDeviceModal from '../components/device-management/PairDeviceModal';
 import { authService } from '../services/api';
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8000/api';
+import { API_BASE_URL } from '../config';
 
 const DeviceManagementPage = () => {
     const navigate = useNavigate();

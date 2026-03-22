@@ -8,6 +8,7 @@ import {
 import axios from 'axios'
 import { useTheme } from '../contexts/ThemeContext'
 import ThemeToggle from '../components/ThemeToggle'
+import { API_BASE_URL } from '../config'
 
 export default function AdminDevices() {
   const navigate = useNavigate()
@@ -123,7 +124,7 @@ export default function AdminDevices() {
   const loadPatients = async () => {
     try {
       const token = localStorage.getItem('admin_token')
-      const response = await axios.get('http://localhost:8000/api/patients', {
+      const response = await axios.get(`${API_BASE_URL}/patients`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setPatients(response.data)
@@ -140,7 +141,7 @@ export default function AdminDevices() {
       const patient = patients.find(p => p.patient_id === selectedPatientId)
 
       await axios.post(
-        `http://localhost:8000/api/sys/devices/${deviceToAssign.device_id}/assign`,
+        `${API_BASE_URL}/sys/devices/${deviceToAssign.device_id}/assign`,
         {
           patient_id: selectedPatientId,
           patient_name: patient?.name || '',
@@ -171,7 +172,7 @@ export default function AdminDevices() {
       const token = localStorage.getItem('admin_token')
 
       await axios.post(
-        `http://localhost:8000/api/sys/devices/${device.device_id}/unassign`,
+        `${API_BASE_URL}/sys/devices/${device.device_id}/unassign`,
         {
           unassigned_by: localStorage.getItem('admin_user') || 'admin'
         },

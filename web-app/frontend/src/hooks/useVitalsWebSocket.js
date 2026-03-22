@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { WS_BASE_URL } from '../config'
 
 /**
  * Custom React Hook for Real-Time Vital Signs WebSocket Connection
@@ -41,7 +42,7 @@ const useVitalsWebSocket = (patientId, enabled = true) => {
     }
 
     try {
-      const wsUrl = `ws://localhost:8000/api/ws/vitals/${patientId}`
+      const wsUrl = `${WS_BASE_URL}/ws/vitals/${patientId}`
       console.log(`🔌 Connecting to WebSocket: ${wsUrl}`)
       setConnectionStatus('connecting')
       setError(null)

@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Activity, Bell, Stethoscope, HeartPulse } from 'lucide-react';
 import StatCard from './StatCard';
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8000/api';
+import { API_BASE_URL } from '../../config';
 
 const StatsSection = () => {
   const [stats, setStats] = useState({

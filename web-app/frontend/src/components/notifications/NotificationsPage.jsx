@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { Bell, AlertCircle, AlertTriangle, Info, Activity, Check, CheckCheck, Filter } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL, WS_BASE_URL } from '../../config'
 
 const priorityConfig = {
   CRITICAL: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30', icon: AlertCircle },

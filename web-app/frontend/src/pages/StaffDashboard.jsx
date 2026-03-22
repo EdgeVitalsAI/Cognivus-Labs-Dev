@@ -5,8 +5,7 @@ import { authService } from '../services/api'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../config'
 
 const StatCard = ({ icon: Icon, label, value, sub }) => (
   <div className="rounded-xl p-5 bg-gradient-to-br from-[#2b3a66] to-[#18233f] border border-slate-700 text-slate-200">

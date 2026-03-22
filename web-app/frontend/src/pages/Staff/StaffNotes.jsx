@@ -3,8 +3,7 @@ import { Plus, Search, FileText, User, Calendar, Clock, Filter } from 'lucide-re
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 import axios from 'axios'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../../config'
 
 export default function StaffNotes() {
   const [searchTerm, setSearchTerm] = useState('')

@@ -3,8 +3,7 @@ import { Clock, RefreshCw, AlertTriangle, TrendingUp, Calendar, Zap } from 'luci
 import axios from 'axios'
 import { HeartRateChart, SpO2Chart, CombinedVitalsChart, VitalsSummaryCards } from './VitalsCharts'
 import { SensorStatusChart } from './SensorStatusChart'
-
-const API_BASE_URL = 'http://localhost:8000/api'
+import { API_BASE_URL } from '../../config'
 
 const TIME_RANGES = [
   { value: '15m', label: '15 Min' },
