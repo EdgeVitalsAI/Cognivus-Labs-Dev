@@ -3,12 +3,12 @@ import '../models/vitals_model.dart';
 import 'dart:math';
 
 Patient mockPatient = Patient(
-  patientId: 'PT001',
-  fullName: 'John Silva',
-  gender: 'Male',
-  nic: '200112345678',
-  roomNumber: 'Ward 3 - Bed 12',
-  doctor: 'Dr. Perera',
+  patientId: 'PT004',
+  fullName: 'Dinithi Kavindya Rathnayake',
+  gender: 'Female',
+  nic: '200045678912',
+  roomNumber: 'Ward 2 - Bed 07',
+  doctor: 'Dr. Sanduni Jayawardena',
 );
 
 Vitals generateMockVitals() {
@@ -21,3 +21,41 @@ Vitals generateMockVitals() {
   );
 }
 
+List<Patient> mockPatients = [
+  Patient(
+    patientId: 'PT001',
+    fullName: 'Lakindu Minosha Senarathne',
+    gender: 'Male',
+    nic: '200112345678',
+    roomNumber: 'Ward 1 - Bed 05',
+    doctor: 'Dr. Nimal Perera',
+  ),
+
+  
+  Patient(
+    patientId: 'PT002',
+    fullName: 'Nadeesha Fernando',
+    gender: 'Female',
+    nic: '199845678912',
+    roomNumber: 'Ward 2 - Bed 08',
+    doctor: 'Dr. Chamila Silva',
+  ),
+  
+  Patient(
+    patientId: 'PT003',
+    fullName: 'Kasun Wijesinghe',
+    gender: 'Male',
+    nic: '199978945612',
+    roomNumber: 'Ward 3 - Bed 12',
+    doctor: 'Dr. Ruwan Jayasuriya',
+  ),
+  
+  Patient(
+    patientId: 'PT004',
+    fullName: 'Dinithi Kavindya Rathnayake',
+    gender: 'Female',
+    nic: '200045678912',
+    roomNumber: 'Ward 2 - Bed 07',
+    doctor: 'Dr. Sanduni Jayawardena',
+  ),
+];

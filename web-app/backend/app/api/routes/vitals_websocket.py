@@ -147,14 +147,24 @@ class VitalsWebSocketManager:
             await self._broadcast_to_patient(patient_id, error_msg)
     
     async def _store_to_timescale(self, patient_id: str, data: dict, device_ip: str):
-        """Store vital signs data to TimescaleDB for historical analysis"""
+        """Store vital signs data to TimescaleDB for historical analysis.
+
+        Note: ECG data is handled by the dedicated ECGHardwareIngestionService
+        which batch-inserts directly from the ESP32 WebSocket for efficiency.
+        This method handles SpO2, heart_rate, and other non-ECG vitals.
+        """
         try:
+            data_type = data.get("type", "unknown")
+
+            # ECG data is ingested by ecg_hardware_ingestion service (batch inserts).
+            # Skip here to avoid duplicate rows in TimescaleDB.
+            if data_type == "ecg":
+                return
+
             # Create new TimescaleDB session
             ts_db = TimescaleSessionLocal()
-            
+
             try:
-                data_type = data.get("type", "unknown")
-                
                 # Prepare vital record
                 vital_record = VitalTimeseries(
                     time=datetime.now(),
@@ -163,15 +173,9 @@ class VitalsWebSocketManager:
                     data_type=data_type,
                     source="esp32_device"
                 )
-                
-                # Parse ECG data
-                if data_type == "ecg":
-                    vital_record.ecg_value = data.get("val", data.get("value"))
-                    vital_record.ecg_leads_off = data.get("leadsOff", data.get("leads") == "off")
-                    vital_record.ecg_active = True
-                
+
                 # Parse SpO2 data
-                elif data_type == "spo2":
+                if data_type == "spo2":
                     vital_record.spo2_value = data.get("spo2")
                     vital_record.spo2_valid = data.get("valid") == 1 or data.get("valid") == True
                     vital_record.finger_detected = data.get("finger", False)
@@ -244,11 +248,14 @@ async def vitals_websocket_endpoint(
     # Verify patient exists
     patient = db.query(Patient).filter(Patient.id == patient_id).first()
     if not patient:
-        await websocket.send_json({
-            "type": "error",
-            "message": f"Patient {patient_id} not found"
-        })
-        await websocket.close(code=1008)
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": f"Patient {patient_id} not found"
+            })
+            await websocket.close(code=1008)
+        except Exception as e:
+            print(f"✗ Error sending patient not found message: {e}")
         return
     
     # Find patient's assigned device
@@ -258,11 +265,14 @@ async def vitals_websocket_endpoint(
     ).first()
     
     if not device or not device.ip_address:
-        await websocket.send_json({
-            "type": "error",
-            "message": "No active monitoring device assigned to this patient"
-        })
-        await websocket.close()
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": "No active monitoring device assigned to this patient"
+            })
+            await websocket.close()
+        except Exception as e:
+            print(f"✗ Error sending device not found message: {e}")
         return
     
     # Connect to frontend WebSocket

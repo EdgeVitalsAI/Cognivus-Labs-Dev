@@ -5,18 +5,20 @@ import numpy as np
 from scipy.signal import iirnotch, butter, filtfilt, resample_poly
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
+from sklearn.metrics import classification_report, confusion_matrix
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 # -----------------------
 # Config
 # -----------------------
-DATA_DIR = r"E:\PulseSync\data\ECG"   # path where .hea/.dat/.atr live
+DATA_DIR = r"data/"   # path where .hea/.dat/.atr live
 FS_TARGET = 360   # target sample rate used by MIT-BIH models (360 Hz)
 WIN_SEC = 2.0     # window length in seconds
 STEP_SEC = 1.0    # step (overlap) in seconds
 BATCH_SIZE = 64
 EPOCHS = 5
-MODEL_SAVE_PATH = "ecg_lstm_model.h5"
+MODEL_SAVE_PATH = "ecg_lstm_model_new.keras"
 
 
 # -----------------------
@@ -166,14 +168,43 @@ def main():
 
     # callbacks
     callbacks = [
-        tf.keras.callbacks.ModelCheckpoint("best_ecg_model.h5", monitor='val_auc', mode='max', save_best_only=True),
+        tf.keras.callbacks.ModelCheckpoint("best_ecg_model.keras", monitor='val_auc', mode='max', save_best_only=True),
         tf.keras.callbacks.EarlyStopping(monitor='val_auc', mode='max', patience=6, restore_best_weights=True),
         tf.keras.callbacks.ReduceLROnPlateau(monitor='val_auc', mode='max', factor=0.5, patience=3)
     ]
 
     # train
-    model.fit(X_train, y_train, validation_data=(X_val, y_val),
-              epochs=EPOCHS, batch_size=BATCH_SIZE, class_weight=cw, callbacks=callbacks)
+    history = model.fit(
+        X_train, y_train, validation_data=(X_val, y_val),
+        epochs=EPOCHS, batch_size=BATCH_SIZE, class_weight=cw, callbacks=callbacks
+    )
+
+    # evaluate + reports
+    val_metrics = model.evaluate(X_val, y_val, verbose=0)
+    print("Validation metrics:", dict(zip(model.metrics_names, val_metrics)))
+
+    y_prob = model.predict(X_val, batch_size=BATCH_SIZE, verbose=0).ravel()
+    y_pred = (y_prob >= 0.5).astype(int)
+    print("Classification report:\n", classification_report(y_val, y_pred, digits=4))
+    print("Confusion matrix:\n", confusion_matrix(y_val, y_pred))
+
+    # plots
+    plt.figure(figsize=(10, 4))
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history.get('loss', []), label='train_loss')
+    plt.plot(history.history.get('val_loss', []), label='val_loss')
+    plt.legend()
+    plt.title('Loss')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history.get('accuracy', []), label='train_acc')
+    plt.plot(history.history.get('val_accuracy', []), label='val_acc')
+    plt.plot(history.history.get('auc', []), label='train_auc')
+    plt.plot(history.history.get('val_auc', []), label='val_auc')
+    plt.legend()
+    plt.title('Accuracy/AUC')
+    plt.tight_layout()
+    plt.show()
 
     # save final model
     model.save(MODEL_SAVE_PATH)
