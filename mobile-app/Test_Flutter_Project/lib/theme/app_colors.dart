@@ -12,11 +12,6 @@ class AppColors {
   static const Color primary = Color(0xFF1E3A8A);      
   static const Color primaryLight = Color(0xFF3B82F6); 
   static const Color primaryDark = Color(0xFF1E40AF); 
-  
-  // Accent Colors from palette
-  static const Color accentBlue = Color(0xFF6E80E7);
-  static const Color accentLightBlue = Color(0xFF9CB4FB);
-  static const Color accentCyan = Color(0xFF4FC3F7);
 
   // Status Colors
   static const Color critical = Color(0xFFFF4444);
