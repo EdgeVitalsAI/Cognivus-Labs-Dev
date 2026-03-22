@@ -19,9 +19,7 @@ class AppColors {
   static const Color accentCyan = Color(0xFF39C5CF);
   
   // Status Colors
-  static const Color critical = Color(0xFFFF4444);
-  static const Color criticalDark = Color(0xFFCC0000);
-  static const Color warning = Color(0xFFFFAA00);
+
   static const Color warningLight = Color(0xFFFFCC00);
   static const Color success = Color(0xFF4CAF50);
   static const Color successLight = Color(0xFF66BB6A);
