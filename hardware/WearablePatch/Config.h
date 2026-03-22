@@ -67,6 +67,34 @@ constexpr int LOOP_DELAY = 1;            // milliseconds (prevent watchdog issue
 constexpr unsigned long SYSTEM_MONITOR_UPDATE_INTERVAL = 1000; // milliseconds
 
 // ========================================
+// OLED Display Configuration (SSD1306 128x32, separate I2C bus)
+// ========================================
+constexpr uint8_t OLED_I2C_ADDR = 0x3C;
+constexpr int OLED_WIDTH = 128;
+constexpr int OLED_HEIGHT = 32;
+constexpr int OLED_I2C_SDA = 16;          // Separate I2C bus (Wire1) SDA
+constexpr int OLED_I2C_SCL = 17;          // Separate I2C bus (Wire1) SCL
+
+// ========================================
+// Push Button Configuration
+// ========================================
+constexpr int BUTTON_PIN = 4;                          // GPIO 4 (INPUT_PULLUP, active LOW)
+constexpr unsigned long BUTTON_DEBOUNCE = 200;         // milliseconds
+
+// ========================================
+// Buzzer Configuration
+// ========================================
+constexpr int BUZZER_PIN = 15;                         // GPIO 15
+constexpr int BUZZER_FREQ = 2000;                      // Hz
+constexpr int BUZZER_DURATION = 50;                    // milliseconds
+
+// ========================================
+// Display Timing
+// ========================================
+constexpr unsigned long DISPLAY_AUTO_RETURN = 10000;   // ms, return to dashboard
+constexpr unsigned long DISPLAY_REFRESH_INTERVAL = 500; // ms, screen refresh rate
+
+// ========================================
 // Future Sensor Expansion Pins
 // ========================================
 // Reserve pins for future sensors:

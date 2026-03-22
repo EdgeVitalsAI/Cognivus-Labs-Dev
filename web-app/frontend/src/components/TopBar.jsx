@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react'
 import ProfileDropdown from './ProfileDropdown'
+import NotificationBell from './notifications/NotificationBell'
 
 const TopBar = ({ userName, avatarUrl = null, onLogout }) => {
   return (
@@ -19,8 +20,11 @@ const TopBar = ({ userName, avatarUrl = null, onLogout }) => {
         />
       </div>
 
-      {/* Profile Dropdown */}
-      <ProfileDropdown userName={userName} avatarUrl={avatarUrl} onLogout={onLogout} />
+      {/* Notifications + Profile */}
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <ProfileDropdown userName={userName} avatarUrl={avatarUrl} onLogout={onLogout} />
+      </div>
     </div>
   )
 }

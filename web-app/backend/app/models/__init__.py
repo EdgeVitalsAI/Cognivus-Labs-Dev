@@ -10,6 +10,7 @@ from .clinical_note import ClinicalNote, NoteType
 from .ai_insight import AIInsight, InsightType, InsightSeverity, InsightStatus
 from .telemedicine import TelemedicineConsultation, ConsultationStatus, ConsultationType
 from .staff_task import StaffTask, TaskStatus, TaskPriority, TaskCategory
+from .notification import Notification, NotificationType, NotificationPriority
 
 __all__ = [
     "User",
@@ -40,4 +41,7 @@ __all__ = [
     "TaskStatus",
     "TaskPriority",
     "TaskCategory",
+    "Notification",
+    "NotificationType",
+    "NotificationPriority",
 ]

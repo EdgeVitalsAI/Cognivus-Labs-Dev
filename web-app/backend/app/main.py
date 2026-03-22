@@ -12,6 +12,7 @@ from .services.ecg_ml_inference import initialize_ecg_ml_service
 from .services.spo2_buffer_manager import start_spo2_buffer_manager, stop_spo2_buffer_manager
 from .services.spo2_monitoring_service import start_spo2_monitoring_service, stop_spo2_monitoring_service
 from .services.spo2_ml_inference import initialize_spo2_ml_service
+from .services.notification_service import start_notification_service, stop_notification_service
 from .api.routes import (
     auth,
     admin_auth,
@@ -32,7 +33,8 @@ from .api.routes import (
     live_vitals,  # Live vitals from ESP32 HTTP endpoints
     vitals_history,  # Historical vitals from TimescaleDB
     ecg_websocket,  # ECG monitoring with ML inference
-    spo2_websocket  # SpO2 monitoring with ML inference
+    spo2_websocket,  # SpO2 monitoring with ML inference
+    notifications,  # Notification system
 )
 import os 
 
@@ -162,11 +164,18 @@ async def startup_event():
     start_spo2_monitoring_service()
     print("✓ SpO2 monitoring and ML inference services started")
 
+    # Start notification service (monitors ML predictions, creates alerts)
+    start_notification_service()
+    print("✓ Notification service started")
+
 
 # Shutdown event - cleanup
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on application shutdown"""
+    stop_notification_service()
+    print("✓ Notification service stopped")
+
     stop_spo2_monitoring_service()
     stop_spo2_buffer_manager()
     print("✓ SpO2 monitoring services stopped")
@@ -209,6 +218,9 @@ app.include_router(ecg_websocket.router, prefix="/api", tags=["ECG Monitoring"])
 
 # SpO2 monitoring with ML inference
 app.include_router(spo2_websocket.router, prefix="/api", tags=["SpO2 Monitoring"])
+
+# Notification system
+app.include_router(notifications.router, prefix="/api", tags=["Notifications"])
 
 
 @app.get("/")

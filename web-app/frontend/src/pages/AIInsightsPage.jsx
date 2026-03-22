@@ -1,4 +1,4 @@
-import { Brain } from 'lucide-react';
+import { Brain, Heart, Wind, AlertCircle, Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -14,10 +14,14 @@ const AIInsightsPage = () => {
     const navigate = useNavigate();
     const [user] = useState(authService.getCurrentUser());
     const [insights, setInsights] = useState([]);
+    const [monitoredPatients, setMonitoredPatients] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchInsights();
+        fetchMonitoredPatients();
+        const interval = setInterval(fetchMonitoredPatients, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     const fetchInsights = async () => {
@@ -52,6 +56,36 @@ const AIInsightsPage = () => {
         }
     };
 
+    const fetchMonitoredPatients = async () => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await axios.get(`${API_BASE_URL}/dashboard/patient-monitoring-summary`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            setMonitoredPatients(res.data.patients || []);
+        } catch (err) {
+            console.error('Failed to fetch monitored patients:', err);
+        }
+    };
+
+    const trendBadge = (trend) => {
+        const configs = {
+            normal: { label: 'Normal', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+            stable: { label: 'Stable', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+            abnormal: { label: 'Abnormal', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+            declining: { label: 'Declining', cls: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+            unstable: { label: 'Unstable', cls: 'bg-red-500/10 text-red-400 border-red-500/30' },
+            critical: { label: 'Critical', cls: 'bg-red-500/10 text-red-400 border-red-500/30' },
+            insufficient_data: { label: 'No Data', cls: 'bg-slate-500/10 text-slate-400 border-slate-500/30' },
+        };
+        const cfg = configs[trend] || configs.insufficient_data;
+        return (
+            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+                {cfg.label}
+            </span>
+        );
+    };
+
     const handleActionClick = (insightId) => {
         console.log('Action for insight:', insightId);
     };
@@ -81,6 +115,85 @@ const AIInsightsPage = () => {
                             AI-powered clinical decision support and risk assessments
                         </p>
                     </div>
+
+                    {/* Active Patient Monitoring Section */}
+                    {monitoredPatients.length > 0 && (
+                        <div className="mb-8">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Activity className="w-5 h-5 text-[#6E80E7]" />
+                                <h2 className="text-xl font-semibold text-white">Active Patient Monitoring</h2>
+                                <span className="text-xs text-slate-500 ml-2">
+                                    {monitoredPatients.length} patient{monitoredPatients.length !== 1 ? 's' : ''} • Live AI Analysis
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {monitoredPatients.map((p) => {
+                                    const ecgTrend = p.ecg?.trend || 'insufficient_data';
+                                    const spo2Trend = p.spo2?.trend || 'insufficient_data';
+                                    const isCritical = ecgTrend === 'unstable' || spo2Trend === 'critical';
+                                    const isWarning = ecgTrend === 'abnormal' || spo2Trend === 'declining';
+
+                                    return (
+                                        <div
+                                            key={p.patient_id}
+                                            onClick={() => navigate(`/doctor/patients/${p.patient_id}`)}
+                                            className={`bg-slate-900 border rounded-xl p-4 cursor-pointer transition-all hover:bg-slate-800/50 hover:scale-[1.02] ${
+                                                isCritical ? 'border-red-500/50 shadow-lg shadow-red-500/5' :
+                                                isWarning ? 'border-amber-500/30' : 'border-slate-700'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2.5 h-2.5 rounded-full ${
+                                                        isCritical ? 'bg-red-500 animate-pulse' :
+                                                        isWarning ? 'bg-amber-500' : 'bg-emerald-500'
+                                                    }`} />
+                                                    <span className="text-sm font-medium text-white truncate max-w-[120px]">{p.patient_name}</span>
+                                                </div>
+                                                <span className="text-xs text-slate-500">{p.room || ''}</span>
+                                            </div>
+
+                                            {/* ECG Status */}
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Heart className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                                                <span className="text-xs text-slate-400 w-8">ECG</span>
+                                                {trendBadge(ecgTrend)}
+                                                {p.ecg?.heart_rate && (
+                                                    <span className="text-xs text-slate-300 ml-auto">{p.ecg.heart_rate} BPM</span>
+                                                )}
+                                            </div>
+
+                                            {/* SpO2 Status */}
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Wind className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                                                <span className="text-xs text-slate-400 w-8">SpO2</span>
+                                                {trendBadge(spo2Trend)}
+                                                {p.spo2?.current_value && (
+                                                    <span className="text-xs text-slate-300 ml-auto">{p.spo2.current_value}%</span>
+                                                )}
+                                            </div>
+
+                                            {/* Sensor warnings */}
+                                            {(p.ecg?.leads_off || p.spo2?.finger_detected === false) && (
+                                                <div className="mt-2 pt-2 border-t border-slate-800">
+                                                    {p.ecg?.leads_off && (
+                                                        <div className="flex items-center gap-1 text-[10px] text-amber-400">
+                                                            <AlertCircle className="w-3 h-3" /> ECG leads disconnected
+                                                        </div>
+                                                    )}
+                                                    {p.spo2?.finger_detected === false && (
+                                                        <div className="flex items-center gap-1 text-[10px] text-amber-400">
+                                                            <AlertCircle className="w-3 h-3" /> SpO2 sensor not worn
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                         <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">

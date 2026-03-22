@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, CheckSquare, Users, Package, AlertTriangle, MessageSquare, FileText, Cpu, LogOut } from 'lucide-react'
+import { BarChart3, Bell, CheckSquare, Users, Package, AlertTriangle, MessageSquare, FileText, Cpu, LogOut } from 'lucide-react'
 import { authService } from '../../services/api'
 
 const Item = ({ icon: Icon, label, to, active }) => (
@@ -65,6 +65,12 @@ export default function StaffSidebar() {
         label="Notes & Reports"
         to="/staff/notes"
         active={pathname.includes('/staff/notes')}
+      />
+      <Item
+        icon={Bell}
+        label="Notifications"
+        to="/staff/notifications"
+        active={pathname.includes('/staff/notifications')}
       />
       <Item
         icon={Cpu}

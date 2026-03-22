@@ -39,6 +39,7 @@
 #include "APIServer.h"
 #include "CommandHandler.h"
 #include "SystemMonitor.h"
+#include "OLEDDisplay.h"
 
 // ========================================
 // Module Instances
@@ -50,6 +51,7 @@ WebSocketServer webSocketServer;
 APIServer apiServer;
 CommandHandler commandHandler;
 SystemMonitor systemMonitor;
+OLEDDisplay oledDisplay;
 
 // System monitoring
 unsigned long lastSystemUpdate = 0;
@@ -74,6 +76,13 @@ void setup() {
 
   // Connect to WiFi
   wifiManager.connect();
+
+  // Initialize OLED display on its own I2C bus (Wire1, GPIO 16/17)
+  // Completely separate from SpO2 sensor's I2C bus (Wire, GPIO 21/22)
+  oledDisplay.setSensorReferences(&ecgSensor, &spo2Sensor, &systemMonitor, &wifiManager);
+  if (oledDisplay.begin()) {
+    Serial.println("✓ OLED Display: Boot animation complete");
+  }
 
   // Initialize command handler with sensor references
   commandHandler.setSensorReferences(&ecgSensor, &spo2Sensor, &systemMonitor);
@@ -120,6 +129,9 @@ void loop() {
   ecgSensor.update();
   spo2Sensor.update();
 
+  // Update OLED display (handles button + screen refresh)
+  oledDisplay.update();
+
   // Stream ECG data via WebSocket AND HTTP POST (continuous recording)
   if (ecgSensor.isActive() && ecgSensor.shouldSendSample()) {
     // Send via WebSocket for real-time viewing
@@ -128,7 +140,7 @@ void loop() {
       ecgSensor.getLastValue(),
       !ecgSensor.areLeadsOff()
     );
-    
+
     // ALSO send via HTTP POST to ensure data is always saved to TimescaleDB
     if (wifiManager.isConnected()) {
       String ecgJson = "{";
@@ -140,7 +152,7 @@ void loop() {
       ecgJson += "}";
       wifiManager.sendVitalData("ecg", ecgJson);
     }
-    
+
     ecgSensor.clearNewSampleFlag();
   }
 
@@ -186,7 +198,7 @@ void loop() {
           spo2Sensor.getHeartRate(),
           spo2Sensor.isHeartRateValid()
         );
-        
+
         // HTTP POST for heart rate
         if (wifiManager.isConnected()) {
           String hrJson = "{";

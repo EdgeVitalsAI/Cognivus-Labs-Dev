@@ -1,4 +1,4 @@
-import { Brain, Cpu, FileText, LayoutDashboard, LogOut, Pill, Users, Video } from 'lucide-react';
+import { Bell, Brain, Cpu, FileText, LayoutDashboard, LogOut, Pill, Users, Video } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Item = ({ icon: Icon, label, to, active }) => (
@@ -53,6 +53,12 @@ const Sidebar = ({ onLogout }) => {
                 label="Notes & Reports"
                 to="/doctor/notes-reports"
                 active={pathname.includes('/doctor/notes-reports')}
+            />
+            <Item
+                icon={Bell}
+                label="Notifications"
+                to="/doctor/notifications"
+                active={pathname.includes('/doctor/notifications')}
             />
             <Item
                 icon={Cpu}

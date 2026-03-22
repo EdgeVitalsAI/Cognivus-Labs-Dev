@@ -25,6 +25,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminDevices from './pages/AdminDevices';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+import DoctorNotifications from './pages/DoctorNotifications';
+import StaffNotifications from './pages/Staff/StaffNotifications';
 
 function App() {
     return (
@@ -95,6 +97,14 @@ function App() {
                     element={
                         <ProtectedRoute role="doctor">
                             <DoctorDevices />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/doctor/notifications"
+                    element={
+                        <ProtectedRoute role="doctor">
+                            <DoctorNotifications />
                         </ProtectedRoute>
                     }
                 />
@@ -170,6 +180,14 @@ function App() {
                     element={
                         <ProtectedRoute role="staff">
                             <StaffDevices />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/notifications"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffNotifications />
                         </ProtectedRoute>
                     }
                 />
