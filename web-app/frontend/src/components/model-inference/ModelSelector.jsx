@@ -1,21 +1,17 @@
 import { useTheme } from '../../contexts/ThemeContext';
-import { Cpu, Heart, Brain, Activity } from 'lucide-react';
+import { Heart, Wind } from 'lucide-react';
 
 const modelIcons = {
-  'Heart Risk Model': Heart,
-  'Stroke Prediction Model': Brain,
-  'Diabetes Risk Model': Activity,
-  'Sepsis Detection Model': Cpu,
+  'ECG Analysis Model': Heart,
+  'SpO2 Prediction Model': Wind,
 };
 
 export default function ModelSelector({ selectedModel, setSelectedModel, models = [] }) {
   const { currentTheme, theme } = useTheme();
 
   const availableModels = models.length > 0 ? models : [
-    'Heart Risk Model',
-    'Stroke Prediction Model',
-    'Diabetes Risk Model',
-    'Sepsis Detection Model',
+    'ECG Analysis Model',
+    'SpO2 Prediction Model',
   ];
 
   return (
