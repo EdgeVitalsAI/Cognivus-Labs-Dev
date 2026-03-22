@@ -112,7 +112,7 @@ export default function ModelHealth({ data }) {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                   <div style={{
                     padding: '10px',
                     backgroundColor: currentTheme.surface,
@@ -147,6 +147,74 @@ export default function ModelHealth({ data }) {
                       {errorPercent}%
                     </p>
                   </div>
+                </div>
+
+                {/* Accuracy Metrics */}
+                {(model.precision != null || model.recall != null || model.f1Score != null) && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: '8px',
+                    marginBottom: '12px',
+                  }}>
+                    {[
+                      { label: 'Precision', value: model.precision, color: '#3b82f6' },
+                      { label: 'Recall', value: model.recall, color: '#a855f7' },
+                      { label: 'F1-Score', value: model.f1Score, color: '#22c55e' },
+                    ].map(metric => (
+                      <div key={metric.label} style={{
+                        padding: '8px',
+                        backgroundColor: currentTheme.surface,
+                        borderRadius: '6px',
+                        border: `1px solid ${currentTheme.border}`,
+                        textAlign: 'center',
+                      }}>
+                        <span style={{ fontSize: '10px', color: currentTheme.textTertiary, fontWeight: '500' }}>{metric.label}</span>
+                        <p style={{
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          color: metric.color,
+                          margin: '2px 0 0 0',
+                          fontFamily: 'Consolas, monospace',
+                        }}>
+                          {metric.value != null ? `${Math.round(metric.value * 100)}%` : 'N/A'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Data Drift + Response Time */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {model.dataDrift != null && (
+                    <span style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      backgroundColor: model.dataDrift < 0.3
+                        ? (theme === 'dark' ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)')
+                        : model.dataDrift < 0.6
+                          ? (theme === 'dark' ? 'rgba(234,179,8,0.12)' : 'rgba(234,179,8,0.08)')
+                          : (theme === 'dark' ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)'),
+                      color: model.dataDrift < 0.3 ? '#22c55e' : model.dataDrift < 0.6 ? '#eab308' : '#ef4444',
+                    }}>
+                      Drift: {(model.dataDrift * 100).toFixed(1)}%
+                    </span>
+                  )}
+                  {model.avgResponseTime != null && (
+                    <span style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontWeight: '600',
+                      backgroundColor: theme === 'dark' ? 'rgba(59,130,246,0.1)' : 'rgba(0,102,204,0.06)',
+                      color: currentTheme.textSecondary,
+                      fontFamily: 'Consolas, monospace',
+                    }}>
+                      Avg: {model.avgResponseTime}ms
+                    </span>
+                  )}
                 </div>
               </motion.div>
             );

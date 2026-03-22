@@ -10,6 +10,7 @@ import InferenceHistory from "../components/model-inference/InferenceHistory";
 import ModelHealth from "../components/model-inference/ModelHealth";
 import ModelVersion from "../components/model-inference/ModelVersion";
 import PredictionChart from "../components/model-inference/PredictionChart";
+import ModelMonitoring from "../components/model-inference/ModelMonitoring";
 import {
   Shield, Terminal, Settings, LogOut, RefreshCw, Brain,
   BarChart3, Cpu, TrendingUp, AlertTriangle, ArrowLeft
@@ -29,6 +30,8 @@ export default function AdminModelInference() {
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyOffset, setHistoryOffset] = useState(0);
   const [historyFilter, setHistoryFilter] = useState(null);
+  const [monitoringData, setMonitoringData] = useState([]);
+  const [logsData, setLogsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -94,6 +97,11 @@ export default function AdminModelInference() {
           confidence: h.avg_confidence,
           totalInferences: h.total_inferences,
           errorRate: h.error_rate,
+          precision: h.precision,
+          recall: h.recall,
+          f1Score: h.f1_score,
+          dataDrift: h.data_drift,
+          avgResponseTime: h.avg_response_time_ms,
         }))
       );
 
@@ -119,6 +127,18 @@ export default function AdminModelInference() {
 
       setHistoryData(historyRes.data.history || []);
       setHistoryTotal(historyRes.data.total || 0);
+
+      // Fetch monitoring & logs separately so they don't break existing data
+      try {
+        const [monitoringRes, logsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/admin/model-monitoring`, config),
+          axios.get(`${API_BASE_URL}/api/admin/model-logs`, config),
+        ]);
+        setMonitoringData(monitoringRes.data.data || []);
+        setLogsData(logsRes.data.data || []);
+      } catch (monitorErr) {
+        console.warn("Monitoring/logs fetch failed (non-critical):", monitorErr);
+      }
     } catch (err) {
       console.error("Data fetch error:", err);
       if (err.response?.status === 401) {
@@ -467,6 +487,11 @@ export default function AdminModelInference() {
         }}>
           <ModelHealth data={health} />
           <ModelVersion data={versions} />
+        </div>
+
+        {/* ── Model Monitoring (Architecture, Latency, Status, Logs) ── */}
+        <div style={{ marginBottom: "24px" }}>
+          <ModelMonitoring monitoringData={monitoringData} logsData={logsData} />
         </div>
 
         {/* ── Run Inference Section ── */}
