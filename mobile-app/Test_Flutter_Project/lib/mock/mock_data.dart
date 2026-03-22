@@ -20,3 +20,13 @@ Vitals generateMockVitals() {
     lastUpdated: DateTime.now().toString(),
   );
 }
+
+List<Patient> mockPatients = [
+  Patient(
+    patientId: 'PT001',
+    fullName: 'Lakindu Minosha Senarathne',
+    gender: 'Male',
+    nic: '200112345678',
+    roomNumber: 'Ward 1 - Bed 05',
+    doctor: 'Dr. Nimal Perera',
+  ),
