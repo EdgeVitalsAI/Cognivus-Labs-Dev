@@ -10,8 +10,6 @@ class AppColors {
   static const Color cardBackgroundLight = Color(0xFF21262D);
 
 
-  static const Color primary = Color(0xFF1E3A8A);      
-  static const Color primaryLight = Color(0xFF3B82F6); 
   static const Color primaryDark = Color(0xFF1E40AF); 
 
 // Accent Colors (Blue Theme)
