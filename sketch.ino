@@ -14,6 +14,17 @@ RTC_DS1307 rtc;
 // Wokwi stepper = 800 steps/rev, 7 slots → 800/7 ≈ 114
 int stepsPerSlot = 114;
 
+// ── System Config ─────────────────────────────
+struct SystemConfig {
+  int stepsPerSlot;
+  int dosesPerDay;
+};
+
+SystemConfig config = {
+  114,
+  3
+};
+
 // Dispense times (24h format) — edit as needed
 int dispenseHours[]   = {0,0,0};
 int dispenseMinutes[] = {0,1,2};
