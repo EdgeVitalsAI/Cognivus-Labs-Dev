@@ -1,11 +1,13 @@
-import { Cpu, Plus, Search } from 'lucide-react';
-import { useState } from 'react';
+import { Cpu, Plus, Search, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import DeviceCard from '../components/device-management/DeviceCard';
 import PairDeviceModal from '../components/device-management/PairDeviceModal';
 import { authService } from '../services/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const DeviceManagementPage = () => {
     const navigate = useNavigate();
@@ -13,140 +15,56 @@ const DeviceManagementPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [isPairDeviceModalOpen, setIsPairDeviceModalOpen] = useState(false);
+    const [devices, setDevices] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const [devices, setDevices] = useState([
-        {
-            id: 1,
-            name: 'Wearable Patch - Wathsala',
-            patient: 'Wathsala Dewmina',
-            patientId: 1,
-            type: 'Wearable Patch',
-            model: 'CognivusLabs ECG Monitor v1.0',
-            serialNumber: 'CLW-2024-001',
-            status: 'ACTIVE',
-            battery: 92,
-            signal: 85,
-            lastSync: new Date(Date.now() - 5 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            sensors: [
-                { name: 'ECG', status: 'healthy', value: '72 bpm' },
-                { name: 'SpO2', status: 'healthy', value: '97%' },
-                { name: 'Temperature', status: 'healthy', value: '98.6°F' },
-            ],
-            firmware: 'v2.4.1',
-            storageUsed: 65,
-            alerts: 0,
-            location: 'Room 302A',
-        },
-        {
-            id: 2,
-            name: 'Wearable Patch - Wooshan',
-            patient: 'Wooshan Gamage',
-            patientId: 2,
-            type: 'Wearable Patch',
-            model: 'CognivusLabs ECG Monitor v1.0',
-            serialNumber: 'CLW-2024-002',
-            status: 'ACTIVE',
-            battery: 78,
-            signal: 92,
-            lastSync: new Date(Date.now() - 2 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
-            sensors: [
-                { name: 'ECG', status: 'warning', value: '110 bpm' },
-                { name: 'SpO2', status: 'healthy', value: '95%' },
-                { name: 'Temperature', status: 'healthy', value: '98.2°F' },
-            ],
-            firmware: 'v2.4.1',
-            storageUsed: 48,
-            alerts: 2,
-            location: 'Room 108C',
-        },
-        {
-            id: 3,
-            name: 'Smart Blood Pressure Monitor',
-            patient: 'Rivindu Ashinsa',
-            patientId: 3,
-            type: 'Blood Pressure Monitor',
-            model: 'OmniHealth BP-500',
-            serialNumber: 'OHB-2024-015',
-            status: 'ACTIVE',
-            battery: 45,
-            signal: 78,
-            lastSync: new Date(Date.now() - 1 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-            sensors: [
-                { name: 'Systolic', status: 'warning', value: '145 mmHg' },
-                { name: 'Diastolic', status: 'healthy', value: '92 mmHg' },
-            ],
-            firmware: 'v1.2.0',
-            storageUsed: 32,
-            alerts: 1,
-            location: 'Ward 3 2A',
-        },
-        {
-            id: 4,
-            name: 'Glucose Monitor',
-            patient: 'Robert Key',
-            patientId: 4,
-            type: 'Glucose Monitor',
-            model: 'AccuCheck SmartView',
-            serialNumber: 'ACK-2024-089',
-            status: 'LOW_BATTERY',
-            battery: 15,
-            signal: 65,
-            lastSync: new Date(Date.now() - 12 * 60 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
-            sensors: [{ name: 'Glucose', status: 'warning', value: '156 mg/dL' }],
-            firmware: 'v3.1.2',
-            storageUsed: 78,
-            alerts: 3,
-            location: 'Room 152B',
-        },
-        {
-            id: 5,
-            name: 'Wearable Patch - Lakindu',
-            patient: 'Lakindu Minosha',
-            patientId: 5,
-            type: 'Wearable Patch',
-            model: 'CognivusLabs ECG Monitor v1.0',
-            serialNumber: 'CLW-2024-005',
-            status: 'INACTIVE',
-            battery: 8,
-            signal: 0,
-            lastSync: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-            sensors: [
-                { name: 'ECG', status: 'offline', value: 'N/A' },
-                { name: 'SpO2', status: 'offline', value: 'N/A' },
-            ],
-            firmware: 'v2.3.0',
-            storageUsed: 100,
-            alerts: 0,
-            location: 'Ward 1 10C',
-        },
-        {
-            id: 6,
-            name: 'Sleep Tracker',
-            patient: 'Ben Southern',
-            patientId: 6,
-            type: 'Sleep Tracker',
-            model: 'SleepBuddy Pro',
-            serialNumber: 'SBP-2024-042',
-            status: 'ACTIVE',
-            battery: 88,
-            signal: 88,
-            lastSync: new Date(Date.now() - 30 * 60 * 1000),
-            pairedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-            sensors: [
-                { name: 'Sleep Quality', status: 'healthy', value: 'Good' },
-                { name: 'Heart Rate', status: 'healthy', value: '58 bpm' },
-            ],
-            firmware: 'v1.8.1',
-            storageUsed: 42,
-            alerts: 0,
-            location: 'Room 311B',
-        },
-    ]);
+    useEffect(() => {
+        fetchDevices();
+    }, []);
+
+    const fetchDevices = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('access_token');
+            const response = await axios.get(`${API_BASE_URL}/sys/devices`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                params: { limit: 100 }
+            });
+
+            const transformed = response.data.map(d => {
+                const sensors = [];
+                if (d.heart_rate) sensors.push({ name: 'Heart Rate', status: 'healthy', value: `${d.heart_rate} bpm` });
+                if (d.spo2) sensors.push({ name: 'SpO2', status: 'healthy', value: `${d.spo2}%` });
+                if (d.temperature) sensors.push({ name: 'Temperature', status: 'healthy', value: `${d.temperature}°F` });
+
+                return {
+                    id: d.id,
+                    name: d.device_name,
+                    patient: d.patient_name || 'Unassigned',
+                    patientId: d.patient_id,
+                    type: 'Medical Device',
+                    model: d.device_id,
+                    serialNumber: d.device_id,
+                    status: d.status,
+                    battery: d.battery_level ? Math.round(d.battery_level) : 0,
+                    signal: 80,
+                    lastSync: d.last_ping ? new Date(d.last_ping) : null,
+                    pairedDate: d.created_at ? new Date(d.created_at) : null,
+                    sensors: sensors,
+                    firmware: d.firmware_version || 'Unknown',
+                    storageUsed: 0,
+                    alerts: 0,
+                    location: d.assigned_room || 'Unknown',
+                };
+            });
+
+            setDevices(transformed);
+        } catch (err) {
+            console.error('Failed to fetch devices:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getFilteredDevices = () => {
         let filtered = devices.filter((device) => {
@@ -199,16 +117,26 @@ const DeviceManagementPage = () => {
                                 <h1 className="text-3xl font-bold text-white">Device Management</h1>
                             </div>
                             <p className="text-slate-400">
-                                Monitor and manage IoT devices and wearables
+                                Monitor and manage IoT devices and wearables • Auto-discovered ESP32 devices
                             </p>
                         </div>
-                        <button
-                            onClick={() => setIsPairDeviceModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors border border-sky-500"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Pair Device
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => fetchDevices()}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors border border-slate-600"
+                            >
+                                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                                {loading ? 'Refreshing...' : 'Refresh Devices'}
+                            </button>
+                            <button
+                                onClick={() => setIsPairDeviceModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors border border-sky-500"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Pair Device
+                            </button>
+                        </div>
                     </div>
 
                     {/* Stats */}
@@ -257,23 +185,34 @@ const DeviceManagementPage = () => {
                     </div>
 
                     {/* Devices Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {filteredDevices.length > 0 ? (
-                            filteredDevices.map((device) => (
-                                <DeviceCard
-                                    key={device.id}
-                                    device={device}
-                                    onResync={handleResync}
-                                    onUnpair={handleUnpair}
-                                />
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12 bg-slate-900 border border-slate-700 rounded-lg">
-                                <Cpu className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                <p className="text-slate-400 text-lg">No devices found</p>
-                            </div>
-                        )}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                            <p className="ml-4 text-slate-400">Loading devices...</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {filteredDevices.length > 0 ? (
+                                filteredDevices.map((device) => (
+                                    <DeviceCard
+                                        key={device.id}
+                                        device={device}
+                                        onResync={handleResync}
+                                        onUnpair={handleUnpair}
+                                    />
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12 bg-slate-900 border border-slate-700 rounded-lg">
+                                    <Cpu className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                                    <p className="text-slate-400 text-lg">
+                                        {devices.length === 0
+                                            ? 'No devices paired yet. Pair your first device!'
+                                            : 'No devices match your filters'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </main>
             </div>
 

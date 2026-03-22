@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { X, Calendar, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Calendar, Upload, Cpu } from 'lucide-react';
+import api from '../../services/api';
 
 export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
   const fileInputRef = useRef(null);
@@ -7,6 +8,7 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState({});
+  const [availableDevices, setAvailableDevices] = useState([]);
   
   const [formData, setFormData] = useState({
     // Basic Info
@@ -30,14 +32,35 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
     insuranceId: '',
     notes: '',
     
-    // Vitals
-    heartRate: 72,
-    spo2: 98,
-    bloodPressure: '120/80',
-    temperature: 98.6,
-    respiratoryRate: 16,
-    glucose: 100,
+    // Device Assignment (optional)
+    assignedDeviceId: '',
   });
+
+  // Fetch available devices when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailableDevices();
+    }
+  }, [isOpen]);
+
+  const fetchAvailableDevices = async () => {
+    try {
+      const response = await api.get('/api/devices');
+      console.log('📱 All devices:', response.data);
+      
+      // Filter only AVAILABLE devices that are ONLINE
+      const available = (response.data || []).filter(device => {
+        console.log(`Device ${device.device_name}: status=${device.status}, assignment=${device.assignment_status}`);
+        return device.assignment_status === 'available' && device.status === 'online';
+      });
+      
+      console.log('✅ Available devices for assignment:', available);
+      setAvailableDevices(available);
+    } catch (error) {
+      console.error('Failed to fetch devices:', error);
+      setAvailableDevices([]);
+    }
+  };
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return '';
@@ -110,7 +133,7 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -119,71 +142,82 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
 
     const age = calculateAge(formData.dateOfBirth);
     
-    const newPatient = {
-      id: Math.random().toString(36).substr(2, 9),
+    // Format data for backend API
+    const patientPayload = {
       name: `${formData.firstName} ${formData.lastName}`,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      age: age,
-      room: formData.room || `Room ${Math.floor(Math.random() * 400) + 100}`,
-      status: 'Active',
-      heartRate: formData.heartRate,
-      spo2: formData.spo2,
-      bloodPressure: formData.bloodPressure,
-      temperature: formData.temperature,
-      respiratoryRate: formData.respiratoryRate,
-      glucose: formData.glucose,
-      gender: formData.gender,
-      dateOfBirth: formData.dateOfBirth,
-      phoneNumber: formData.phoneNumber,
+      date_of_birth: formData.dateOfBirth,
+      gender: formData.gender.toUpperCase(),
+      blood_type: formData.bloodType,
       email: formData.email,
-      bloodType: formData.bloodType,
-      allergies: formData.allergies,
-      medicalHistory: formData.medicalHistory,
-      currentMedications: formData.currentMedications,
-      insuranceProvider: formData.insuranceProvider,
-      insuranceId: formData.insuranceId,
-      emergencyContact: {
+      phone: formData.phoneNumber,
+      emergency_contact: {
         name: formData.emergencyContactName,
         phone: formData.emergencyContactPhone,
         relationship: formData.relationship,
       },
-      photo: photoPreview,
-      clinicalNotes: formData.notes,
-      addedDate: new Date().toISOString(),
+      insurance_info: formData.insuranceProvider ? {
+        provider: formData.insuranceProvider,
+        policy_number: formData.insuranceId || 'N/A'
+      } : null,
+      room_number: formData.room || null,
+      status: 'STABLE',
+      medical_history: formData.medicalHistory ? formData.medicalHistory.split(',').map(s => s.trim()) : [],
+      allergies: formData.allergies ? formData.allergies.split(',').map(s => s.trim()) : [],
+      current_medications: formData.currentMedications ? formData.currentMedications.split(',').map(s => s.trim()) : []
     };
 
-    onAddPatient(newPatient);
-    
-    // Reset form
-    setFormData({
-      firstName: '',
-      lastName: '',
-      dateOfBirth: '',
-      gender: 'Male',
-      phoneNumber: '',
-      email: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      relationship: 'Spouse',
-      room: '',
-      bloodType: 'O+',
-      allergies: '',
-      medicalHistory: '',
-      currentMedications: '',
-      insuranceProvider: '',
-      insuranceId: '',
-      notes: '',
-      heartRate: 72,
-      spo2: 98,
-      bloodPressure: '120/80',
-      temperature: 98.6,
-      respiratoryRate: 16,
-      glucose: 100,
-    });
-    setPhotoPreview(null);
-    setActiveTab('basic');
-    onClose();
+    try {
+      // First, create the patient via the parent callback (which calls the API)
+      const result = await onAddPatient(patientPayload);
+      
+      // If device is assigned and patient was created successfully, assign the device
+      if (formData.assignedDeviceId && result) {
+        try {
+          const patientId = parseInt(result.id || result.patient?.id);
+          console.log(`🔧 Assigning device ${formData.assignedDeviceId} to patient ID: ${patientId}`);
+          
+          const deviceResponse = await api.post(`/api/devices/${formData.assignedDeviceId}/assign`, {
+            patient_id: patientId.toString(),
+            patient_name: patientPayload.name
+          });
+          console.log(`✅ Device assignment response:`, deviceResponse.data);
+          console.log(`✅ Device ${formData.assignedDeviceId} assigned to ${patientPayload.name}`);
+        } catch (error) {
+          console.error('Failed to assign device:', error);
+          console.error('Error details:', error.response?.data);
+          alert('Patient registered successfully but device assignment failed. Please assign manually from Device Management.');
+        }
+      }
+
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        gender: 'Male',
+        phoneNumber: '',
+        email: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        relationship: 'Spouse',
+        room: '',
+        bloodType: 'O+',
+        allergies: '',
+        medicalHistory: '',
+        currentMedications: '',
+        insuranceProvider: '',
+        insuranceId: '',
+        notes: '',
+        assignedDeviceId: '',
+      });
+      setPhotoPreview(null);
+      setActiveTab('basic');
+      onClose();
+      
+    } catch (error) {
+      console.error('Failed to add patient:', error);
+      alert('Failed to add patient. Please try again.');
+    }
   };
 
   if (!isOpen) return null;
@@ -421,6 +455,41 @@ export default function AddPatientModal({ isOpen, onClose, onAddPatient }) {
                   placeholder="e.g., Room 302A"
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
+              </div>
+
+              {/* Device Assignment */}
+              <div className="bg-slate-800 p-4 rounded-lg space-y-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-semibold text-slate-200">Device Assignment (Optional)</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Assign Wearable Device:
+                  </label>
+                  <select
+                    name="assignedDeviceId"
+                    value={formData.assignedDeviceId}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">No device assigned</option>
+                    {availableDevices.map(device => (
+                      <option key={device.id} value={device.device_id}>
+                        {device.device_name} ({device.device_id})
+                      </option>
+                    ))}
+                  </select>
+                  {availableDevices.length === 0 && (
+                    <p className="text-xs text-slate-500 mt-2">No available devices online</p>
+                  )}
+                  {formData.assignedDeviceId && (
+                    <p className="text-xs text-blue-400 mt-2">
+                      Device will be assigned to patient upon registration
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Emergency Contact */}

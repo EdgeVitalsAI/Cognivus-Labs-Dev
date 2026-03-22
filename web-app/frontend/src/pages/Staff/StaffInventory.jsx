@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import { useState } from 'react'
 import { Plus, Search, Filter, AlertTriangle, TrendingDown } from 'lucide-react'
+=======
+import { Package, Clock } from 'lucide-react'
+>>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import TopBar from '../../components/TopBar'
 
 export default function StaffInventory() {
+<<<<<<< HEAD
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState('critical')
   const [searchTerm, setSearchTerm] = useState('')
@@ -91,10 +96,16 @@ export default function StaffInventory() {
   return (
     <div className="flex h-screen bg-slate-950">
       <StaffSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+=======
+  return (
+    <div className="flex h-screen bg-slate-950">
+      <StaffSidebar />
+>>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />
 
+<<<<<<< HEAD
         <div className="flex-1 overflow-auto">
           <div className="p-8 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -279,6 +290,21 @@ export default function StaffInventory() {
                 ))}
               </div>
             )}
+=======
+        <div className="flex-1 overflow-auto flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-800 mb-6">
+              <Package className="w-10 h-10 text-slate-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-3">Coming Soon</h1>
+            <p className="text-slate-400 text-lg mb-6">
+              Medical Inventory Management feature is currently under development
+            </p>
+            <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+              <Clock className="w-4 h-4" />
+              <span>Expected release: Q1 2026</span>
+            </div>
+>>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
           </div>
         </div>
       </div>

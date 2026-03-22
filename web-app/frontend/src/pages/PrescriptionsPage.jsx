@@ -1,11 +1,13 @@
 import { Pill, Plus, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import AddPrescriptionModal from '../components/prescriptions/AddPrescriptionModal';
 import PrescriptionCard from '../components/prescriptions/PrescriptionCard';
 import { authService } from '../services/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const PrescriptionsPage = () => {
     const navigate = useNavigate();
@@ -15,210 +17,75 @@ const PrescriptionsPage = () => {
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortOption, setSortOption] = useState('recent');
     const [isAddPrescriptionModalOpen, setIsAddPrescriptionModalOpen] = useState(false);
+    const [prescriptions, setPrescriptions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock prescriptions data
-    const [prescriptions, setPrescriptions] = useState([
-        {
-            id: 1,
-            medicationName: 'Aspirin',
-            dosage: '100mg',
-            frequency: '1 tablet once daily',
-            duration: '30 days',
-            status: 'ACTIVE',
-            category: 'Cardiovascular',
-            patientName: 'Wathsala Dewmina',
-            patientId: 1,
-            patientRoom: 'Room No. 302A',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Today at 14:30',
-            nextDue: 'Tomorrow at 14:30',
-            adherence: '100%',
-            notes: 'Antiplatelet Agent - Take after breakfast',
-            indications: 'Prevention of cardiovascular events',
-            sideEffects: 'Stomach upset, bleeding',
-            contraindications: 'Active bleeding, allergic to aspirin',
-            refillsRemaining: 2,
-            totalDispenses: 7,
-        },
-        {
-            id: 2,
-            medicationName: 'Metoprolol',
-            dosage: '50mg',
-            frequency: '1 tablet twice daily',
-            duration: '60 days',
-            status: 'ACTIVE',
-            category: 'Cardiovascular',
-            patientName: 'Wooshan Gamage',
-            patientId: 2,
-            patientRoom: 'Room No. 108C',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Yesterday at 10:15',
-            nextDue: 'Tomorrow at 10:15',
-            adherence: '95%',
-            notes: 'Beta Blocker - Heart Rate Control',
-            indications: 'Hypertension, heart failure',
-            sideEffects: 'Dizziness, fatigue, slow heart rate',
-            contraindications: 'Severe asthma, heart block',
-            refillsRemaining: 1,
-            totalDispenses: 19,
-        },
-        {
-            id: 3,
-            medicationName: 'Lisinopril',
-            dosage: '10mg',
-            frequency: '1 tablet once daily',
-            duration: '60 days',
-            status: 'ACTIVE',
-            category: 'Cardiovascular',
-            patientName: 'Rivindu Ashinsa',
-            patientId: 3,
-            patientRoom: 'Ward 3 2A',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Pending',
-            nextDue: 'Today',
-            adherence: 'N/A',
-            notes: 'ACE Inhibitor - Blood Pressure Control',
-            indications: 'Hypertension, heart failure',
-            sideEffects: 'Dry cough, dizziness, hyperkalemia',
-            contraindications: 'Pregnancy, renal disease',
-            refillsRemaining: 3,
-            totalDispenses: 0,
-        },
-        {
-            id: 4,
-            medicationName: 'Albuterol Inhaler',
-            dosage: '90mcg',
-            frequency: '2 puffs as needed',
-            duration: 'Ongoing',
-            status: 'DISCONTINUED',
-            category: 'Respiratory',
-            patientName: 'Robert Key',
-            patientId: 4,
-            patientRoom: 'Room No. 152B',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Oct 15',
-            nextDue: 'N/A',
-            adherence: 'N/A',
-            notes: 'Discontinued - Patient improved',
-            indications: 'Asthma, COPD',
-            sideEffects: 'Tremor, tachycardia, headache',
-            contraindications: 'Coronary artery disease',
-            refillsRemaining: 0,
-            totalDispenses: 12,
-        },
-        {
-            id: 5,
-            medicationName: 'Amlodipine',
-            dosage: '5mg',
-            frequency: '1 tablet once daily',
-            duration: '30 days',
-            status: 'ACTIVE',
-            category: 'Cardiovascular',
-            patientName: 'Lakindu Minosha',
-            patientId: 5,
-            patientRoom: 'Ward 1 10C',
-            prescribedBy: 'Dr. John Wilson',
-            prescribedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Today at 08:00',
-            nextDue: 'Tomorrow at 08:00',
-            adherence: '100%',
-            notes: 'Calcium Channel Blocker - Blood Pressure',
-            indications: 'Hypertension, angina',
-            sideEffects: 'Edema, headache, flushing',
-            contraindications: 'Severe hypotension',
-            refillsRemaining: 2,
-            totalDispenses: 3,
-        },
-        {
-            id: 6,
-            medicationName: 'Atorvastatin',
-            dosage: '20mg',
-            frequency: '1 tablet once daily',
-            duration: 'Ongoing',
-            status: 'SCHEDULED',
-            category: 'Cardiovascular',
-            patientName: 'Ben Southern',
-            patientId: 6,
-            patientRoom: 'Room No. 311B',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Pending',
-            nextDue: 'Today',
-            adherence: 'N/A',
-            notes: 'Statin - Cholesterol Control',
-            indications: 'Hypercholesterolemia',
-            sideEffects: 'Muscle pain, liver dysfunction',
-            contraindications: 'Pregnancy, liver disease',
-            refillsRemaining: 3,
-            totalDispenses: 0,
-        },
-        {
-            id: 7,
-            medicationName: 'Omeprazole',
-            dosage: '20mg',
-            frequency: '1 tablet once daily',
-            duration: '14 days',
-            status: 'ACTIVE',
-            category: 'Gastrointestinal',
-            patientName: 'Emma Davis',
-            patientId: 7,
-            patientRoom: 'Room No. 250A',
-            prescribedBy: 'Dr. Michael Brown',
-            prescribedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            lastDispensed: 'Today at 07:30',
-            nextDue: 'Tomorrow at 07:30',
-            adherence: '100%',
-            notes: 'Proton Pump Inhibitor - GERD',
-            indications: 'Gastroesophageal reflux',
-            sideEffects: 'Headache, diarrhea, nausea',
-            contraindications: 'None major',
-            refillsRemaining: 1,
-            totalDispenses: 2,
-        },
-        {
-            id: 8,
-            medicationName: 'Ciprofloxacin',
-            dosage: '500mg',
-            frequency: '1 tablet twice daily',
-            duration: '7 days',
-            status: 'ACTIVE',
-            category: 'Antibiotic',
-            patientName: 'Michael Johnson',
-            patientId: 8,
-            patientRoom: 'Room No. 410C',
-            prescribedBy: 'Dr. Sarah Smith',
-            prescribedDate: new Date(),
-            lastDispensed: 'Today at 09:00',
-            nextDue: 'Today at 21:00',
-            adherence: 'N/A',
-            notes: 'Fluoroquinolone - UTI Treatment',
-            indications: 'Urinary tract infection',
-            sideEffects: 'Nausea, tendinitis, photosensitivity',
-            contraindications: 'Tendon disorders, QT prolongation',
-            refillsRemaining: 0,
-            totalDispenses: 0,
-        },
-    ]);
+    // Fetch prescriptions from API
+    useEffect(() => {
+        fetchPrescriptions();
+    }, []);
+
+    const fetchPrescriptions = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('access_token');
+            const response = await axios.get(`${API_BASE_URL}/prescriptions`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                params: {
+                    limit: 500
+                }
+            });
+
+            // Transform API data to match component expectations
+            const transformedPrescriptions = response.data.prescriptions.map(p => ({
+                id: p.id,
+                medicationName: p.medication_name,
+                dosage: p.dosage,
+                frequency: p.frequency,
+                duration: p.duration || 'Ongoing',
+                status: p.status,
+                category: p.medication_class || 'General',
+                patientName: p.patient?.name || 'Unknown',
+                patientId: p.patient_id,
+                patientRoom: p.patient?.room_number || 'N/A',
+                prescribedBy: p.prescribed_by?.full_name || 'Unknown',
+                prescribedDate: new Date(p.start_date || p.created_at),
+                notes: p.instructions || '',
+                indications: p.special_instructions || '',
+                sideEffects: p.side_effects_warning || '',
+                contraindications: p.interaction_warnings || '',
+                refillsRemaining: p.refills_remaining || 0,
+                isCritical: p.is_critical,
+                requiresMonitoring: p.requires_monitoring
+            }));
+
+            setPrescriptions(transformedPrescriptions);
+            setError(null);
+        } catch (err) {
+            console.error('Failed to fetch prescriptions:', err);
+            setError('Failed to load prescriptions. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Filter and sort logic
     const getFilteredAndSortedPrescriptions = () => {
-        let filtered = prescriptions.filter((prescription) => {
+        let filtered = prescriptions.filter(prescription => {
             // Apply search filter
             const matchesSearch =
                 prescription.medicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                prescription.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                prescription.category.toLowerCase().includes(searchTerm.toLowerCase());
+                prescription.patientName.toLowerCase().includes(searchTerm.toLowerCase());
 
             // Apply status filter
             const statusMap = {
                 all: true,
                 active: prescription.status === 'ACTIVE',
-                scheduled: prescription.status === 'SCHEDULED',
                 discontinued: prescription.status === 'DISCONTINUED',
+                scheduled: prescription.status === 'SCHEDULED',
             };
             const matchesStatus = statusMap[filterStatus] !== false;
 
@@ -241,9 +108,8 @@ const PrescriptionsPage = () => {
                     return b.medicationName.localeCompare(a.medicationName);
                 case 'patient':
                     return a.patientName.localeCompare(b.patientName);
-                case 'status':
-                    const statusOrder = { ACTIVE: 0, SCHEDULED: 1, DISCONTINUED: 2 };
-                    return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
+                case 'critical':
+                    return (b.isCritical ? 1 : 0) - (a.isCritical ? 1 : 0);
                 default:
                     return 0;
             }
@@ -254,21 +120,56 @@ const PrescriptionsPage = () => {
 
     const filteredPrescriptions = getFilteredAndSortedPrescriptions();
 
-    const handleViewPatient = (patientId) => {
-        navigate(`/doctor/patients/${patientId}`);
+    const handleViewDetails = (prescriptionId) => {
+        console.log('View details for prescription:', prescriptionId);
     };
 
-    const handleEditPrescription = (prescriptionId) => {
-        console.log('Edit prescription:', prescriptionId);
+    const handleDiscontinue = async (prescriptionId) => {
+        if (!window.confirm('Are you sure you want to discontinue this prescription?')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('access_token');
+            await axios.post(
+                `${API_BASE_URL}/prescriptions/${prescriptionId}/discontinue`,
+                {
+                    discontinued_by_id: user.id,
+                    discontinuation_reason: 'Discontinued by doctor'
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            // Refresh prescriptions after discontinuation
+            await fetchPrescriptions();
+        } catch (err) {
+            console.error('Failed to discontinue prescription:', err);
+            alert('Failed to discontinue prescription. Please try again.');
+        }
     };
 
-    const handleRefillPrescription = (prescriptionId) => {
-        console.log('Refill prescription:', prescriptionId);
-    };
+    const handleAddPrescription = async (newPrescription) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            await axios.post(`${API_BASE_URL}/prescriptions`, newPrescription, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-    const handleAddPrescription = (newPrescription) => {
-        setPrescriptions([...prescriptions, newPrescription]);
-        setIsAddPrescriptionModalOpen(false);
+            // Refresh prescription list after adding
+            await fetchPrescriptions();
+            setIsAddPrescriptionModalOpen(false);
+        } catch (err) {
+            console.error('Failed to add prescription:', err);
+            alert('Failed to add prescription. Please try again.');
+        }
     };
 
     const handleLogout = () => {
@@ -285,20 +186,9 @@ const PrescriptionsPage = () => {
 
                 <main className="flex-1 p-6">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">Prescriptions</h1>
-                            <p className="text-slate-400">
-                                Manage and monitor all patient prescriptions
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setIsAddPrescriptionModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors border border-sky-500"
-                        >
-                            <Plus className="w-5 h-5" />
-                            New Prescription
-                        </button>
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-white mb-2">Prescriptions</h1>
+                        <p className="text-slate-400">Manage and track all medication prescriptions</p>
                     </div>
 
                     {/* Stats Bar */}
@@ -314,9 +204,9 @@ const PrescriptionsPage = () => {
                             </p>
                         </div>
                         <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
-                            <p className="text-slate-400 text-sm">Scheduled</p>
-                            <p className="text-2xl font-bold text-amber-400">
-                                {prescriptions.filter((p) => p.status === 'SCHEDULED').length}
+                            <p className="text-slate-400 text-sm">Critical</p>
+                            <p className="text-2xl font-bold text-red-400">
+                                {prescriptions.filter((p) => p.isCritical).length}
                             </p>
                         </div>
                         <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
@@ -333,7 +223,7 @@ const PrescriptionsPage = () => {
                             <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Search by medication, patient, or category..."
+                                placeholder="Search by medication or patient name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
@@ -344,65 +234,85 @@ const PrescriptionsPage = () => {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-                            title="Filter by Status"
                         >
                             <option value="all">Status: All</option>
                             <option value="active">Active</option>
-                            <option value="scheduled">Scheduled</option>
                             <option value="discontinued">Discontinued</option>
+                            <option value="scheduled">Scheduled</option>
                         </select>
 
                         <select
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
                             className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-                            title="Filter by Category"
                         >
                             <option value="all">Category: All</option>
-                            <option value="Cardiovascular">Cardiovascular</option>
-                            <option value="Respiratory">Respiratory</option>
-                            <option value="Gastrointestinal">Gastrointestinal</option>
-                            <option value="Antibiotic">Antibiotic</option>
-                            <option value="Pain Relief">Pain Relief</option>
-                            <option value="Diabetes">Diabetes</option>
+                            <option value="cardiovascular">Cardiovascular</option>
+                            <option value="respiratory">Respiratory</option>
+                            <option value="antibiotic">Antibiotic</option>
+                            <option value="analgesic">Analgesic</option>
+                            <option value="other">Other</option>
                         </select>
 
                         <select
                             value={sortOption}
                             onChange={(e) => setSortOption(e.target.value)}
                             className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
-                            title="Sort Options"
                         >
-                            <option value="recent">Most Recent</option>
-                            <option value="medication-asc">Medication A-Z</option>
-                            <option value="medication-desc">Medication Z-A</option>
-                            <option value="patient">By Patient</option>
-                            <option value="status">By Status</option>
+                            <option value="recent">Sort: Recent</option>
+                            <option value="medication-asc">Medication (A-Z)</option>
+                            <option value="medication-desc">Medication (Z-A)</option>
+                            <option value="patient">Patient Name</option>
+                            <option value="critical">Critical First</option>
                         </select>
+
+                        <button
+                            onClick={() => setIsAddPrescriptionModalOpen(true)}
+                            className="px-6 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <Plus className="w-5 h-5" />
+                            New Prescription
+                        </button>
                     </div>
 
                     {/* Prescriptions Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {filteredPrescriptions.length > 0 ? (
-                            filteredPrescriptions.map((prescription) => (
-                                <PrescriptionCard
-                                    key={prescription.id}
-                                    prescription={prescription}
-                                    onViewPatient={handleViewPatient}
-                                    onEdit={handleEditPrescription}
-                                    onRefill={handleRefillPrescription}
-                                />
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <Pill className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                <p className="text-slate-400 text-lg">No prescriptions found</p>
-                                <p className="text-slate-500">
-                                    Try adjusting your filters or search terms
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                            <p className="ml-4 text-slate-400">Loading prescriptions...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="bg-red-900/20 border border-red-700 rounded-lg p-8 text-center">
+                            <p className="text-red-400 text-lg">{error}</p>
+                            <button
+                                onClick={fetchPrescriptions}
+                                className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredPrescriptions.length > 0 ? (
+                                filteredPrescriptions.map((prescription) => (
+                                    <PrescriptionCard
+                                        key={prescription.id}
+                                        prescription={prescription}
+                                        onViewDetails={handleViewDetails}
+                                        onDiscontinue={handleDiscontinue}
+                                    />
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-slate-400 text-lg">
+                                        {prescriptions.length === 0
+                                            ? 'No prescriptions in the system yet. Add your first prescription!'
+                                            : 'No prescriptions match your filters'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </main>
             </div>
 
@@ -410,7 +320,7 @@ const PrescriptionsPage = () => {
             <AddPrescriptionModal
                 isOpen={isAddPrescriptionModalOpen}
                 onClose={() => setIsAddPrescriptionModalOpen(false)}
-                onAdd={handleAddPrescription}
+                onAddPrescription={handleAddPrescription}
             />
         </div>
     );

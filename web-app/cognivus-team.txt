@@ -1,0 +1,287 @@
+================================================================================
+                    COGNIVUS HEALTH - ADMIN PANEL GUIDE
+================================================================================
+
+OVERVIEW
+--------
+This admin panel is a separate, secure system for managing the Cognivus Health
+platform. It runs independently from the main application with its own database,
+Docker setup, and ports.
+
+The admin panel provides:
+- Real-time system health monitoring
+- Device management and debugging for smart patient trackers
+- User management (create/edit doctors and staff)
+- System analytics and logs
+- Password management
+
+
+================================================================================
+QUICK START
+================================================================================
+
+1. START THE ADMIN PANEL
+------------------------
+
+Navigate to the backend directory:
+cd web-app/backend
+
+Start the admin panel with Docker:
+docker-compose -f docker-compose.admin.yml up -d
+
+This will start all required services:
+- PostgreSQL Database (Port 5433)
+- Backend API (Port 8001)
+- Redis Cache (Port 6380)
+- PgAdmin (Port 5051)
+
+
+2. CREATE DEFAULT ADMIN USER
+-----------------------------
+
+Run this command to create the default admin account:
+docker-compose -f docker-compose.admin.yml exec backend-admin python create_admin.py --default
+
+This creates:
+Email: admin@cognivuslabs.com
+Password: password123!
+Username: admin
+
+IMPORTANT: Change this password immediately after first login!
+
+
+3. SEED DEMO DATA (OPTIONAL)
+-----------------------------
+
+To populate with demo devices and logs for testing:
+docker-compose -f docker-compose.admin.yml exec backend-admin python seed_devices.py
+docker-compose -f docker-compose.admin.yml exec backend-admin python seed_system_logs.py
+
+
+4. START THE FRONTEND
+----------------------
+
+Navigate to the frontend directory:
+cd web-app/frontend
+
+Install dependencies (if not already done):
+npm install
+
+Start the admin frontend:
+npm run dev -- --config vite.config.admin.js --port 5174
+
+The admin panel will be available at: http://localhost:5174
+
+
+5. ACCESS THE ADMIN PANEL
+--------------------------
+
+Login Page: http://localhost:5174/sys/auth
+
+Use the default credentials:
+Email: admin@cognivuslabs.com
+Password: password123!
+
+NOTE: The routes are hidden under /sys/* to prevent easy discovery.
+
+
+================================================================================
+ADMIN PANEL FEATURES
+================================================================================
+
+1. DASHBOARD (/sys/dashboard)
+------------------------------
+- Real-time system health monitoring (Backend, PostgreSQL, Redis, MQTT, Device Service)
+- Live system metrics (CPU, Memory, Disk usage)
+- Device statistics (total devices, online/offline counts)
+- Active users count
+- Recent system logs with filtering
+- Auto-refreshes every 5 seconds
+
+Navigation:
+- Click "Users" to manage doctors and staff
+- Click "Devices" to manage smart patient trackers
+- Click "Settings" to change your password
+
+
+2. DEVICE MANAGEMENT (/sys/devices)
+------------------------------------
+- View all smart patient tracking devices
+- See real-time device status (Online, Offline, Maintenance, Error)
+- Monitor battery levels and vitals (SpO2, Heart Rate, BP, Temperature)
+- Debug Console: Send commands to devices
+  Available commands: status, reboot, reset, get_logs, calibrate
+
+Features:
+- Search devices by ID or patient
+- Filter by status
+- Terminal-style debug interface
+- Real-time updates every 5 seconds
+
+
+3. USER MANAGEMENT (/sys/users)
+--------------------------------
+- Create new doctors and staff accounts
+- View all system users with their roles
+- Edit user information
+- Reset user passwords
+- Delete users
+- Search and filter users by role
+
+Creating a Doctor:
+- Email (required)
+- Password (required, min 8 characters)
+- Full Name (required)
+- Role: Doctor
+- Specialty (e.g., Cardiology, General Practice)
+- License Number
+
+Creating a Staff:
+- Email (required)
+- Password (required, min 8 characters)
+- Full Name (required)
+- Role: Staff
+- Department (e.g., Nursing, Reception)
+- Employee ID
+
+IMPORTANT: Passwords must be at least 8 characters long.
+
+
+4. SETTINGS (/sys/settings)
+----------------------------
+- View your admin profile information
+- Change your password securely
+
+To change password:
+1. Enter your current password
+2. Enter new password (min 8 characters)
+3. Confirm new password
+4. Click "Update Password"
+
+TIP: Use strong passwords with uppercase, lowercase, numbers, and special characters.
+
+
+================================================================================
+DOCKER COMMANDS
+================================================================================
+
+Start Admin Panel:
+docker-compose -f docker-compose.admin.yml up -d
+
+Stop Admin Panel:
+docker-compose -f docker-compose.admin.yml down
+
+View Logs:
+docker-compose -f docker-compose.admin.yml logs -f backend-admin
+
+Restart Services:
+docker-compose -f docker-compose.admin.yml restart
+
+Check Status:
+docker-compose -f docker-compose.admin.yml ps
+
+Access Database (PgAdmin):
+http://localhost:5051
+Email: admin@admin.com
+Password: admin
+
+
+================================================================================
+PORT ALLOCATION
+================================================================================
+
+Admin Panel Services:
+- Frontend: http://localhost:5174
+- Backend API: http://localhost:8001
+- PostgreSQL: localhost:5433
+- Redis: localhost:6380
+- PgAdmin: http://localhost:5051
+
+Main Application Services (Separate):
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: Cannot connect to admin panel
+Solution: Make sure Docker services are running:
+docker-compose -f docker-compose.admin.yml ps
+
+Problem: Login says "Account is temporarily locked"
+Solution: Wait 30 minutes after failed login attempts, or reset via database
+
+Problem: Frontend not loading
+Solution: Check if port 5174 is already in use. Stop other services using that port.
+
+Problem: Backend API not responding
+Solution: Check backend logs:
+docker-compose -f docker-compose.admin.yml logs backend-admin
+
+Problem: Database connection error
+Solution: Ensure PostgreSQL is running on port 5433:
+docker-compose -f docker-compose.admin.yml ps postgres
+
+Problem: Cannot create users
+Solution: Ensure you're logged in as admin and token is valid
+
+
+================================================================================
+API ENDPOINTS (For Reference)
+================================================================================
+
+Authentication:
+POST /api/sys/auth/login - Admin login
+GET /api/sys/auth/me - Get current admin info
+
+System Monitoring:
+GET /api/sys/system/health - System health checks
+GET /api/sys/system/metrics - System metrics (CPU, Memory, Disk)
+GET /api/sys/system/logs - System logs
+GET /api/sys/system/stats - Overall statistics
+
+Device Management:
+GET /api/sys/devices/devices - List all devices
+GET /api/sys/devices/devices/{device_id} - Get specific device
+PUT /api/sys/devices/devices/{device_id} - Update device
+POST /api/sys/devices/devices/{device_id}/debug - Send debug command
+
+User Management:
+GET /api/sys/users/users - List all users
+POST /api/sys/users/users - Create new user
+GET /api/sys/users/users/{user_id} - Get specific user
+PUT /api/sys/users/users/{user_id} - Update user
+DELETE /api/sys/users/users/{user_id} - Delete user
+POST /api/sys/users/users/{user_id}/reset-password - Reset user password
+POST /api/sys/users/change-password - Change own password
+
+
+================================================================================
+BEST PRACTICES
+================================================================================
+
+1. Change default password immediately after first login
+2. Create separate admin accounts for each administrator
+3. Regularly review system logs for suspicious activity
+4. Keep device firmware updated
+5. Monitor system health metrics regularly
+6. Backup database regularly
+7. Use strong passwords for all accounts
+8. Don't share admin credentials
+9. Log out when not using the panel
+10. Review user access periodically
+
+
+================================================================================
+DEVELOPMENT NOTES
+================================================================================
+
+Frontend Entry Point: web-app/frontend/src/pages/AdminLogin.jsx
+Backend Routes: web-app/backend/app/api/routes/admin_*.py
+Database Models: web-app/backend/app/models/
+Docker Config: web-app/backend/docker-compose.admin.yml
+Vite Config: web-app/frontend/vite.config.admin.js

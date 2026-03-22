@@ -46,6 +46,13 @@ constexpr unsigned long SPO2_SAMPLE_INTERVAL = 40;  // milliseconds
 constexpr unsigned long SPO2_SEND_INTERVAL = 2000;  // milliseconds (WebSocket update rate)
 
 // ========================================
+// Backend Server Configuration
+// ========================================
+extern const char* BACKEND_SERVER_URL;   // Backend API URL (e.g., "http://192.168.1.100:8000")
+constexpr unsigned long REGISTRATION_RETRY_INTERVAL = 10000; // milliseconds
+constexpr unsigned long HEARTBEAT_INTERVAL = 30000; // milliseconds (30 seconds)
+
+// ========================================
 // Server Configuration
 // ========================================
 constexpr int WEB_SERVER_PORT = 80;      // REST API port (JSON only, no HTML)
@@ -58,6 +65,34 @@ constexpr unsigned long WEBSOCKET_PING_INTERVAL = 5000; // milliseconds
 constexpr unsigned long SERIAL_BAUD_RATE = 115200;
 constexpr int LOOP_DELAY = 1;            // milliseconds (prevent watchdog issues)
 constexpr unsigned long SYSTEM_MONITOR_UPDATE_INTERVAL = 1000; // milliseconds
+
+// ========================================
+// OLED Display Configuration (SSD1306 128x32, separate I2C bus)
+// ========================================
+constexpr uint8_t OLED_I2C_ADDR = 0x3C;
+constexpr int OLED_WIDTH = 128;
+constexpr int OLED_HEIGHT = 32;
+constexpr int OLED_I2C_SDA = 16;          // Separate I2C bus (Wire1) SDA
+constexpr int OLED_I2C_SCL = 17;          // Separate I2C bus (Wire1) SCL
+
+// ========================================
+// Push Button Configuration
+// ========================================
+constexpr int BUTTON_PIN = 4;                          // GPIO 4 (INPUT_PULLUP, active LOW)
+constexpr unsigned long BUTTON_DEBOUNCE = 200;         // milliseconds
+
+// ========================================
+// Buzzer Configuration
+// ========================================
+constexpr int BUZZER_PIN = 15;                         // GPIO 15
+constexpr int BUZZER_FREQ = 2000;                      // Hz
+constexpr int BUZZER_DURATION = 50;                    // milliseconds
+
+// ========================================
+// Display Timing
+// ========================================
+constexpr unsigned long DISPLAY_AUTO_RETURN = 10000;   // ms, return to dashboard
+constexpr unsigned long DISPLAY_REFRESH_INTERVAL = 500; // ms, screen refresh rate
 
 // ========================================
 // Future Sensor Expansion Pins

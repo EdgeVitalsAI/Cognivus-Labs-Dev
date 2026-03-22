@@ -1,4 +1,4 @@
-import { Brain, Cpu, FileText, LayoutDashboard, LogOut, Pill, Users, Video } from 'lucide-react';
+import { Bell, Brain, Cpu, FileText, LayoutDashboard, LogOut, Pill, Users, Video } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Item = ({ icon: Icon, label, to, active }) => (
@@ -17,7 +17,7 @@ const Item = ({ icon: Icon, label, to, active }) => (
 const Sidebar = ({ onLogout }) => {
     const { pathname } = useLocation();
     return (
-        <aside className="w-[260px] bg-slate-900 border-r border-slate-800 min-h-screen p-4 flex flex-col gap-2">
+        <aside className="w-[260px] bg-slate-900 border-r border-slate-800 h-screen sticky top-0 p-4 flex flex-col gap-2">
             <Item
                 icon={LayoutDashboard}
                 label="Dashboard"
@@ -53,6 +53,12 @@ const Sidebar = ({ onLogout }) => {
                 label="Notes & Reports"
                 to="/doctor/notes-reports"
                 active={pathname.includes('/doctor/notes-reports')}
+            />
+            <Item
+                icon={Bell}
+                label="Notifications"
+                to="/doctor/notifications"
+                active={pathname.includes('/doctor/notifications')}
             />
             <Item
                 icon={Cpu}

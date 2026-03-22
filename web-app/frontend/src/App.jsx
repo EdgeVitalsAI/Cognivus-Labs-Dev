@@ -1,7 +1,7 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import AIInsightsPage from './pages/AIInsightsPage';
-import DeviceManagementPage from './pages/DeviceManagementPage';
+import DoctorDevices from './pages/DoctorDevices';
 import DoctorDashboard from './pages/DoctorDashboard';
 import DoctorLogin from './pages/DoctorLogin';
 import NotesReportsPage from './pages/NotesReportsPage';
@@ -18,7 +18,19 @@ import StaffInventory from './pages/Staff/StaffInventory';
 import StaffIncidents from './pages/Staff/StaffIncidents';
 import StaffCommunication from './pages/Staff/StaffCommunication';
 import StaffNotes from './pages/Staff/StaffNotes';
+<<<<<<< HEAD
 import StaffSettings from './pages/Staff/StaffSettings';
+=======
+import StaffDevices from './pages/Staff/StaffDevices';
+import ProfileSettingsPage from './pages/ProfileSettingsPage';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminDevices from './pages/AdminDevices';
+import AdminUsers from './pages/AdminUsers';
+import AdminSettings from './pages/AdminSettings';
+import DoctorNotifications from './pages/DoctorNotifications';
+import StaffNotifications from './pages/Staff/StaffNotifications';
+>>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
 
 function App() {
     return (
@@ -88,7 +100,23 @@ function App() {
                     path="/doctor/devices"
                     element={
                         <ProtectedRoute role="doctor">
-                            <DeviceManagementPage />
+                            <DoctorDevices />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/doctor/notifications"
+                    element={
+                        <ProtectedRoute role="doctor">
+                            <DoctorNotifications />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/doctor/profile"
+                    element={
+                        <ProtectedRoute role="doctor">
+                            <ProfileSettingsPage />
                         </ProtectedRoute>
                     }
                 />
@@ -100,6 +128,7 @@ function App() {
                     element={
                         <ProtectedRoute role="staff">
                             <StaffDashboardMain />
+<<<<<<< HEAD
                         </ProtectedRoute>
                     }
                 />
@@ -156,9 +185,90 @@ function App() {
                     element={
                         <ProtectedRoute role="staff">
                             <StaffSettings />
+=======
+>>>>>>> 463a8df4ac03684a528a77f308cc27824d2d55af
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/staff/tasks"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffTasks />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/patients"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffPatients />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/inventory"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffInventory />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/incidents"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffIncidents />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/communication"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffCommunication />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/notes"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffNotes />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/devices"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffDevices />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/notifications"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <StaffNotifications />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/staff/profile"
+                    element={
+                        <ProtectedRoute role="staff">
+                            <ProfileSettingsPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Admin Routes (Hidden) */}
+                <Route path="/sys/auth" element={<AdminLogin />} />
+                <Route path="/sys/dashboard" element={<AdminDashboard />} />
+                <Route path="/sys/devices" element={<AdminDevices />} />
+                <Route path="/sys/users" element={<AdminUsers />} />
+                <Route path="/sys/settings" element={<AdminSettings />} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/doctor/login" replace />} />

@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (Admin Panel)
+  postgres-admin:
+    image: postgres:15-alpine
+    container_name: cognivus-postgres-admin
+    environment:
+      POSTGRES_USER: cognivus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cognivus_health
+    ports:
+      - "5434:5432"  # Changed to 5434 to avoid conflict with TimescaleDB on 5433
+    volumes:
+      - postgres_admin_data:/var/lib/postgresql/data
+    networks:
+      - admin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cognivus -d cognivus_health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PgAdmin - Database Management
+  pgadmin-admin:
+    image: dpage/pgadmin4:latest
+    container_name: cognivus-pgadmin-admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cognivuslabs.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5051:80"  # Different port
+    volumes:
+      - pgadmin_admin_data:/var/lib/pgadmin
+    networks:
+      - admin-network
+    depends_on:
+      - postgres-admin
+
+  # Backend API (Admin Only)
+  backend-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognivus-backend-admin
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      REFRESH_SECRET_KEY: ${REFRESH_SECRET_KEY}
+      POSTGRES_HOST: cognivus_postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-cognivus_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cognivus_auth}
+      TIMESCALE_HOST: cognivus_timescaledb
+      TIMESCALE_PORT: 5432
+      TIMESCALE_USER: ${TIMESCALE_USER:-timescale_user}
+      TIMESCALE_PASSWORD: ${TIMESCALE_PASSWORD:-timescale_secure_password_123}
+      TIMESCALE_DB: ${TIMESCALE_DB:-cognivus_vitals_timeseries}
+      SPO2_MODEL_PATH: /app/ml-models/spo2-prediction/model/model_medium.keras
+      CORS_ORIGINS: http://localhost:5174,http://127.0.0.1:5174
+      DEBUG: "True"
+    ports:
+      - "8001:8000"  # Different port for admin backend
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+      - ./create_admin.py:/app/create_admin.py
+      - ./seed_devices.py:/app/seed_devices.py
+      - ./seed_system_logs.py:/app/seed_system_logs.py
+      - ../../ml-models:/app/ml-models:ro
+    networks:
+      - admin-network
+      - backend_cognivus_network
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        sleep 5 &&
+        echo 'Initializing admin database...' &&
+        python -c 'from app.core.database import Base, engine; Base.metadata.create_all(bind=engine)' &&
+        echo 'Starting FastAPI server...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # Redis Cache (for admin sessions)
+  redis-admin:
+    image: redis:7-alpine
+    container_name: cognivus-redis-admin
+    ports:
+      - "6380:6379"  # Different port
+    volumes:
+      - redis_admin_data:/data
+    networks:
+      - admin-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_admin_data:
+    driver: local
+  pgadmin_admin_data:
+    driver: local
+  redis_admin_data:
+    driver: local
+
+networks:
+  admin-network:
+    driver: bridge
+    name: cognivus-admin-network
+  backend_cognivus_network:
+    external: true

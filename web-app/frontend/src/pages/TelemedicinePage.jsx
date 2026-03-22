@@ -1,11 +1,13 @@
 import { Plus, Search, Video } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import ConsultationCard from '../components/telemedicine/ConsultationCard';
 import ScheduleConsultationModal from '../components/telemedicine/ScheduleConsultationModal';
 import TopBar from '../components/TopBar';
 import { authService } from '../services/api';
+import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const TelemedicinePage = () => {
     const navigate = useNavigate();
@@ -13,108 +15,46 @@ const TelemedicinePage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [consultations, setConsultations] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const [consultations, setConsultations] = useState([
-        {
-            id: 1,
-            patient: 'Wathsala Dewmina',
-            patientId: 1,
-            status: 'SCHEDULED',
-            date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-            time: '10:00 AM',
-            duration: 30,
-            type: 'Follow-up',
-            notes: 'Discuss medication adjustments',
-            room: 'Video Room 1',
-            symptoms: ['Chest pain', 'Shortness of breath'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/1',
-            doctorName: 'Dr. Sarah Smith',
-            canJoin: false,
-        },
-        {
-            id: 2,
-            patient: 'Emma Davis',
-            patientId: 7,
-            status: 'IN_PROGRESS',
-            date: new Date(),
-            time: '02:00 PM',
-            duration: 20,
-            type: 'Initial Consultation',
-            notes: 'First-time patient assessment',
-            room: 'Video Room 2',
-            symptoms: ['Fever', 'Cough'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/2',
-            doctorName: 'Dr. Sarah Smith',
-            canJoin: true,
-            startedAt: new Date(Date.now() - 10 * 60 * 1000),
-        },
-        {
-            id: 3,
-            patient: 'Rivindu Ashinsa',
-            patientId: 3,
-            status: 'COMPLETED',
-            date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            time: '03:30 PM',
-            duration: 25,
-            type: 'Follow-up',
-            notes: 'Reviewed lab results',
-            room: 'Video Room 1',
-            symptoms: ['Low oxygen levels'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/3',
-            doctorName: 'Dr. John Wilson',
-            canJoin: false,
-            completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        },
-        {
-            id: 4,
-            patient: 'Wooshan Gamage',
-            patientId: 2,
-            status: 'SCHEDULED',
-            date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-            time: '11:30 AM',
-            duration: 30,
-            type: 'Specialist Consultation',
-            notes: 'Cardiology follow-up',
-            room: 'Video Room 3',
-            symptoms: ['High heart rate'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/4',
-            doctorName: 'Dr. Michael Brown',
-            canJoin: false,
-        },
-        {
-            id: 5,
-            patient: 'Robert Key',
-            patientId: 4,
-            status: 'COMPLETED',
-            date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            time: '09:00 AM',
-            duration: 35,
-            type: 'Follow-up',
-            notes: 'Blood pressure management',
-            room: 'Video Room 2',
-            symptoms: ['High blood pressure'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/5',
-            doctorName: 'Dr. Sarah Smith',
-            canJoin: false,
-            completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        },
-        {
-            id: 6,
-            patient: 'Lakindu Minosha',
-            patientId: 5,
-            status: 'SCHEDULED',
-            date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-            time: '04:00 PM',
-            duration: 25,
-            type: 'Emergency Consultation',
-            notes: 'Urgent assessment needed',
-            room: 'Video Room 4',
-            symptoms: ['Severe pain'],
-            joinUrl: 'https://meet.cognivuslabs.com/consultation/6',
-            doctorName: 'Dr. Sarah Smith',
-            canJoin: false,
-        },
-    ]);
+    useEffect(() => {
+        fetchConsultations();
+    }, []);
+
+    const fetchConsultations = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('access_token');
+            const response = await axios.get(`${API_BASE_URL}/telemedicine`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                params: { limit: 100 }
+            });
+
+            const transformed = response.data.consultations.map(c => ({
+                id: c.id,
+                patient: c.patient_name,
+                patientId: c.patient_id,
+                status: c.status,
+                date: new Date(c.scheduled_start_time),
+                time: new Date(c.scheduled_start_time).toLocaleTimeString(),
+                duration: 30,
+                type: c.consultation_type,
+                notes: c.consultation_reason,
+                room: 'Virtual Room',
+                symptoms: c.chief_complaint ? [c.chief_complaint] : [],
+                joinUrl: c.meeting_link || '#',
+                doctorName: c.doctor_name,
+                canJoin: c.status === 'IN_PROGRESS',
+            }));
+
+            setConsultations(transformed);
+        } catch (err) {
+            console.error('Failed to fetch consultations:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getFilteredConsultations = () => {
         let filtered = consultations.filter((c) => {
@@ -127,9 +67,21 @@ const TelemedicinePage = () => {
 
     const filteredConsultations = getFilteredConsultations();
 
-    const handleScheduleConsultation = (newConsultation) => {
-        setConsultations([...consultations, newConsultation]);
-        setIsScheduleModalOpen(false);
+    const handleScheduleConsultation = async (newConsultation) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            await axios.post(`${API_BASE_URL}/telemedicine`, newConsultation, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            await fetchConsultations();
+            setIsScheduleModalOpen(false);
+        } catch (err) {
+            console.error('Failed to schedule consultation:', err);
+            alert('Failed to schedule consultation');
+        }
     };
 
     const handleJoinConsultation = (consultationId) => {
@@ -143,8 +95,23 @@ const TelemedicinePage = () => {
         console.log('Reschedule consultation:', consultationId);
     };
 
-    const handleCancel = (consultationId) => {
-        setConsultations(consultations.filter((c) => c.id !== consultationId));
+    const handleCancel = async (consultationId) => {
+        try {
+            const token = localStorage.getItem('access_token');
+            await axios.patch(
+                `${API_BASE_URL}/telemedicine/${consultationId}`,
+                { status: 'CANCELLED' },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            await fetchConsultations();
+        } catch (err) {
+            console.error('Failed to cancel consultation:', err);
+        }
     };
 
     const handleLogout = () => {
@@ -230,24 +197,35 @@ const TelemedicinePage = () => {
                     </div>
 
                     {/* Consultations List */}
-                    <div className="space-y-4">
-                        {filteredConsultations.length > 0 ? (
-                            filteredConsultations.map((consultation) => (
-                                <ConsultationCard
-                                    key={consultation.id}
-                                    consultation={consultation}
-                                    onJoin={handleJoinConsultation}
-                                    onReschedule={handleReschedule}
-                                    onCancel={handleCancel}
-                                />
-                            ))
-                        ) : (
-                            <div className="text-center py-12 bg-slate-900 border border-slate-700 rounded-lg">
-                                <Video className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                <p className="text-slate-400 text-lg">No consultations found</p>
-                            </div>
-                        )}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                            <p className="ml-4 text-slate-400">Loading consultations...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {filteredConsultations.length > 0 ? (
+                                filteredConsultations.map((consultation) => (
+                                    <ConsultationCard
+                                        key={consultation.id}
+                                        consultation={consultation}
+                                        onJoin={handleJoinConsultation}
+                                        onReschedule={handleReschedule}
+                                        onCancel={handleCancel}
+                                    />
+                                ))
+                            ) : (
+                                <div className="text-center py-12 bg-slate-900 border border-slate-700 rounded-lg">
+                                    <Video className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                                    <p className="text-slate-400 text-lg">
+                                        {consultations.length === 0
+                                            ? 'No consultations scheduled yet. Schedule your first consultation!'
+                                            : 'No consultations match your filters'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </main>
             </div>
 

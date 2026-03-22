@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Filter, Plus } from 'lucide-react'
 import TopBar from '../components/TopBar'
@@ -6,6 +6,8 @@ import Sidebar from '../components/Sidebar'
 import PatientCard from '../components/patients/PatientCard'
 import AddPatientModal from '../components/patients/AddPatientModal'
 import { authService } from '../services/api'
+import axios from 'axios'
+import { API_BASE_URL } from '../config'
 
 const PatientsPage = () => {
   const navigate = useNavigate()
@@ -15,146 +17,174 @@ const PatientsPage = () => {
   const [filterDepartment, setFilterDepartment] = useState('all')
   const [sortOption, setSortOption] = useState('recent')
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false)
+  const [patients, setPatients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [stats, setStats] = useState({
+    total: 0,
+    critical: 0,
+    warning: 0,
+    stable: 0
+  })
 
-  // Mock patient data
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: 'Wathsala Dewmina',
-      room: 'Room No. 302A',
-      age: 20,
-      status: 'CRITICAL',
-      department: 'Cardiology',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Wathsala',
-      heartRate: 110,
-      bpm: 110,
-      temperature: 38.5,
-      bloodPressure: '140/90',
-      o2Saturation: 92,
-      respiratoryRate: 22,
-      pH: 7.35,
-      addedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 2,
-      name: 'Wooshan Gamage',
-      room: 'Room No. 108C',
-      age: 17,
-      status: 'CRITICAL',
-      department: 'Emergency',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Wooshan',
-      heartRate: 59,
-      bpm: 120,
-      temperature: 37.2,
-      bloodPressure: '120/80',
-      o2Saturation: 95,
-      respiratoryRate: 18,
-      pH: 7.40,
-      addedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 3,
-      name: 'Rivindu Ashinsa',
-      room: 'Ward 3 2A',
-      age: 19,
-      status: 'CRITICAL',
-      department: 'ICU',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Rivindu',
-      heartRate: 95,
-      bpm: 95,
-      temperature: 36.8,
-      bloodPressure: '130/85',
-      o2Saturation: 88,
-      respiratoryRate: 20,
-      pH: 7.38,
-      addedDate: new Date(),
-    },
-    {
-      id: 4,
-      name: 'Robert Key',
-      room: 'Room No. 152B',
-      age: 45,
-      status: 'WARNING',
-      department: 'Cardiology',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Robert',
-      heartRate: 78,
-      bpm: 78,
-      temperature: 37.5,
-      bloodPressure: '125/82',
-      o2Saturation: 96,
-      respiratoryRate: 16,
-      pH: 7.39,
-      addedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 5,
-      name: 'Lakindu Minosha',
-      room: 'Ward 1 10C',
-      age: 32,
-      status: 'WARNING',
-      department: 'Surgery',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Lakindu',
-      heartRate: 82,
-      bpm: 82,
-      temperature: 37.0,
-      bloodPressure: '120/80',
-      o2Saturation: 97,
-      respiratoryRate: 16,
-      pH: 7.40,
-      addedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 6,
-      name: 'Ben Southern',
-      room: 'Room No. 311B',
-      age: 52,
-      status: 'STABLE',
-      department: 'Pediatrics',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Ben',
-      heartRate: 75,
-      bpm: 75,
-      temperature: 36.9,
-      bloodPressure: '118/78',
-      o2Saturation: 98,
-      respiratoryRate: 15,
-      pH: 7.41,
-      addedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 7,
-      name: 'Emma Davis',
-      room: 'Room No. 250A',
-      age: 28,
-      status: 'STABLE',
-      department: 'Emergency',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Emma',
-      heartRate: 72,
-      bpm: 72,
-      temperature: 36.8,
-      bloodPressure: '115/75',
-      o2Saturation: 99,
-      respiratoryRate: 14,
-      pH: 7.40,
-      addedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: 8,
-      name: 'Michael Johnson',
-      room: 'Room No. 410C',
-      age: 58,
-      status: 'STABLE',
-      department: 'Surgery',
-      photo: 'https://via.placeholder.com/300x400/4a5568/ffffff?text=Michael',
-      heartRate: 70,
-      bpm: 70,
-      temperature: 36.7,
-      bloodPressure: '120/76',
-      o2Saturation: 98,
-      respiratoryRate: 14,
-      pH: 7.40,
-      addedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-    },
-  ])
+  // Fetch patients from API
+  useEffect(() => {
+    fetchPatients()
+    fetchStats()
+
+    // Set up periodic refresh every 60 seconds (1 minute) for live vitals
+    const refreshInterval = setInterval(async () => {
+      console.log('🔄 Refreshing live vitals from devices...')
+      try {
+        const token = localStorage.getItem('access_token')
+        const response = await axios.get(`${API_BASE_URL}/patients/live-vitals/bulk`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        
+        if (response.data.success && response.data.vitals.length > 0) {
+          // Update patients with live vitals data
+          setPatients(prev => prev.map(p => {
+            const liveVital = response.data.vitals.find(v => v.patient_id === p.id)
+            if (liveVital) {
+              return {
+                ...p,
+                heartRate: liveVital.heart_rate || p.heartRate,
+                bpm: liveVital.heart_rate || p.bpm,
+                spo2: liveVital.spo2 || p.spo2,
+                o2Saturation: liveVital.spo2 || p.o2Saturation,
+              }
+            }
+            return p
+          }))
+          console.log(`✓ Updated ${response.data.vitals.length} patients with live vitals`)
+        }
+      } catch (err) {
+        console.error('Failed to fetch bulk live vitals:', err)
+      }
+    }, 60000) // 60 seconds (1 minute)
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval)
+  }, [])
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`${API_BASE_URL}/patients`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          limit: 500
+        }
+      })
+
+      // Transform API data to match component expectations
+      const transformedPatients = response.data.patients.map(p => {
+        const latestVital = p.vitals?.[0] || {}
+        return {
+          id: p.id,
+          name: p.name,
+          room: p.room_number || 'Not Assigned',
+          age: p.age,
+          status: p.status,
+          department: p.department || 'General',
+          photo: p.photo_url || `https://via.placeholder.com/300x400/4a5568/ffffff?text=${p.name.split(' ')[0]}`,
+          heartRate: latestVital.heart_rate || 0,
+          bpm: latestVital.heart_rate || 0,
+          temperature: latestVital.temperature || 0,
+          bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          spo2: latestVital.oxygen_saturation || 0,
+          o2Saturation: latestVital.oxygen_saturation || 0,
+          addedDate: new Date(p.admission_date || p.created_at),
+        }
+      })
+
+      setPatients(transformedPatients)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to fetch patients:', err)
+      setError('Failed to load patients. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`${API_BASE_URL}/patients/statistics/summary`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      setStats({
+        total: response.data.total_patients,
+        critical: response.data.by_status.critical,
+        warning: response.data.by_status.warning,
+        stable: response.data.by_status.stable
+      })
+    } catch (err) {
+      console.error('Failed to fetch stats:', err)
+    }
+  }
+
+  const handleDeletePatient = async (patientId, patientName) => {
+    if (!confirm(`Are you sure you want to delete ${patientName}? This action cannot be undone and will also unassign any devices.`)) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('access_token')
+      await axios.delete(`${API_BASE_URL}/patients/${patientId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      // Refresh patient list and stats
+      await fetchPatients()
+      await fetchStats()
+      
+      alert(`Patient ${patientName} has been deleted successfully.`)
+    } catch (err) {
+      console.error('Failed to delete patient:', err)
+      alert(err.response?.data?.detail || 'Failed to delete patient. Please try again.')
+    }
+  }
+
+  const handleRefreshVitals = async (patientId) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}/live-vitals`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.data.success) {
+        // Update only this patient's vitals with live data
+        setPatients(prev => prev.map(p => {
+          if (p.id === patientId) {
+            return {
+              ...p,
+              heartRate: response.data.heart_rate || p.heartRate,
+              bpm: response.data.heart_rate || p.bpm,
+              spo2: response.data.spo2 || p.spo2,
+              o2Saturation: response.data.spo2 || p.o2Saturation,
+            }
+          }
+          return p
+        }))
+        console.log(`✓ Refreshed live vitals for patient ${patientId}`)
+      }
+    } catch (err) {
+      console.error('Failed to refresh vitals:', err)
+    }
+  }
+
 
   // Filter and sort logic
   const getFilteredAndSortedPatients = () => {
@@ -223,9 +253,27 @@ const PatientsPage = () => {
     console.log('Prescribe for patient:', patientId)
   }
 
-  const handleAddPatient = (newPatient) => {
-    setPatients([...patients, newPatient])
-    setIsAddPatientModalOpen(false)
+  const handleAddPatient = async (newPatient) => {
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.post(`${API_BASE_URL}/patients`, newPatient, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      // Refresh patient list after adding
+      await fetchPatients()
+      await fetchStats()
+      setIsAddPatientModalOpen(false)
+      
+      // Return the created patient data
+      return response.data
+    } catch (err) {
+      console.error('Failed to add patient:', err)
+      alert('Failed to add patient. Please try again.')
+    }
   }
 
   const handleLogout = () => {
@@ -251,25 +299,19 @@ const PatientsPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
               <p className="text-slate-400 text-sm">Total Patients</p>
-              <p className="text-2xl font-bold text-white">{patients.length}</p>
+              <p className="text-2xl font-bold text-white">{stats.total}</p>
             </div>
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
               <p className="text-slate-400 text-sm">Critical</p>
-              <p className="text-2xl font-bold text-red-400">
-                {patients.filter((p) => p.status === 'CRITICAL').length}
-              </p>
+              <p className="text-2xl font-bold text-red-400">{stats.critical}</p>
             </div>
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
               <p className="text-slate-400 text-sm">Warning</p>
-              <p className="text-2xl font-bold text-amber-400">
-                {patients.filter((p) => p.status === 'WARNING').length}
-              </p>
+              <p className="text-2xl font-bold text-amber-400">{stats.warning}</p>
             </div>
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
               <p className="text-slate-400 text-sm">Stable</p>
-              <p className="text-2xl font-bold text-emerald-400">
-                {patients.filter((p) => p.status === 'STABLE').length}
-              </p>
+              <p className="text-2xl font-bold text-emerald-400">{stats.stable}</p>
             </div>
           </div>
 
@@ -336,23 +378,46 @@ const PatientsPage = () => {
           </div>
 
           {/* Patient Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPatients.length > 0 ? (
-              filteredPatients.map((patient) => (
-                <PatientCard
-                  key={patient.id}
-                  patient={patient}
-                  onViewProfile={handleViewProfile}
-                  onViewVitals={handleViewVitals}
-                  onPrescribe={handlePrescribe}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-slate-400 text-lg">No patients found</p>
-              </div>
-            )}
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+              <p className="ml-4 text-slate-400">Loading patients...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-8 text-center">
+              <p className="text-red-400 text-lg">{error}</p>
+              <button
+                onClick={fetchPatients}
+                className="mt-4 px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPatients.length > 0 ? (
+                filteredPatients.map((patient) => (
+                  <PatientCard
+                    key={patient.id}
+                    patient={patient}
+                    onViewProfile={handleViewProfile}
+                    onViewVitals={handleViewVitals}
+                    onPrescribe={handlePrescribe}
+                    onDelete={handleDeletePatient}
+                    onRefresh={handleRefreshVitals}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-slate-400 text-lg">
+                    {patients.length === 0
+                      ? 'No patients in the system yet. Add your first patient!'
+                      : 'No patients match your filters'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
 

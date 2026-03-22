@@ -1,11 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin } from 'lucide-react'
+import { ArrowLeft, Heart, Droplet, Wind, Save, Pill, ChevronDown, ChevronUp, Zap, AlertCircle, CheckCircle, Clock, Phone, Mail, MapPin, Loader, Activity, Wifi, WifiOff, BarChart3, Brain } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
+import ECGChart from '../components/vitals/ECGChart'
+import SpO2Monitoring from '../components/vitals/SpO2Monitoring'
+import VitalsHistoryTab from '../components/vitals/VitalsHistoryTab'
+import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
+import axios from 'axios'
+import AIInsights from "../components/AIInsight/AIInsights";
+import { API_BASE_URL } from '../config'
 
 const PatientDetail = () => {
   const { patientId } = useParams()
@@ -14,149 +21,104 @@ const PatientDetail = () => {
   const [photo, setPhoto] = useState('https://via.placeholder.com/300x400/4a5568/ffffff?text=Patient')
   const [activeTab, setActiveTab] = useState('profile')
   const [expandedPrescription, setExpandedPrescription] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [patientData, setPatientData] = useState(null)
 
-  // Mock patient details
-  const [patientData] = useState({
-    id: patientId,
-    name: 'Wathsala Dewmina',
-    dateOfBirth: 'Jan 09, 2005',
-    room: 'Room No. 302A',
-    age: 20,
-    gender: 'Male',
-    bloodType: 'O+',
-    email: 'wathsaladeJwmina@gmail.com',
-    phone: '+94 76 589 3931',
-    address: '123 Main St, City, State',
-    status: 'CRITICAL',
-    admissionDate: '2025-12-15',
-    department: 'Cardiology',
-    condition: 'Low O2 Levels',
-    doctor: 'Dr. Sarah Smith',
-    nurse: 'Jane Johnson',
-    emergencyContact: {
-      name: 'Kasun Madushan',
-      relationship: 'Father',
-      phone: '+94 76 635 2356'
-    },
-    insurance: {
-      provider: 'Blue Cross Blue Shield',
-      policyNumber: 'ABC123456789',
-      groupNumber: 'GRP98765'
-    },
-    medicalHistory: ['Asthma', 'Allergies', 'Hypertension'],
-    vitals: {
-      heartRate: 110,
-      temperature: 38.5,
-      bloodPressure: '140/90',
-      o2Saturation: 92,
-      respiratoryRate: 22,
-      pH: 7.35,
-    },
-    prescriptions: [
-      {
-        id: 1,
-        name: 'Aspirin 100mg',
-        dosage: '1 tablet once daily (after breakfast)',
-        duration: 'Oct 25 - Nov 25 (7/31 days)',
-        status: 'ACTIVE',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Today at 14:30',
-        adherence: '100% (7/7 doses)',
-        notes: 'Antiplatelet Agent',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 2,
-        name: 'Metoprolol 50mg',
-        dosage: '1 tablet twice daily',
-        duration: 'Oct 20 - Dec 20 (ongoing)',
-        status: 'ACTIVE',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Yesterday at 10:15',
-        adherence: '95% (19/20 doses)',
-        notes: 'Beta Blocker - Heart Rate Control',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 3,
-        name: 'Lisinopril 10mg',
-        dosage: '1 tablet once daily',
-        duration: 'Oct 18 - Dec 18 (ongoing)',
-        status: 'SCHEDULED',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Pending',
-        adherence: 'N/A',
-        notes: 'ACE Inhibitor - Blood Pressure',
-        category: 'Cardiovascular'
-      },
-      {
-        id: 4,
-        name: 'Albuterol Inhaler',
-        dosage: '2 puffs as needed',
-        duration: 'Ongoing',
-        status: 'DISCONTINUED',
-        prescribedBy: 'Dr. Sarah Smith',
-        lastDispensed: 'Oct 15',
-        adherence: 'N/A',
-        notes: 'Discontinued - Patient improved',
-        category: 'Respiratory'
+  // Fetch patient data from API
+  useEffect(() => {
+    fetchPatientData()
+  }, [patientId])
+
+  const fetchPatientData = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('access_token')
+      
+      const response = await axios.get(`${API_BASE_URL}/patients/${patientId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      const patient = response.data
+      let overallRisk = {
+        score: 0,
+        level: 'LOW',
+        confidence: 0,
+        windowSeconds: 60,
+        samples: { ecg: 0, spo2: 0 },
+        contributors: { ecg: 0, spo2: 0, stability: 0 },
+        rationale: 'Risk model is warming up with incoming ECG and SpO2 predictions.'
       }
-    ],
-    aiSuggestions: {
-      confidence: 92,
-      medication: 'Clopidogrel (Plavix) 75mg',
-      reason: 'Antiplatelet Therapy',
-      indication: 'Patient with confirmed Acute Coronary Syndrome requires dual antiplatelet therapy (DAPT). Currently only on Aspirin. Adding Clopidogrel is strongly recommended per ACC/AHA guidelines for ACS management.',
-      evidence: [
-        'Elevated troponin levels (0.8 → 0.4 ng/mL)',
-        'ECG changes consistent with NSTEMI',
-        'Scheduled for cardiac catheterization'
-      ],
-      dosage: {
-        loading: 'Loading Dose: 600mg once (immediately)',
-        maintenance: 'Maintenance: 75mg once daily',
-        duration: 'At least 12 months post-ACS'
-      },
-      benefits: [
-        '20-30% reduction in cardiovascular events',
-        'Reduced risk of stent thrombosis',
-        'Improved outcomes post-catheterization'
-      ],
-      safetyAnalysis: [
-        { checked: true, text: 'No known allergies to this medication' },
-        { checked: true, text: 'No contraindications with conditions' },
-        { checked: true, text: 'Increased bleeding risk (monitor closely)' },
-        { checked: true, text: 'Compatible with current medications' },
-        { checked: true, text: 'Kidney function adequate (eGFR: 85)' },
-        { checked: false, text: 'No recent surgeries/bleeding events' }
-      ],
-      drugInteractions: [
-        'Aspirin: Additive antiplatelet effect (Expected - part of DAPT regimen)',
-        'Monitor for bleeding'
-      ],
-      clinicalGuidelines: [
-        'ACC/AHA NSTEMI Guidelines 2023',
-        'Class I Recommendation (Strong Evidence)',
-        'ESC Acute Coronary Syndromes 2023',
-        'CURE Trial: 20% relative risk reduction'
-      ],
-      similarCases: {
-        total: 847,
-        prescribed: 847,
-        outcomes: 89
-      },
-      monitoringPlan: [
-        'CBC: Baseline, then weekly for 1 month',
-        'Watch for: Bruising, bleeding, black stools',
-        'Hold 5-7 days before any surgery',
-        'Platelet function testing (if available)'
-      ],
-      costConsideration: {
-        generic: '-$15/month',
-        coverage: 'Yes'
+
+      try {
+        const insightResponse = await axios.get(`${API_BASE_URL}/patients/${patientId}/ai-insights`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (insightResponse?.data?.overallRisk) {
+          overallRisk = insightResponse.data.overallRisk
+        }
+      } catch {
+        // Keep profile usable if AI endpoint is unavailable.
       }
+
+      const latestVital = patient.vitals?.[0] || {}
+      
+      // Set photo with placeholder if none exists
+      const patientPhoto = patient.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name || 'Patient')}&size=400&background=3b82f6&color=ffffff&bold=true`
+      setPhoto(patientPhoto)
+      
+      // Transform API data to component format
+      const transformedData = {
+        id: patient.id,
+        name: patient.name || 'Unknown Patient',
+        dateOfBirth: patient.date_of_birth ? new Date(patient.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }) : 'N/A',
+        room: patient.room_number || 'Not Assigned',
+        age: patient.age || 0,
+        gender: patient.gender || 'Unknown',
+        bloodType: patient.blood_type || 'Unknown',
+        email: patient.email || 'N/A',
+        phone: patient.phone || 'N/A',
+        address: patient.address || 'N/A',
+        status: patient.status || 'STABLE',
+        admissionDate: patient.admission_date ? new Date(patient.admission_date).toLocaleDateString() : 'N/A',
+        department: patient.department || 'General',
+        condition: patient.primary_diagnosis || 'N/A',
+        doctor: patient.doctor_name ? `Dr. ${patient.doctor_name}` : 'Not Assigned',
+        nurse: 'Not Assigned',
+        emergencyContact: patient.emergency_contact || {
+          name: 'N/A',
+          relationship: 'N/A',
+          phone: 'N/A'
+        },
+        insurance: patient.insurance_info || {
+          provider: 'N/A',
+          policy_number: 'N/A',
+          group_number: 'N/A'
+        },
+        medicalHistory: Array.isArray(patient.medical_history) ? patient.medical_history : [],
+        vitals: {
+          heartRate: latestVital.heart_rate || 0,
+          temperature: latestVital.temperature || 0,
+          bloodPressure: latestVital.blood_pressure_systolic ? `${latestVital.blood_pressure_systolic}/${latestVital.blood_pressure_diastolic}` : 'N/A',
+          o2Saturation: latestVital.oxygen_saturation || 0,
+          respiratoryRate: latestVital.respiratory_rate || 0,
+          pH: latestVital.ph || 0,
+        },
+        prescriptions: patient.prescriptions || [],
+        overallRisk,
+        aiSuggestions: null // AI suggestions would come from separate endpoint
+      }
+
+      setPatientData(transformedData)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to fetch patient:', err)
+      setError('Failed to load patient data')
+    } finally {
+      setLoading(false)
     }
-  })
+  }
 
   const [notes, setNotes] = useState('')
   const [editMode, setEditMode] = useState(false)
@@ -175,6 +137,48 @@ const PatientDetail = () => {
     navigate('/doctor/login')
   }
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200">
+        <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
+        <div className="flex">
+          <Sidebar onLogout={handleLogout} />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4" />
+              <p className="text-slate-400">Loading patient data...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error || !patientData) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-200">
+        <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
+        <div className="flex">
+          <Sidebar onLogout={handleLogout} />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <p className="text-slate-400 mb-4">{error || 'Patient not found'}</p>
+              <button
+                onClick={() => navigate('/doctor/patients')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                Back to Patients
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200">
       <TopBar userName={`Dr. ${user?.full_name || 'Loading...'}`} />
@@ -183,57 +187,89 @@ const PatientDetail = () => {
         <Sidebar onLogout={handleLogout} />
 
         <main className="flex-1 p-6">
-          {/* Header with Back Button and Status */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/doctor/patients')}
-                className="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back
-              </button>
+          {/* Header with Back Button */}
+          <button
+            onClick={() => navigate('/doctor/patients')}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4 group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium">Back to Patients</span>
+          </button>
+
+          {/* Patient Header Card */}
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 mb-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white">{patientData.name}</h1>
-                <p className="text-slate-400">Patient ID: {patientData.id}</p>
+                <h1 className="text-2xl font-bold text-white mb-2">{patientData.name}</h1>
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">ID</span>
+                    <span className="text-slate-300 font-mono">{patientData.id}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Room</span>
+                    <span className="text-slate-300 font-semibold">{patientData.room}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500">Age</span>
+                    <span className="text-slate-300 font-semibold">{patientData.age} years</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-4 py-2 rounded-lg font-semibold text-sm ${
+                  patientData.status === 'CRITICAL'
+                    ? 'bg-red-900/30 text-red-400 border border-red-700'
+                    : patientData.status === 'WARNING'
+                    ? 'bg-amber-900/30 text-amber-400 border border-amber-700'
+                    : 'bg-emerald-900/30 text-emerald-400 border border-emerald-700'
+                }`}>
+                  {patientData.status}
+                </span>
               </div>
             </div>
-            <span className={`px-4 py-2 rounded-lg font-semibold border-2 ${
-              patientData.status === 'CRITICAL'
-                ? 'border-red-500 text-red-400 bg-red-500/10'
-                : 'border-amber-400 text-amber-300 bg-amber-400/10'
-            }`}>
-              {patientData.status}
-            </span>
           </div>
 
+          {/* Tab Navigation */}
           {/* Tab Navigation */}
           <div className="flex gap-4 mb-6 border-b border-slate-700 overflow-x-auto">
             {[
               { id: 'profile', label: 'Patient Profile' },
               { id: 'personal', label: 'Personal Information' },
-              { id: 'prescriptions', label: 'Prescriptions Management' }
+              { id: 'vitals-history', label: 'Vitals History', icon: BarChart3 },
+              { id: 'spo2-monitoring', label: 'SpO2 Monitoring', icon: Droplet },
+              { id: 'prescriptions', label: 'Prescriptions Management' },
+              { id: 'ai-insights', label: 'AI Insights', icon: Brain }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-sky-400 border-sky-400'
                     : 'text-slate-400 border-transparent hover:text-slate-300'
                 }`}
               >
+                {tab.icon && <tab.icon className="w-4 h-4" />}
                 {tab.label}
               </button>
             ))}
           </div>
-
           {/* Tab Content */}
           {activeTab === 'profile' && <ProfileTab patientData={patientData} photo={photo} setPhoto={setPhoto} handlePhotoSelected={handlePhotoSelected} notes={notes} setNotes={setNotes} editMode={editMode} setEditMode={setEditMode} handleSave={handleSave} />}
           
           {activeTab === 'personal' && <PersonalInformationTab patientData={patientData} />}
           
+          {activeTab === 'vitals-history' && <VitalsHistoryTab patientId={patientData.id} />}
+          
+          {activeTab === 'spo2-monitoring' && (
+            <div className="space-y-6">
+              <SpO2Monitoring patientId={patientData.id} />
+            </div>
+          )}
+          
           {activeTab === 'prescriptions' && <PrescriptionsTabComponent patientData={patientData} expandedPrescription={expandedPrescription} setExpandedPrescription={setExpandedPrescription} />}
+          {activeTab === 'ai-insights' && <AIInsights patientId={patientData.id} patientData={patientData} />}
         </main>
       </div>
     </div>
@@ -242,126 +278,324 @@ const PatientDetail = () => {
 
 // Profile Tab Component
 const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, editMode, setEditMode, handleSave }) => {
+  // Real-time vitals WebSocket connection (ONLY active when profile tab is open)
+  const { vitals: liveVitals, ecgData, connectionStatus, error: wsError } = useVitalsWebSocket(
+    patientData.id, 
+    true // Enable WebSocket
+  )
+
+  // Merge live vitals with static vitals (live takes precedence)
+  const displayVitals = {
+    heartRate: liveVitals.heartRate ?? patientData.vitals.heartRate,
+    temperature: liveVitals.temperature ?? patientData.vitals.temperature,
+    bloodPressure: patientData.vitals.bloodPressure, // BP not from live stream yet
+    o2Saturation: liveVitals.spo2 ?? patientData.vitals.o2Saturation
+  }
+
+  const overallRisk = patientData.overallRisk || { score: 0, level: 'LOW', confidence: 0, contributors: {} }
+  const riskTheme =
+    overallRisk.level === 'CRITICAL'
+      ? 'from-red-900/30 to-red-800/10 border-red-700/70 text-red-300'
+      : overallRisk.level === 'HIGH'
+      ? 'from-orange-900/30 to-orange-800/10 border-orange-700/70 text-orange-300'
+      : overallRisk.level === 'GUARDED'
+      ? 'from-amber-900/25 to-amber-800/10 border-amber-700/60 text-amber-300'
+      : 'from-emerald-900/25 to-emerald-800/10 border-emerald-700/60 text-emerald-300'
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column - Photo and Basic Info */}
-      <div className="lg:col-span-1 space-y-6">
+    <div className="space-y-6">
+      {/* Top Section - Patient Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Photo Section */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Patient Photo</h3>
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Patient Photo</h3>
           <PhotoUpload onPhotoSelected={handlePhotoSelected} currentPhoto={photo} />
         </div>
 
-        {/* Patient Info Card */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6">
+        {/* Basic Info */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Basic Information</h3>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Age</span>
-              <span className="text-white font-semibold">{patientData.age} years</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Age</p>
+              <p className="text-white font-semibold">{patientData.age} years</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Gender</span>
-              <span className="text-white font-semibold">{patientData.gender}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Gender</p>
+              <p className="text-white font-semibold">{patientData.gender}</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Blood Type</span>
-              <span className="text-white font-semibold">{patientData.bloodType}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Blood Type</p>
+              <p className="text-white font-semibold">{patientData.bloodType}</p>
             </div>
-            <div className="flex justify-between border-b border-slate-700 pb-3">
-              <span className="text-slate-400">Department</span>
-              <span className="text-white font-semibold">{patientData.department}</span>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Location</h3>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Room</p>
+              <p className="text-white font-semibold">{patientData.room}</p>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Admission</span>
-              <span className="text-white font-semibold">{patientData.admissionDate}</span>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Department</p>
+              <p className="text-white font-semibold">{patientData.department}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-xs mb-1">Admission Date</p>
+              <p className="text-white font-semibold">{patientData.admissionDate}</p>
             </div>
           </div>
         </div>
 
         {/* Care Team */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Care Team</h3>
-          <div className="space-y-4">
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Care Team</h3>
+          <div className="space-y-3 text-sm">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Primary Doctor</p>
+              <p className="text-slate-400 text-xs mb-1">Primary Doctor</p>
               <p className="text-white font-semibold">{patientData.doctor}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Nurse</p>
+              <p className="text-slate-400 text-xs mb-1">Assigned Nurse</p>
               <p className="text-white font-semibold">{patientData.nurse}</p>
             </div>
           </div>
         </div>
+
+        {/* Overall Digital Twin Risk */}
+        <div className={`bg-gradient-to-br ${riskTheme} border rounded-lg p-6`}>
+          <h3 className="text-sm font-semibold uppercase tracking-wide mb-4">Overall Risk</h3>
+          <div className="flex items-end gap-2 mb-3">
+            <p className="text-4xl font-bold text-white">{overallRisk.score ?? 0}</p>
+            <p className="text-xs text-slate-300 mb-1">/100</p>
+          </div>
+          <p className="text-xs font-semibold mb-3">{overallRisk.level || 'LOW'}</p>
+          <div className="w-full h-2 rounded-full bg-slate-800/70 overflow-hidden mb-3">
+            <div
+              className="h-full bg-sky-400 transition-all"
+              style={{ width: `${Math.min(100, Math.max(0, overallRisk.score || 0))}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-slate-200/80 leading-relaxed mb-2">
+            {overallRisk.rationale || 'Weighted ECG and SpO2 digital-twin risk model.'}
+          </p>
+          <p className="text-[11px] text-slate-300">
+            Confidence: {overallRisk.confidence ?? 0}%
+          </p>
+          <p className="text-[11px] text-slate-300 mt-1">
+            Window: {overallRisk.windowSeconds ?? 60}s | Samples ECG {overallRisk?.samples?.ecg ?? 0} / SpO2 {overallRisk?.samples?.spo2 ?? 0}
+          </p>
+        </div>
       </div>
 
-      {/* Right Column - Vitals and Details */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Current Vitals */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Current Vitals</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-red-400 text-sm font-semibold mb-2">
-                <Heart className="w-4 h-4" />
-                Heart Rate
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.heartRate}</p>
-              <p className="text-xs text-slate-400">bpm</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-orange-400 text-sm font-semibold mb-2">Temperature</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.temperature}</p>
-              <p className="text-xs text-slate-400">°C</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-blue-400 text-sm font-semibold mb-2">
-                <Droplet className="w-4 h-4" />
-                Blood Pressure
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.bloodPressure}</p>
-              <p className="text-xs text-slate-400">mmHg</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-emerald-400 text-sm font-semibold mb-2">O2 Saturation</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.o2Saturation}%</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center gap-2 text-purple-400 text-sm font-semibold mb-2">
-                <Wind className="w-4 h-4" />
-                RR
-              </div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.respiratoryRate}</p>
-              <p className="text-xs text-slate-400">breaths/min</p>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-              <div className="text-pink-400 text-sm font-semibold mb-2">pH Level</div>
-              <p className="text-2xl font-bold text-white">{patientData.vitals.pH}</p>
-            </div>
+      {/* Current Vitals - Full Width Large Section */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-white">Live Vital Signs Monitor</h3>
+            <p className="text-sm text-slate-400 mt-1">Real-time patient vitals from ESP32 wearable device</p>
           </div>
-          <p className="text-xs text-slate-400 mt-4">Last updated: 2 mins ago</p>
+          <div className="flex items-center gap-3">
+            {/* WebSocket Connection Status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+              connectionStatus === 'connected' 
+                ? 'bg-emerald-900/30 border border-emerald-700' 
+                : connectionStatus === 'connecting'
+                ? 'bg-yellow-900/30 border border-yellow-700'
+                : 'bg-red-900/30 border border-red-700'
+            }`}>
+              {connectionStatus === 'connected' ? (
+                <Wifi className="w-3 h-3 text-emerald-400" />
+              ) : (
+                <WifiOff className="w-3 h-3 text-red-400" />
+              )}
+              <span className={`text-xs font-semibold ${
+                connectionStatus === 'connected' 
+                  ? 'text-emerald-400' 
+                  : connectionStatus === 'connecting'
+                  ? 'text-yellow-400'
+                  : 'text-red-400'
+              }`}>
+                {connectionStatus === 'connected' ? 'Streaming' : connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
+              </span>
+            </div>
+            {wsError && (
+              <span className="text-xs text-red-400">{wsError}</span>
+            )}
+          </div>
         </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Heart Rate */}
+          <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 rounded-lg p-5 border border-red-800/30 relative">
+            {liveVitals.heartRate && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="w-5 h-5 text-red-400" />
+              <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">Heart Rate</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.heartRate || '--'}</p>
+            <p className="text-xs text-slate-400">bpm</p>
+          </div>
 
-        {/* Medical History */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Medical History</h3>
+          {/* Temperature */}
+          <div className="bg-gradient-to-br from-orange-900/20 to-orange-800/10 rounded-lg p-5 border border-orange-800/30 relative">
+            {liveVitals.temperature && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <Activity className="w-5 h-5 text-orange-400" />
+              <span className="text-xs font-semibold text-orange-400 uppercase tracking-wide">Temperature</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.temperature || '--'}</p>
+            <p className="text-xs text-slate-400">°C</p>
+          </div>
+
+          {/* Blood Pressure */}
+          <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/10 rounded-lg p-5 border border-blue-800/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Droplet className="w-5 h-5 text-blue-400" />
+              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wide">Blood Pressure</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.bloodPressure || 'N/A'}</p>
+            <p className="text-xs text-slate-400">mmHg</p>
+          </div>
+
+          {/* O2 Saturation */}
+          <div className="bg-gradient-to-br from-cyan-900/20 to-cyan-800/10 rounded-lg p-5 border border-cyan-800/30 relative">
+            {liveVitals.spo2 && (
+              <div className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <Wind className="w-5 h-5 text-cyan-400" />
+              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Oxygen</span>
+            </div>
+            <p className="text-4xl font-bold text-white mb-1">{displayVitals.o2Saturation || '--'}</p>
+            <p className="text-xs text-slate-400">% SpO2</p>
+            
+            {/* SpO2 Sensor Debug Status */}
+            {liveVitals.spo2Status && (
+              <div className="mt-3 pt-3 border-t border-cyan-800/30">
+                <div className="flex items-center gap-2 text-xs">
+                  {liveVitals.spo2Status.fingerDetected ? (
+                    <>
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                      <span className="text-emerald-400">Finger Detected</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-1.5 h-1.5 bg-amber-400 rounded-full"></div>
+                      <span className="text-amber-400">No Finger</span>
+                    </>
+                  )}
+                  {!liveVitals.spo2Status.valid && (
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="text-red-400">Invalid Reading</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sensor Status Debug Panel - Always visible when monitoring */}
+      {connectionStatus === 'connected' && (
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-4 h-4 text-slate-400" />
+            <h3 className="text-sm font-semibold text-slate-300">Sensor Status (Debug)</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            {/* ECG Sensor Status */}
+            {liveVitals.ecgStatus && (
+              <div className="bg-slate-800/50 rounded p-3 border border-slate-700">
+                <p className="text-slate-400 mb-2 font-semibold">ECG Sensor</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Leads:</span>
+                    <span className={liveVitals.ecgStatus.leadsOff ? 'text-red-400' : 'text-emerald-400'}>
+                      {liveVitals.ecgStatus.leadsOff ? 'Disconnected' : 'Connected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Active:</span>
+                    <span className={liveVitals.ecgStatus.active ? 'text-emerald-400' : 'text-slate-500'}>
+                      {liveVitals.ecgStatus.active ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  {liveVitals.ecgStatus.leadsOff && (
+                    <p className="text-amber-400 mt-2 text-xs">⚠️ Patient not wearing leads</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* SpO2 Sensor Status */}
+            {liveVitals.spo2Status && (
+              <div className="bg-slate-800/50 rounded p-3 border border-slate-700">
+                <p className="text-slate-400 mb-2 font-semibold">SpO2 Sensor</p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Finger:</span>
+                    <span className={liveVitals.spo2Status.fingerDetected ? 'text-emerald-400' : 'text-amber-400'}>
+                      {liveVitals.spo2Status.fingerDetected ? 'Detected' : 'Not Detected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Valid:</span>
+                    <span className={liveVitals.spo2Status.valid ? 'text-emerald-400' : 'text-red-400'}>
+                      {liveVitals.spo2Status.valid ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">IR Signal:</span>
+                    <span className="text-slate-300">{liveVitals.spo2Status.ir || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">RED Signal:</span>
+                    <span className="text-slate-300">{liveVitals.spo2Status.red || 0}</span>
+                  </div>
+                  {!liveVitals.spo2Status.fingerDetected && (
+                    <p className="text-amber-400 mt-2 text-xs">⚠️ Patient not using sensor</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ECG Live Chart */}
+      <ECGChart ecgData={ecgData} />
+
+      {/* Medical History and Medications */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Medical History</h3>
+          {patientData.medicalHistory.length > 0 ? (
             <div className="space-y-2">
               {patientData.medicalHistory.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-slate-300">
-                  <span className="w-2 h-2 bg-sky-500 rounded-full"></span>
+                <div key={idx} className="flex items-start gap-3 text-slate-300 text-sm">
+                  <span className="w-1.5 h-1.5 bg-sky-500 rounded-full mt-2"></span>
                   {item}
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-slate-400 text-sm">No medical history recorded</p>
+          )}
+        </div>
 
-          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Active Medications</h3>
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Active Medications</h3>
+          {patientData.prescriptions.filter(p => p.status === 'ACTIVE').length > 0 ? (
             <div className="space-y-2">
               {patientData.prescriptions.filter(p => p.status === 'ACTIVE').map((med, idx) => (
                 <div key={idx} className="flex items-center gap-3 text-slate-300 text-sm">
@@ -370,35 +604,42 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-slate-400 text-sm">No active medications</p>
+          )}
         </div>
+      </div>
 
-        {/* Clinical Notes */}
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Clinical Notes</h3>
-            <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm rounded-lg transition-colors border border-slate-600">
-              Add Note
-            </button>
-          </div>
-          <p className="text-slate-400 text-sm mb-4">Patient showing signs of improvement. Continue current treatment plan.</p>
+      {/* Clinical Notes */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Clinical Notes</h3>
+          <button className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm rounded transition-colors">
+            + Add Note
+          </button>
         </div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Enter clinical notes here..."
+          className="w-full bg-slate-800 border border-slate-700 rounded-lg p-4 text-slate-200 text-sm min-h-32 focus:outline-none focus:border-sky-500"
+        />
+      </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Add Note
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Prescribe
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Call
-          </button>
-          <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
-            Print
-          </button>
-        </div>
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <button className="px-4 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors text-sm font-semibold">
+          Save Changes
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Prescribe Medication
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Schedule Appointment
+        </button>
+        <button className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-600 text-sm font-semibold">
+          Print Report
+        </button>
       </div>
     </div>
   )
@@ -408,101 +649,131 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
 const PersonalInformationTab = ({ patientData }) => {
   return (
     <div className="space-y-6">
-      {/* Section 1: Personal Information */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">Personal Information</h2>
-          <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-600">
-            Edit
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h3>
-            <div className="space-y-4">
+      {/* Basic & Contact Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Basic Information */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Basic Information</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-400 text-sm font-bold">{patientData.name.charAt(0)}</span>
+              </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Full Name</p>
+                <p className="text-xs text-slate-400 mb-0.5">Full Name</p>
                 <p className="text-white font-semibold">{patientData.name}</p>
               </div>
-              <div>
-                <p className="text-slate-400 text-sm mb-1">Date of Birth</p>
-                <p className="text-white font-semibold">{patientData.dateOfBirth} (Age {patientData.age})</p>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Gender</p>
+                <p className="text-xs text-slate-400 mb-0.5">Date of Birth</p>
+                <p className="text-white font-semibold">{patientData.dateOfBirth}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Age: {patientData.age} years</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Gender</p>
                 <p className="text-white font-semibold">{patientData.gender}</p>
               </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                <Droplet className="w-5 h-5 text-red-400" />
+              </div>
               <div>
-                <p className="text-slate-400 text-sm mb-1">Blood Type</p>
+                <p className="text-xs text-slate-400 mb-0.5">Blood Type</p>
                 <p className="text-white font-semibold">{patientData.bloodType}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Contact Information</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Email</p>
-                  <p className="text-white font-semibold break-all">{patientData.email}</p>
-                </div>
+        {/* Contact Information */}
+        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-white mb-6">Contact Information</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-sky-400" />
               </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Phone</p>
-                  <p className="text-white font-semibold">{patientData.phone}</p>
-                </div>
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 mb-0.5">Email Address</p>
+                <p className="text-white font-semibold break-all">{patientData.email}</p>
               </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-sky-400 mt-1" />
-                <div>
-                  <p className="text-slate-400 text-sm mb-1">Address</p>
-                  <p className="text-white font-semibold">{patientData.address}</p>
-                </div>
+            </div>
+            <div className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <Phone className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Phone Number</p>
+                <p className="text-white font-semibold">{patientData.phone}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-3 bg-slate-800/50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-0.5">Home Address</p>
+                <p className="text-white font-semibold">{patientData.address}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Section 2: Emergency Contact */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <h2 className="text-xl font-bold text-white mb-6">Emergency Contact</h2>
+      {/* Emergency Contact */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">Emergency Contact</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Name</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Contact Name</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.name}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Relationship</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Relationship</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.relationship}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Phone</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Phone Number</p>
             <p className="text-white font-semibold text-lg">{patientData.emergencyContact.phone}</p>
           </div>
         </div>
       </div>
 
-      {/* Section 3: Insurance Information */}
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-8">
-        <h2 className="text-xl font-bold text-white mb-6">Insurance Information</h2>
+      {/* Insurance Information */}
+      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-cyan-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">Insurance Information</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Provider</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Insurance Provider</p>
             <p className="text-white font-semibold text-lg">{patientData.insurance.provider}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Policy Number</p>
-            <p className="text-white font-semibold text-lg">{patientData.insurance.policyNumber}</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Policy Number</p>
+            <p className="text-white font-semibold text-lg font-mono">{patientData.insurance.policy_number}</p>
           </div>
-          <div>
-            <p className="text-slate-400 text-sm mb-2">Group Number</p>
-            <p className="text-white font-semibold text-lg">{patientData.insurance.groupNumber}</p>
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <p className="text-xs text-slate-400 mb-2">Group Number</p>
+            <p className="text-white font-semibold text-lg font-mono">{patientData.insurance.group_number}</p>
           </div>
         </div>
       </div>
@@ -541,7 +812,6 @@ const PrescriptionsTab = ({ patientData, expandedPrescription, setExpandedPrescr
           { label: 'Active', count: activePrescriptions.length },
           { label: 'Scheduled', count: scheduledPrescriptions.length },
           { label: 'Discontinued', count: discontinuedPrescriptions.length },
-          { label: 'AI Suggestions', count: 1 },
           { label: 'All', count: patientData.prescriptions.length }
         ].map(tab => (
           <button key={tab.label} className="px-4 py-3 font-semibold text-sm border-b-2 border-sky-500 text-sky-400">
@@ -576,174 +846,17 @@ const PrescriptionsTab = ({ patientData, expandedPrescription, setExpandedPrescr
       {/* Discontinued Prescriptions */}
       <div>
         <h3 className="text-lg font-bold text-white mb-4">Discontinued Prescriptions ({discontinuedPrescriptions.length})</h3>
-        <div className="space-y-4">
-          {discontinuedPrescriptions.map(prescription => (
-            <PrescriptionCard key={prescription.id} prescription={prescription} isExpanded={expandedPrescription === prescription.id} onToggle={() => setExpandedPrescription(expandedPrescription === prescription.id ? null : prescription.id)} />
-          ))}
-        </div>
-      </div>
-
-      {/* AI Medication Suggestions */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-sky-500 rounded-xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Zap className="w-6 h-6 text-sky-400" />
-          <h2 className="text-2xl font-bold text-white">AI Medication Suggestions</h2>
-          <span className="ml-auto px-3 py-1 bg-sky-500 text-white rounded-full text-sm font-semibold">
-            Confidence: {patientData.aiSuggestions.confidence}%
-          </span>
-        </div>
-
-        <div className="space-y-6">
-          {/* Suggested Medication */}
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-sky-400/30">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-white">{patientData.aiSuggestions.medication}</h3>
-                <p className="text-slate-400 text-sm">{patientData.aiSuggestions.reason}</p>
-              </div>
-              <button className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-semibold">
-                Approve & Prescribe
-              </button>
-            </div>
+        {discontinuedPrescriptions.length > 0 ? (
+          <div className="space-y-4">
+            {discontinuedPrescriptions.map(prescription => (
+              <PrescriptionCard key={prescription.id} prescription={prescription} isExpanded={expandedPrescription === prescription.id} onToggle={() => setExpandedPrescription(expandedPrescription === prescription.id ? null : prescription.id)} />
+            ))}
           </div>
-
-          {/* Clinical Indication */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-3">Clinical Indication</h4>
-            <p className="text-slate-300 leading-relaxed">{patientData.aiSuggestions.indication}</p>
+        ) : (
+          <div className="bg-slate-900 border border-slate-700 rounded-lg p-8 text-center">
+            <p className="text-slate-400">No discontinued prescriptions</p>
           </div>
-
-          {/* Supporting Evidence */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-              Supporting Evidence
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.evidence.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-slate-300">
-                  <span className="w-1.5 h-1.5 bg-amber-400 rounded-full mt-2 flex-shrink-0"></span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Dosage Information */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Suggested Dosage</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-700/50 rounded p-4 border border-slate-600">
-                <p className="text-slate-400 text-sm mb-2">Loading Dose</p>
-                <p className="text-white font-semibold">{patientData.aiSuggestions.dosage.loading}</p>
-              </div>
-              <div className="bg-slate-700/50 rounded p-4 border border-slate-600">
-                <p className="text-slate-400 text-sm mb-2">Maintenance & Duration</p>
-                <p className="text-white font-semibold">{patientData.aiSuggestions.dosage.maintenance}</p>
-                <p className="text-white font-semibold text-sm">{patientData.aiSuggestions.dosage.duration}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Expected Benefits */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
-              Expected Benefits
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-slate-300">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></span>
-                  {benefit}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Safety Analysis */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Safety Analysis</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.safetyAnalysis.map((item, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-slate-300">
-                  <input type="checkbox" checked={item.checked} readOnly className="w-5 h-5 cursor-pointer" />
-                  {item.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Drug Interactions */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Drug Interactions</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.drugInteractions.map((item, idx) => (
-                <li key={idx} className="text-slate-300">• {item}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Clinical Guidelines */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4">Clinical Guidelines</h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.clinicalGuidelines.map((guideline, idx) => (
-                <li key={idx} className="text-slate-300">• {guideline}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Monitoring Plan */}
-          <div className="bg-slate-800/50 rounded-lg p-6">
-            <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-400" />
-              Monitoring Plan if Approved
-            </h4>
-            <ul className="space-y-2">
-              {patientData.aiSuggestions.monitoringPlan.map((plan, idx) => (
-                <li key={idx} className="text-slate-300">• {plan}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Similar Cases */}
-          <div className="bg-slate-700/50 rounded-lg p-6 border border-slate-600">
-            <p className="text-slate-300">
-              <span className="font-semibold">{patientData.aiSuggestions.similarCases.prescribed}</span> out of{' '}
-              <span className="font-semibold">{patientData.aiSuggestions.similarCases.total}</span> similar cases prescribed this medication with{' '}
-              <span className="font-semibold text-emerald-400">{patientData.aiSuggestions.similarCases.outcomes}% positive outcomes</span>
-            </p>
-          </div>
-
-          {/* Cost Consideration */}
-          <div className="bg-slate-700/50 rounded-lg p-6 border border-slate-600">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-300">Cost Consideration</span>
-              <span className="text-emerald-400 font-semibold">{patientData.aiSuggestions.costConsideration.generic}</span>
-            </div>
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-slate-300">Coverage</span>
-              <span className="text-emerald-400 font-semibold">{patientData.aiSuggestions.costConsideration.coverage}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t border-slate-700">
-            <button className="flex-1 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-bold">
-              Approve & Prescribe
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              Reject
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              Discuss
-            </button>
-            <button className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-bold border border-slate-600">
-              View Full Analysis
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
