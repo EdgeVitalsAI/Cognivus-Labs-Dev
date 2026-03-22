@@ -32,10 +32,10 @@ class AppColors {
   static const Color textMuted = Color(0xFF6B7280);
   static const Color textHint = Color(0xFF4B5563);
 
-  // Border & Divider Colors
-  static const Color border = Color(0xFF1E2544);
-  static const Color borderLight = Color(0xFF2A3352);
-  static const Color divider = Color(0xFF1A1F36);
+// Border & Divider Colors (Blue Theme)
+  static const Color border = Color(0xFF1E3A8A); 
+  static const Color borderLight = Color(0xFF3B82F6);
+  static const Color divider = Color(0xFF1E40AF);
 
   // Gradient Colors (matching the design)
   static const List<Color> backgroundGradient = [
