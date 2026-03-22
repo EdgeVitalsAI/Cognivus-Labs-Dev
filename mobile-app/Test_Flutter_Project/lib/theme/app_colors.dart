@@ -27,10 +27,12 @@ class AppColors {
   static const Color successLight = Color(0xFF66BB6A);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFB0B8D1);
-  static const Color textMuted = Color(0xFF6B7280);
-  static const Color textHint = Color(0xFF4B5563);
+
+  static const Color textPrimary = Color(0xFFC9D1D9);
+  static const Color textSecondary = Color(0xFF8B949E);
+  static const Color textMuted = Color(0xFF6E7681);
+  static const Color textHint = Color(0xFF484F58);
+
 
 // Border & Divider Colors (Blue Theme)
   static const Color border = Color(0xFF1E3A8A); 
