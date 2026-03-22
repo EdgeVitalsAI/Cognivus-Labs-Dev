@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Base vitals for each patient
-const baseVitals: Record<string, any> = {
-  PT001: { spo2: 97, pulse: 77, temp: 37.3, bpSys: 120, bpDia: 80 },
-  PT002: { spo2: 98, pulse: 72, temp: 36.8, bpSys: 118, bpDia: 75 },
-  PT003: { spo2: 94, pulse: 95, temp: 38.2, bpSys: 145, bpDia: 95 },
-};
+import { prisma } from '@/lib/db';
+import { MOCK_VITALS_BASE } from '@/lib/mock-data';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -20,7 +15,49 @@ export async function GET(
   { params }: { params: { patientId: string } }
 ) {
   const { patientId } = params;
-  const base = baseVitals[patientId.toUpperCase()];
+  const normalizedId = patientId.toUpperCase();
+  const useMock = process.env.USE_MOCK_DATA !== 'false';
+
+  if (!useMock) {
+    const latest = await prisma.vital.findFirst({
+      where: { patientId: normalizedId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!latest) {
+      return NextResponse.json(
+        { error: 'No vitals found for this patient' },
+        { status: 404 }
+      );
+    }
+
+    const vitals = {
+      spo2: {
+        value: Number(latest.spo2),
+        min: 95,
+        max: 100,
+      },
+      pulse: {
+        value: Number(latest.pulse),
+        min: 60,
+        max: 100,
+      },
+      temperature: {
+        value: Number(latest.temp),
+        min: 36.5,
+        max: 37.5,
+      },
+      bp: {
+        systolic: Number(latest.bpSys),
+        diastolic: Number(latest.bpDia),
+      },
+      timestamp: latest.createdAt.toISOString(),
+    };
+
+    return NextResponse.json(vitals);
+  }
+
+  const base = MOCK_VITALS_BASE[normalizedId];
 
   if (!base) {
     return NextResponse.json(
