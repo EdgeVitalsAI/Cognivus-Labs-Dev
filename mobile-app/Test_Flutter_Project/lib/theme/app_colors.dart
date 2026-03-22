@@ -9,11 +9,6 @@ class AppColors {
   static const Color cardBackground = Color(0xFF0D1229);
   static const Color cardBackgroundLight = Color(0xFF141B36);
 
-  // Primary Blue Colors
-  static const Color primary = Color(0xFF2323FF);
-  static const Color primaryLight = Color(0xFF6E80E7);
-  static const Color primaryDark = Color(0xFF1818B8);
-
   // Accent Colors from palette
   static const Color accentBlue = Color(0xFF6E80E7);
   static const Color accentLightBlue = Color(0xFF9CB4FB);
