@@ -1,10 +1,11 @@
 """
 ECG Monitoring Service
 Orchestrates ECG data flow: buffering → ML inference → WebSocket publishing
-Runs analysis every 2 seconds on 15-second sliding windows
+Runs analysis every 1 second on 15-second sliding windows
 """
 import asyncio
-from typing import Dict, Optional, Set
+from collections import deque
+from typing import Deque, Dict, List, Optional, Set
 from datetime import datetime
 
 from .ecg_buffer_manager import get_ecg_buffer_manager, ECGBuffer
@@ -15,11 +16,11 @@ class ECGMonitoringService:
     """
     Coordinates ECG monitoring workflow:
     1. Maintains buffers via ECGBufferManager
-    2. Runs ML inference every 2 seconds
+    2. Runs ML inference every 1 second
     3. Publishes results to WebSocket connections
     """
     
-    def __init__(self, inference_interval_seconds: int = 2):
+    def __init__(self, inference_interval_seconds: int = 1):
         self.inference_interval = inference_interval_seconds
         self.buffer_manager = get_ecg_buffer_manager()
         self.ml_service = get_ecg_ml_service()
@@ -29,6 +30,8 @@ class ECGMonitoringService:
         
         # Store latest predictions for each patient
         self.latest_predictions: Dict[int, ECGPrediction] = {}
+        self.prediction_history: Dict[int, Deque[ECGPrediction]] = {}
+        self.fast_alert_streaks: Dict[int, int] = {}
         
         # WebSocket connection manager (injected later)
         self.websocket_manager = None
@@ -73,11 +76,24 @@ class ECGMonitoringService:
     def get_latest_prediction(self, patient_id: int) -> Optional[ECGPrediction]:
         """Get the most recent prediction for a patient"""
         return self.latest_predictions.get(patient_id)
+
+    def get_recent_predictions(self, patient_id: int, within_seconds: int = 60) -> List[ECGPrediction]:
+        """Return rolling ECG predictions in the requested trailing time window."""
+        history = self.prediction_history.get(patient_id)
+        if not history:
+            return []
+
+        cutoff = datetime.utcnow().timestamp() - max(1, within_seconds)
+        return [p for p in history if p.timestamp.timestamp() >= cutoff]
+
+    def _record_prediction(self, patient_id: int, prediction: ECGPrediction):
+        history = self.prediction_history.setdefault(patient_id, deque(maxlen=240))
+        history.append(prediction)
     
     async def _monitoring_loop(self):
         """
         Main monitoring loop:
-        - Runs every 2 seconds
+        - Runs every 1 second
         - Performs ML inference on each active patient's buffer
         - Publishes results via WebSocket
         """
@@ -131,9 +147,14 @@ class ECGMonitoringService:
             
             # Run ML inference
             prediction = await self.ml_service.predict(ecg_window, patient_id)
+
+            # Fast detector fusion on most recent short window for faster transitions
+            quick_samples, _ = buffer.get_latest_samples(n_samples=750)  # ~3s at 250Hz
+            prediction = self._apply_fast_detector(patient_id, prediction, quick_samples)
             
             # Store prediction
             self.latest_predictions[patient_id] = prediction
+            self._record_prediction(patient_id, prediction)
             
             # Get latest samples for waveform display (2 seconds = 500 samples at 250Hz)
             latest_samples, latest_times = buffer.get_latest_samples(n_samples=500)
@@ -143,6 +164,54 @@ class ECGMonitoringService:
             
         except Exception as e:
             print(f"✗ Error processing patient {patient_id}: {e}")
+
+    def _apply_fast_detector(self, patient_id: int, base_prediction: ECGPrediction, recent_samples) -> ECGPrediction:
+        """Apply fast risk trigger with streak gating to speed up abrupt abnormal detection."""
+        try:
+            quick_score, reasons, quick_hr = self.ml_service.quick_risk_score(recent_samples)
+        except Exception:
+            return base_prediction
+
+        streak = self.fast_alert_streaks.get(patient_id, 0)
+        if quick_score >= 0.78:
+            streak += 1
+        elif quick_score < 0.55:
+            streak = 0
+        else:
+            streak = max(0, streak - 1)
+        self.fast_alert_streaks[patient_id] = streak
+
+        if streak < 2:
+            return base_prediction
+
+        escalated_trend = base_prediction.trend
+        # Do not force UNSTABLE from fast trigger alone when base model says NORMAL.
+        if quick_score >= 0.90 and base_prediction.trend in (base_prediction.trend.ABNORMAL, base_prediction.trend.UNSTABLE):
+            escalated_trend = base_prediction.trend.UNSTABLE
+        elif quick_score >= 0.82 and base_prediction.trend == base_prediction.trend.NORMAL:
+            escalated_trend = base_prediction.trend.ABNORMAL
+
+        if escalated_trend == base_prediction.trend:
+            return base_prediction
+
+        details = base_prediction.details + f" Fast trigger(score={quick_score:.2f}, streak={streak}"
+        if reasons:
+            details += f", reasons={'; '.join(reasons)}"
+        if quick_hr is not None:
+            details += f", quick_hr={quick_hr}"
+        details += ")."
+
+        confidence = max(base_prediction.confidence, quick_score * 100.0)
+        if base_prediction.trend == base_prediction.trend.NORMAL and escalated_trend == base_prediction.trend.ABNORMAL:
+            confidence = min(confidence, 88.0)
+        heart_rate = base_prediction.heart_rate if base_prediction.heart_rate is not None else quick_hr
+        return ECGPrediction(
+            trend=escalated_trend,
+            confidence=confidence,
+            timestamp=base_prediction.timestamp,
+            details=details,
+            heart_rate=heart_rate,
+        )
     
     async def _publish_results(self, patient_id: int, prediction: ECGPrediction, 
                                waveform_samples: list, waveform_times: list):

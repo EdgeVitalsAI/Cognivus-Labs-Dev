@@ -183,7 +183,7 @@ class ECGMLInferenceService:
                 if not self.allow_mock:
                     raise RuntimeError("ECG model is not loaded; predictions cannot be generated")
                 # Use mock prediction as fallback
-                prob = self._mock_predict(ecg_samples)
+                prob = self._mock_predict(ecg_samples, processed, heart_rate)
             else:
                 # Reshape for model input: (batch_size, timesteps, features)
                 X = processed.reshape(1, self.timesteps, 1).astype(np.float32)
@@ -201,19 +201,31 @@ class ECGMLInferenceService:
                 else:
                     raise RuntimeError("Loaded ECG model has no callable inference interface")
             
+            # Apply physiological guardrails only for mock-mode inference.
+            # For real model outputs, avoid forcing a persistent abnormal floor.
+            if not self.model_loaded or self.model is None:
+                risk_floor, risk_reasons = self._rhythm_risk_floor(processed, self.FS_TARGET, heart_rate)
+                effective_prob = max(prob, risk_floor)
+            else:
+                risk_floor, risk_reasons = 0.0, []
+                effective_prob = prob
+
             # Classify based on probability
-            if prob < 0.3:
+            if effective_prob < 0.40:
                 trend = ECGTrend.NORMAL
-                confidence = (1 - prob) * 100
+                confidence = (1 - effective_prob) * 100
                 details = "Regular sinus rhythm detected. No significant abnormalities."
-            elif prob < 0.7:
+            elif effective_prob < 0.75:
                 trend = ECGTrend.ABNORMAL
-                confidence = max(prob, 1 - prob) * 100
+                confidence = max(effective_prob, 1 - effective_prob) * 100
                 details = "Potential arrhythmia detected. Irregular heart rhythm patterns observed."
             else:
                 trend = ECGTrend.UNSTABLE
-                confidence = prob * 100
+                confidence = effective_prob * 100
                 details = "Critical cardiac rhythm abnormality detected. Immediate attention recommended."
+
+            if risk_reasons and trend != ECGTrend.NORMAL:
+                details = details + f" Rule flags: {', '.join(risk_reasons)}."
             
             return ECGPrediction(
                 trend=trend,
@@ -315,26 +327,128 @@ class ECGMLInferenceService:
             pass
         
         return None
-    
-    def _mock_predict(self, ecg_samples: np.ndarray) -> float:
-        """Mock prediction for development (when model is not loaded)"""
-        # Use signal variability as a simple heuristic
-        std = np.std(ecg_samples)
-        mean_abs = np.mean(np.abs(ecg_samples))
-        
-        # Lower variability suggests more regular rhythm (lower abnormality probability)
-        if std < 50:
-            prob = 0.15  # Normal
-        elif std < 150:
-            prob = 0.25  # Still normal
-        elif std < 300:
-            prob = 0.55  # Borderline abnormal
+
+    def _rhythm_risk_floor(self, signal: np.ndarray, fs: int, heart_rate: Optional[int]) -> Tuple[float, list]:
+        """Return minimum abnormal probability floor based on rhythm risk features."""
+        risk_floor = 0.0
+        reasons = []
+        severe_hr = False
+        severe_rr = False
+
+        if heart_rate is not None:
+            if heart_rate >= 145:
+                risk_floor = max(risk_floor, 0.72)
+                reasons.append(f"tachycardia_hr={heart_rate}")
+                severe_hr = True
+            elif heart_rate >= 125:
+                risk_floor = max(risk_floor, 0.58)
+                reasons.append(f"high_hr={heart_rate}")
+            elif heart_rate <= 42:
+                risk_floor = max(risk_floor, 0.65)
+                reasons.append(f"brady_hr={heart_rate}")
+                severe_hr = True
+            elif heart_rate <= 50:
+                risk_floor = max(risk_floor, 0.52)
+                reasons.append(f"low_hr={heart_rate}")
+
+        try:
+            from scipy.signal import find_peaks
+
+            peaks, _ = find_peaks(signal, distance=fs * 0.25, height=0.35)
+            if len(peaks) >= 6:
+                rr = np.diff(peaks) / fs
+                rr_std_ms = float(np.std(rr) * 1000.0)
+                rr_mean = float(np.mean(rr)) if np.mean(rr) > 1e-6 else 1.0
+                rr_cv = float(np.std(rr) / rr_mean)
+                rr_span_sec = float(np.sum(rr))
+
+                if rr_span_sec >= 6.0 and (rr_std_ms >= 180 or rr_cv >= 0.26):
+                    risk_floor = max(risk_floor, 0.70)
+                    reasons.append(f"rr_instability(std_ms={rr_std_ms:.0f},cv={rr_cv:.2f})")
+                    severe_rr = True
+                elif rr_span_sec >= 6.0 and (rr_std_ms >= 120 or rr_cv >= 0.18):
+                    risk_floor = max(risk_floor, 0.58)
+                    reasons.append(f"rr_variability(std_ms={rr_std_ms:.0f},cv={rr_cv:.2f})")
+                elif rr_span_sec >= 6.0 and (rr_std_ms >= 85 or rr_cv >= 0.13):
+                    risk_floor = max(risk_floor, 0.46)
+                    reasons.append(f"rr_irregular(std_ms={rr_std_ms:.0f},cv={rr_cv:.2f})")
+        except Exception:
+            pass
+
+        if severe_hr and severe_rr:
+            risk_floor = max(risk_floor, 0.80)
+            reasons.append("combined_severe_hr_rr")
         else:
-            prob = 0.85  # Abnormal
-        
-        # Add some randomness
-        prob += np.random.uniform(-0.05, 0.05)
-        return np.clip(prob, 0.0, 1.0)
+            # Guardrail should bias toward ABNORMAL when needed, but not force UNSTABLE alone.
+            risk_floor = min(risk_floor, 0.69)
+
+        return float(np.clip(risk_floor, 0.0, 0.95)), reasons
+    
+    def _mock_predict(self, ecg_samples: np.ndarray, processed_signal: np.ndarray, heart_rate: Optional[int]) -> float:
+        """Mock prediction for development (when model is not loaded)."""
+        try:
+            from scipy.signal import find_peaks
+
+            peaks, _ = find_peaks(processed_signal, distance=self.FS_TARGET * 0.25, height=0.35)
+            rr_std_ms = 0.0
+            rr_cv = 0.0
+            if len(peaks) >= 3:
+                rr_intervals = np.diff(peaks) / self.FS_TARGET
+                rr_std_ms = float(np.std(rr_intervals) * 1000.0)
+                rr_mean = float(np.mean(rr_intervals)) if np.mean(rr_intervals) > 1e-6 else 1.0
+                rr_cv = float(np.std(rr_intervals) / rr_mean)
+
+            derivative = np.diff(processed_signal)
+            derivative_std = float(np.std(derivative)) if len(derivative) else 0.0
+            p99_amp = float(np.percentile(np.abs(processed_signal), 99))
+
+            score = 0.10
+            if heart_rate is not None:
+                if heart_rate >= 130:
+                    score += 0.60
+                elif heart_rate >= 115:
+                    score += 0.45
+                elif heart_rate >= 105:
+                    score += 0.25
+                elif heart_rate <= 48:
+                    score += 0.35
+
+            if rr_std_ms >= 140:
+                score += 0.50
+            elif rr_std_ms >= 90:
+                score += 0.35
+            elif rr_std_ms >= 60:
+                score += 0.20
+
+            if rr_cv >= 0.20:
+                score += 0.35
+            elif rr_cv >= 0.13:
+                score += 0.20
+
+            if derivative_std >= 0.33:
+                score += 0.22
+            elif derivative_std >= 0.25:
+                score += 0.12
+
+            if p99_amp >= 3.3:
+                score += 0.25
+            elif p99_amp >= 2.6:
+                score += 0.14
+
+            score += np.random.uniform(-0.03, 0.03)
+            return float(np.clip(score, 0.0, 0.98))
+        except Exception:
+            std = float(np.std(ecg_samples))
+            if std < 50:
+                prob = 0.20
+            elif std < 150:
+                prob = 0.35
+            elif std < 300:
+                prob = 0.60
+            else:
+                prob = 0.85
+            prob += np.random.uniform(-0.05, 0.05)
+            return float(np.clip(prob, 0.0, 1.0))
 
 
 # Global instance

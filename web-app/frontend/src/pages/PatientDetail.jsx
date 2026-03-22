@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar'
 import PhotoUpload from '../components/patients/PhotoUpload'
 import PrescriptionsTabComponent from '../components/patients/PrescriptionsTab'
 import ECGChart from '../components/vitals/ECGChart'
+import SpO2Monitoring from '../components/vitals/SpO2Monitoring'
 import VitalsHistoryTab from '../components/vitals/VitalsHistoryTab'
 import useVitalsWebSocket from '../hooks/useVitalsWebSocket'
 import { authService } from '../services/api'
@@ -41,6 +42,28 @@ const PatientDetail = () => {
       })
 
       const patient = response.data
+      let overallRisk = {
+        score: 0,
+        level: 'LOW',
+        confidence: 0,
+        windowSeconds: 60,
+        samples: { ecg: 0, spo2: 0 },
+        contributors: { ecg: 0, spo2: 0, stability: 0 },
+        rationale: 'Risk model is warming up with incoming ECG and SpO2 predictions.'
+      }
+
+      try {
+        const insightResponse = await axios.get(`${API_BASE_URL}/patients/${patientId}/ai-insights`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (insightResponse?.data?.overallRisk) {
+          overallRisk = insightResponse.data.overallRisk
+        }
+      } catch {
+        // Keep profile usable if AI endpoint is unavailable.
+      }
+
       const latestVital = patient.vitals?.[0] || {}
       
       // Set photo with placeholder if none exists
@@ -85,6 +108,7 @@ const PatientDetail = () => {
           pH: latestVital.ph || 0,
         },
         prescriptions: patient.prescriptions || [],
+        overallRisk,
         aiSuggestions: null // AI suggestions would come from separate endpoint
       }
 
@@ -215,6 +239,7 @@ const PatientDetail = () => {
               { id: 'profile', label: 'Patient Profile' },
               { id: 'personal', label: 'Personal Information' },
               { id: 'vitals-history', label: 'Vitals History', icon: BarChart3 },
+              { id: 'spo2-monitoring', label: 'SpO2 Monitoring', icon: Droplet },
               { id: 'prescriptions', label: 'Prescriptions Management' },
               { id: 'ai-insights', label: 'AI Insights', icon: Brain }
             ].map(tab => (
@@ -238,6 +263,12 @@ const PatientDetail = () => {
           {activeTab === 'personal' && <PersonalInformationTab patientData={patientData} />}
           
           {activeTab === 'vitals-history' && <VitalsHistoryTab patientId={patientData.id} />}
+          
+          {activeTab === 'spo2-monitoring' && (
+            <div className="space-y-6">
+              <SpO2Monitoring patientId={patientData.id} />
+            </div>
+          )}
           
           {activeTab === 'prescriptions' && <PrescriptionsTabComponent patientData={patientData} expandedPrescription={expandedPrescription} setExpandedPrescription={setExpandedPrescription} />}
           {activeTab === 'ai-insights' && <AIInsights patientId={patientData.id} patientData={patientData} />}
@@ -263,10 +294,20 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
     o2Saturation: liveVitals.spo2 ?? patientData.vitals.o2Saturation
   }
 
+  const overallRisk = patientData.overallRisk || { score: 0, level: 'LOW', confidence: 0, contributors: {} }
+  const riskTheme =
+    overallRisk.level === 'CRITICAL'
+      ? 'from-red-900/30 to-red-800/10 border-red-700/70 text-red-300'
+      : overallRisk.level === 'HIGH'
+      ? 'from-orange-900/30 to-orange-800/10 border-orange-700/70 text-orange-300'
+      : overallRisk.level === 'GUARDED'
+      ? 'from-amber-900/25 to-amber-800/10 border-amber-700/60 text-amber-300'
+      : 'from-emerald-900/25 to-emerald-800/10 border-emerald-700/60 text-emerald-300'
+
   return (
     <div className="space-y-6">
       {/* Top Section - Patient Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Photo Section */}
         <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
           <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Patient Photo</h3>
@@ -324,6 +365,31 @@ const ProfileTab = ({ patientData, photo, handlePhotoSelected, notes, setNotes, 
               <p className="text-white font-semibold">{patientData.nurse}</p>
             </div>
           </div>
+        </div>
+
+        {/* Overall Digital Twin Risk */}
+        <div className={`bg-gradient-to-br ${riskTheme} border rounded-lg p-6`}>
+          <h3 className="text-sm font-semibold uppercase tracking-wide mb-4">Overall Risk</h3>
+          <div className="flex items-end gap-2 mb-3">
+            <p className="text-4xl font-bold text-white">{overallRisk.score ?? 0}</p>
+            <p className="text-xs text-slate-300 mb-1">/100</p>
+          </div>
+          <p className="text-xs font-semibold mb-3">{overallRisk.level || 'LOW'}</p>
+          <div className="w-full h-2 rounded-full bg-slate-800/70 overflow-hidden mb-3">
+            <div
+              className="h-full bg-sky-400 transition-all"
+              style={{ width: `${Math.min(100, Math.max(0, overallRisk.score || 0))}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-slate-200/80 leading-relaxed mb-2">
+            {overallRisk.rationale || 'Weighted ECG and SpO2 digital-twin risk model.'}
+          </p>
+          <p className="text-[11px] text-slate-300">
+            Confidence: {overallRisk.confidence ?? 0}%
+          </p>
+          <p className="text-[11px] text-slate-300 mt-1">
+            Window: {overallRisk.windowSeconds ?? 60}s | Samples ECG {overallRisk?.samples?.ecg ?? 0} / SpO2 {overallRisk?.samples?.spo2 ?? 0}
+          </p>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import axios from 'axios'
 import ECGMonitoring from '../ECG/ECGMonitoring'
 
 const API_BASE_URL = 'http://localhost:8000/api'
-const WS_BASE_URL = 'ws://localhost:8001/api'
+const WS_BASE_URL = 'ws://localhost:8000/api'
 
 const AIInsights = ({ patientId, patientData }) => {
   const [loading, setLoading] = useState(true)
@@ -16,15 +16,21 @@ const AIInsights = ({ patientId, patientData }) => {
   const reconnectTimerRef = useRef(null)
 
   useEffect(() => {
-    checkDeviceStatus()
+    fetchAIInsights()
+    const ecgWs = connectToECGWebSocket()
+    const spo2Ws = connectToSpO2WebSocket()
+
+    const poller = setInterval(() => {
+      fetchSpO2Prediction()
+    }, 3000)
 
     return () => {
-      // Cleanup WebSocket and timers on unmount
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.close()
+      clearInterval(poller)
+      if (ecgWs && ecgWs.readyState === WebSocket.OPEN) {
+        ecgWs.close()
       }
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current)
+      if (spo2Ws && spo2Ws.readyState === WebSocket.OPEN) {
+        spo2Ws.close()
       }
     }
   }, [patientId])
@@ -117,14 +123,98 @@ const AIInsights = ({ patientId, patientData }) => {
 
       ws.onclose = () => {
         setWsConnected(false)
-        // Only reconnect if device was online and component is still mounted
-        if (deviceStatus === 'online') {
-          reconnectTimerRef.current = setTimeout(() => connectToECGWebSocket(), 3000)
+      }
+      
+      return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
         }
       }
     } catch (err) {
       console.error('Failed to connect ECG WebSocket:', err)
       setWsConnected(false)
+    }
+  }
+
+  const connectToSpO2WebSocket = () => {
+    try {
+      const ws = new WebSocket(`${WS_BASE_URL}/ws/spo2/${patientId}`)
+
+      ws.onopen = () => {
+        console.log('✓ AIInsights: SpO2 WebSocket connected')
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          if (message.type !== 'spo2_prediction') {
+            return
+          }
+
+          const trend = message.trend || 'stable'
+          setAiInsights(prev => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              spo2Health: {
+                ...prev.spo2Health,
+                status: trend,
+                trend,
+                confidence: Math.round(message.confidence || 0),
+                currentValue: message.current_value ?? prev.spo2Health.currentValue,
+                averageValue: message.average_value ?? prev.spo2Health.averageValue,
+                details: message.details || prev.spo2Health.details,
+                lastAnalyzed: message.timestamp || new Date().toISOString()
+              }
+            }
+          })
+        } catch (err) {
+          console.error('Error parsing SpO2 WebSocket message:', err)
+        }
+      }
+
+      ws.onerror = (error) => {
+        console.error('✗ AIInsights: SpO2 WebSocket error:', error)
+      }
+
+      ws.onclose = () => {
+        console.log('✗ AIInsights: SpO2 WebSocket closed')
+      }
+
+      return ws
+    } catch (err) {
+      console.error('Failed to connect SpO2 WebSocket:', err)
+      return null
+    }
+  }
+
+  const fetchSpO2Prediction = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/spo2/prediction/${patientId}`)
+      if (!response.data?.success) {
+        return
+      }
+
+      const data = response.data
+      const trend = data.trend || 'stable'
+      setAiInsights(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          spo2Health: {
+            ...prev.spo2Health,
+            status: trend,
+            trend,
+            confidence: Math.round(data.confidence || 0),
+            currentValue: data.current_value ?? prev.spo2Health.currentValue,
+            averageValue: data.average_value ?? prev.spo2Health.averageValue,
+            details: data.details || prev.spo2Health.details,
+            lastAnalyzed: data.timestamp || prev.spo2Health.lastAnalyzed
+          }
+        }
+      })
+    } catch (err) {
+      // Keep UI functional even when prediction endpoint is not yet available.
     }
   }
 
@@ -149,11 +239,12 @@ const AIInsights = ({ patientId, patientData }) => {
           lastAnalyzed: new Date().toISOString()
         },
         spo2Health: {
-          status: 'waiting',
-          trend: 'waiting',
-          currentValue: 0,
-          averageValue: 0,
-          details: 'Waiting for SpO2 data from device.',
+          status: 'stable', // 'declining', 'stable', or 'improving'
+          trend: 'stable',
+          confidence: 0,
+          currentValue: 98,
+          averageValue: 97.5,
+          details: 'Oxygen saturation levels are within normal range and stable.',
           lastAnalyzed: new Date().toISOString()
         },
         temperatureStatus: {
@@ -541,6 +632,10 @@ const SpO2HealthCard = ({ data }) => {
       <p className="text-slate-300 text-sm mb-3">{data.details}</p>
 
       <div className="pt-3 border-t border-slate-700 space-y-2">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span>Confidence</span>
+          <span className="font-semibold text-white">{data.confidence ?? 0}%</span>
+        </div>
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>Current</span>
           <span className="font-semibold text-white">{data.currentValue}%</span>

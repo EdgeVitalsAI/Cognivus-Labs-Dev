@@ -9,7 +9,9 @@ from .core.background_tasks import start_background_tasks
 from .services.ecg_buffer_manager import start_ecg_buffer_manager, stop_ecg_buffer_manager
 from .services.ecg_monitoring_service import start_ecg_monitoring_service, stop_ecg_monitoring_service
 from .services.ecg_ml_inference import initialize_ecg_ml_service
-from .services.ecg_hardware_ingestion import start_ecg_hardware_ingestion, stop_ecg_hardware_ingestion
+from .services.spo2_buffer_manager import start_spo2_buffer_manager, stop_spo2_buffer_manager
+from .services.spo2_monitoring_service import start_spo2_monitoring_service, stop_spo2_monitoring_service
+from .services.spo2_ml_inference import initialize_spo2_ml_service
 from .api.routes import (
     auth,
     admin_auth,
@@ -29,7 +31,8 @@ from .api.routes import (
     vitals_websocket,  # Real-time vitals WebSocket streaming
     live_vitals,  # Live vitals from ESP32 HTTP endpoints
     vitals_history,  # Historical vitals from TimescaleDB
-    ecg_websocket  # ECG monitoring with ML inference
+    ecg_websocket,  # ECG monitoring with ML inference
+    spo2_websocket  # SpO2 monitoring with ML inference
 )
 import os 
 
@@ -130,16 +133,44 @@ async def startup_event():
     start_ecg_monitoring_service()
     print("✓ ECG monitoring and ML inference services started")
 
-    # Start real hardware ECG ingestion (connects to ESP32 devices via WebSocket)
-    start_ecg_hardware_ingestion()
-    print("✓ ECG hardware ingestion service started (real ESP32 devices)")
+    # Resolve SpO2 MEDIUM model location with graceful fallback
+    env_spo2_model = Path(str(os.getenv("SPO2_MODEL_PATH", ""))).expanduser()
+    spo2_candidates = []
+    if env_spo2_model.name:
+        spo2_candidates.append(env_spo2_model)
+
+    workspace_root = repo_root.parent.parent
+    spo2_candidates.extend([
+        repo_root / "ml-models" / "spo2-prediction" / "model" / "model_medium.keras",
+        workspace_root / "ml-models" / "spo2-prediction" / "model" / "model_medium.keras",
+    ])
+
+    spo2_model_path = next((p for p in spo2_candidates if p and Path(p).exists()), None)
+
+    if spo2_model_path:
+        try:
+            initialize_spo2_ml_service(str(spo2_model_path), allow_mock=False)
+            print(f"✓ SpO2 MEDIUM model initialized from {spo2_model_path}")
+        except RuntimeError:
+            initialize_spo2_ml_service(str(spo2_model_path), allow_mock=True)
+            print("⚠️ SpO2 model load failed; initialized with mock predictions")
+    else:
+        initialize_spo2_ml_service(None, allow_mock=True)
+        print("⚠️ SpO2 MEDIUM model not found; initialized with mock predictions")
+
+    start_spo2_buffer_manager()
+    start_spo2_monitoring_service()
+    print("✓ SpO2 monitoring and ML inference services started")
 
 
 # Shutdown event - cleanup
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on application shutdown"""
-    stop_ecg_hardware_ingestion()
+    stop_spo2_monitoring_service()
+    stop_spo2_buffer_manager()
+    print("✓ SpO2 monitoring services stopped")
+
     stop_ecg_monitoring_service()
     stop_ecg_buffer_manager()
     print("✓ ECG monitoring services stopped")
@@ -175,6 +206,9 @@ app.include_router(vitals_websocket.router, prefix="/api", tags=["Real-Time Vita
 
 # ECG monitoring with ML inference
 app.include_router(ecg_websocket.router, prefix="/api", tags=["ECG Monitoring"])
+
+# SpO2 monitoring with ML inference
+app.include_router(spo2_websocket.router, prefix="/api", tags=["SpO2 Monitoring"])
 
 
 @app.get("/")
