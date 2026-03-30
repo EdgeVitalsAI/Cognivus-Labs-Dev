@@ -381,10 +381,7 @@ export default function AdminDashboard() {
               }}>
                 <Users style={{ width: '24px', height: '24px', color: '#16a34a' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '12px' }}>
-                <TrendingUp style={{ width: '12px', height: '12px' }} />
-                <span>+8%</span>
-              </div>
+              <div />
             </div>
             <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Active Patients</p>
             <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.total_patients || 0}</p>
@@ -407,14 +404,11 @@ export default function AdminDashboard() {
               }}>
                 <AlertTriangle style={{ width: '24px', height: '24px', color: '#eab308' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#dc2626', fontSize: '12px' }}>
-                <TrendingUp style={{ width: '12px', height: '12px' }} />
-                <span>+3</span>
-              </div>
+              <div />
             </div>
             <p style={{ fontSize: '13px', color: currentTheme.textSecondary, margin: '0 0 4px 0' }}>Alerts Today</p>
             <p style={{ fontSize: '32px', fontWeight: '600', color: currentTheme.textPrimary, margin: '0' }}>{analytics?.alerts_today || 0}</p>
-            <p style={{ fontSize: '12px', color: '#eab308', marginTop: '8px' }}>2 critical</p>
+            <p style={{ fontSize: '12px', color: '#eab308', marginTop: '8px' }}>{analytics?.alerts_today > 0 ? `${analytics.alerts_today} total today` : 'No alerts today'}</p>
           </div>
 
           {/* System Health Card */}

@@ -11,6 +11,7 @@ from ...core.database import get_db
 from ...models.system_log import SystemLog, SystemHealth
 from ...models.device import Device, DeviceLog, DeviceStatus
 from ...models.user import User
+from ...models.notification import Notification
 
 router = APIRouter()
 
@@ -161,7 +162,9 @@ async def get_analytics(db: Session = Depends(get_db)):
         "total_patients": total_devices,  # Assuming 1:1 mapping
         "total_doctors": total_doctors,
         "total_staff": total_staff,
-        "alerts_today": 15,  # Mock data
+        "alerts_today": db.query(func.count(Notification.id)).filter(
+            Notification.created_at >= datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        ).scalar() or 0,
         "devices_by_status": devices_by_status,
         "hourly_activity": hourly_activity
     }

@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Label } from 'recharts'
+import { Users } from 'lucide-react'
 import axios from 'axios'
 import { API_BASE_URL } from '../../config'
 
-const COLORS = {
-  critical: '#ef4444',
-  warning: '#f59e0b',
-  stable: '#22c55e',
+const STATUS = {
+  critical: { color: '#ef4444', label: 'Critical', bg: 'bg-red-500/10', text: 'text-red-400', bar: 'bg-red-500' },
+  warning:  { color: '#f59e0b', label: 'Warning',  bg: 'bg-amber-500/10', text: 'text-amber-400', bar: 'bg-amber-500' },
+  stable:   { color: '#22c55e', label: 'Stable',   bg: 'bg-emerald-500/10', text: 'text-emerald-400', bar: 'bg-emerald-500' },
 }
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
   const d = payload[0]
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 shadow-xl">
-      <p className="text-sm font-medium" style={{ color: d.payload.fill }}>
-        {d.name}: {d.value}
-      </p>
+    <div className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 shadow-2xl">
+      <p className="text-sm font-semibold" style={{ color: d.payload.fill }}>{d.name}</p>
+      <p className="text-xs text-slate-400">{d.value} patients</p>
     </div>
   )
 }
@@ -37,9 +37,9 @@ export default function PatientStatusChart() {
       })
       const s = res.data.patients_by_status || {}
       const chartData = [
-        { name: 'Critical', value: s.critical || 0, fill: COLORS.critical },
-        { name: 'Warning', value: s.warning || 0, fill: COLORS.warning },
-        { name: 'Stable', value: s.stable || 0, fill: COLORS.stable },
+        { name: 'Critical', value: s.critical || 0, fill: STATUS.critical.color, key: 'critical' },
+        { name: 'Warning',  value: s.warning  || 0, fill: STATUS.warning.color,  key: 'warning'  },
+        { name: 'Stable',   value: s.stable   || 0, fill: STATUS.stable.color,   key: 'stable'   },
       ].filter((d) => d.value > 0)
       setData(chartData)
     } catch (e) {
@@ -52,57 +52,101 @@ export default function PatientStatusChart() {
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-700">
-        <h3 className="text-sm font-semibold text-white">Patient Status</h3>
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden h-full flex flex-col">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2.5 flex-shrink-0">
+        <div className="p-1.5 rounded-lg bg-[#6E80E7]/10">
+          <Users className="w-4 h-4 text-[#6E80E7]" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-white">Patient Status</h3>
+          <p className="text-[11px] text-slate-500">Current ward distribution</p>
+        </div>
       </div>
-      <div className="p-5">
+
+      <div className="flex-1 p-5 flex flex-col justify-between min-h-0">
         {loading ? (
-          <div className="h-[180px] flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6E80E7]"></div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-700 border-t-[#6E80E7]" />
           </div>
         ) : data.length === 0 ? (
-          <div className="h-[180px] flex items-center justify-center text-slate-500 text-sm">
-            No patient data
+          <div className="flex-1 flex flex-col items-center justify-center gap-2">
+            <Users className="w-10 h-10 text-slate-700" />
+            <p className="text-sm text-slate-500">No patient data</p>
           </div>
         ) : (
-          <div className="flex items-center gap-4">
-            <div className="w-[140px] h-[140px]">
+          <>
+            {/* Donut chart */}
+            <div className="flex-1 min-h-0" style={{ minHeight: 180 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={data}
                     cx="50%"
                     cy="50%"
-                    innerRadius={40}
-                    outerRadius={65}
+                    innerRadius="45%"
+                    outerRadius="70%"
                     dataKey="value"
-                    strokeWidth={0}
+                    strokeWidth={3}
+                    stroke="#0f172a"
+                    paddingAngle={3}
                   >
-                    {data.map((d, i) => (
-                      <Cell key={i} fill={d.fill} />
-                    ))}
+                    {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                    <Label
+                      content={({ viewBox }) => {
+                        const { cx, cy } = viewBox
+                        return (
+                          <g>
+                            <text x={cx} y={cy - 6} textAnchor="middle" fill="#ffffff" fontSize={26} fontWeight="700">
+                              {total}
+                            </text>
+                            <text x={cx} y={cy + 14} textAnchor="middle" fill="#64748b" fontSize={11}>
+                              patients
+                            </text>
+                          </g>
+                        )
+                      }}
+                    />
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex-1 space-y-2">
-              {data.map((d) => (
-                <div key={d.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.fill }} />
-                    <span className="text-xs text-slate-400">{d.name}</span>
+
+            {/* Legend with bars */}
+            <div className="space-y-2.5 mt-4 flex-shrink-0">
+              {[
+                { key: 'critical', name: 'Critical' },
+                { key: 'warning',  name: 'Warning'  },
+                { key: 'stable',   name: 'Stable'   },
+              ].map(({ key, name }) => {
+                const entry = data.find(d => d.key === key)
+                const val = entry?.value || 0
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0
+                const s = STATUS[key]
+                return (
+                  <div key={key}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full`} style={{ backgroundColor: s.color }} />
+                        <span className="text-xs text-slate-400">{name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-semibold ${s.text}`}>{val}</span>
+                        <span className="text-[10px] text-slate-600">{pct}%</span>
+                      </div>
+                    </div>
+                    <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${s.bar} rounded-full transition-all duration-700`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="text-sm font-semibold text-white">{d.value}</span>
-                </div>
-              ))}
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-500">Total</span>
-                <span className="text-sm font-semibold text-slate-300">{total}</span>
-              </div>
+                )
+              })}
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
